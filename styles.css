@@ -4373,6 +4373,15 @@ input[type="range"] {
   text-align: right;
 }
 
+.foot-meta a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.foot-meta a:hover {
+  color: var(--signal);
+}
+
 .to-top {
   position: fixed;
   right: 22px;
