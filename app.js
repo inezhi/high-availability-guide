@@ -1588,12 +1588,12 @@
       if (correct) {
         quizState.score += 1;
         if (quizFeedback) {
-          quizFeedback.textContent = "正确。" + item.why;
+          quizFeedback.textContent = "对了。" + item.why;
           quizFeedback.className = "quiz-feedback is-ok";
         }
       } else if (quizFeedback) {
         quizFeedback.textContent =
-          "错误。正确答案是 " + letters[item.answer] + "。" + item.why;
+          "差一点，正确答案是 " + letters[item.answer] + "。" + item.why;
         quizFeedback.className = "quiz-feedback is-bad";
       }
 
@@ -1621,13 +1621,13 @@
       const good = Math.ceil(total * 0.75);
       const basic = Math.ceil(total * 0.5);
       if (quizState.score === total) {
-        verdict = "全部正确。对核心概念与关键取舍的掌握较为完整。";
+        verdict = "全对。你已经能把概念和取舍串起来了。";
       } else if (quizState.score >= good) {
-        verdict = "掌握良好。建议复核错题对应的章节与图示，巩固细节。";
+        verdict = "大部分都对了。回去看看错题对应的图，那里往往藏着关键。";
       } else if (quizState.score >= basic) {
-        verdict = "基础概念已具备。建议重点复习第 02、05 章的机制与取舍。";
+        verdict = "基础有了，但有些地方还没串起来。重点复习第 02、05 章。";
       } else {
-        verdict = "建议先阅读第 01–03 章并完成故障演练，再进行自测。";
+        verdict = "先别急着刷题。回去把第 01–03 章的例子走一遍，再回来。";
       }
       if (quizVerdict) quizVerdict.textContent = verdict;
       if (quizRestart) quizRestart.focus();
@@ -1645,6 +1645,116 @@
     if (quizNext) quizNext.addEventListener("click", nextQuiz);
     if (quizRestart) quizRestart.addEventListener("click", restartQuiz);
     renderQuizQuestion();
+  }
+
+  /* ------------------------------------------------------------------
+     Diagram lightbox
+     ------------------------------------------------------------------ */
+
+  const lightbox = $("#lightbox");
+  const lightboxStage = $("#lightboxStage");
+  const lightboxCaption = $("#lightboxCaption");
+  const lightboxZoom = $("#lightboxZoom");
+  const lightboxClose = $("#lightboxClose");
+  let lightboxReturnFocus = null;
+
+  function setLightboxZoomed(zoomed) {
+    if (!lightboxStage) return;
+    lightboxStage.classList.toggle("is-zoomed", zoomed);
+    if (lightboxZoom) lightboxZoom.textContent = zoomed ? "还原" : "放大";
+  }
+
+  function closeLightbox() {
+    if (!lightbox || lightbox.hidden) return;
+    lightbox.hidden = true;
+    document.body.classList.remove("lightbox-open");
+    if (lightboxStage) {
+      lightboxStage.innerHTML = "";
+      lightboxStage.classList.remove("is-zoomed");
+    }
+    if (lightboxReturnFocus && typeof lightboxReturnFocus.focus === "function") {
+      lightboxReturnFocus.focus();
+    }
+    lightboxReturnFocus = null;
+  }
+
+  function openLightbox(svg) {
+    if (!lightbox || !lightboxStage) return;
+    const clone = svg.cloneNode(true);
+    clone.classList.add("lightbox-svg");
+    clone.removeAttribute("width");
+    clone.removeAttribute("height");
+    clone.removeAttribute("tabindex");
+    clone.removeAttribute("aria-haspopup");
+    clone.setAttribute("aria-hidden", "true");
+
+    const figure = svg.closest("figure");
+    const caption = figure ? figure.querySelector("figcaption") : null;
+    if (lightboxCaption) {
+      lightboxCaption.textContent =
+        (caption && caption.textContent.trim()) ||
+        svg.getAttribute("aria-label") ||
+        "图示";
+    }
+
+    lightboxStage.innerHTML = "";
+    lightboxStage.appendChild(clone);
+    lightbox.hidden = false;
+    document.body.classList.add("lightbox-open");
+    lightboxReturnFocus = svg;
+    setLightboxZoomed(false);
+    if (lightboxClose) lightboxClose.focus();
+  }
+
+  if (lightbox) {
+    $$("svg.dg").forEach(function (svg) {
+      const decorative = svg.getAttribute("aria-hidden") === "true" ||
+        Boolean(svg.closest('[aria-hidden="true"]'));
+
+      if (!decorative) {
+        svg.setAttribute("tabindex", "0");
+        svg.setAttribute("aria-haspopup", "dialog");
+        if (!svg.getAttribute("title")) {
+          svg.setAttribute("title", "点击放大图示");
+        }
+        svg.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openLightbox(svg);
+          }
+        });
+      }
+
+      svg.addEventListener("click", function () {
+        openLightbox(svg);
+      });
+    });
+
+    if (lightboxClose) {
+      lightboxClose.addEventListener("click", closeLightbox);
+    }
+
+    if (lightboxZoom) {
+      lightboxZoom.addEventListener("click", function () {
+        if (!lightboxStage) return;
+        setLightboxZoomed(!lightboxStage.classList.contains("is-zoomed"));
+      });
+    }
+
+    if (lightboxStage) {
+      lightboxStage.addEventListener("click", function (event) {
+        if (event.target === lightboxStage) return;
+        setLightboxZoomed(!lightboxStage.classList.contains("is-zoomed"));
+      });
+    }
+
+    lightbox.addEventListener("click", function (event) {
+      if (event.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeLightbox();
+    });
   }
 
   /* ------------------------------------------------------------------

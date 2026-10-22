@@ -5,8 +5,8 @@
           <span class="series-part">第 01 篇</span>
         </div>
         <h1>高可用架构</h1>
-        <p class="hero-lede">高可用，是不间断提供服务的能力。它不依赖某个永不故障的组件，而依赖一整套冗余、检测与转移机制——从主备、多活，到负载均衡、容灾、中间件复制和限流。</p>
-        <p class="hero-sub">这是一份按章节组织的交互式指南。每一章都可以独立阅读，也可以按顺序走完从指标到故障转移的完整链路。</p>
+        <p class="hero-lede">高可用不是一句口号，也不是多买几台机器。它是一连串具体的选择：预算怎么定，故障怎么切，流量怎么分，灾备怎么练。</p>
+        <p class="hero-sub">你可以把它当成一本小书，跟着六个真实场景，把高可用从“听过”走到“知道怎么做”。</p>
         <div class="hero-facts">
           <div class="hero-fact">
             <span class="fact-value">99.99%</span>
@@ -86,7 +86,7 @@
         <a class="chapter-card" href="availability.html">
           <div class="chapter-card-top"><span class="chapter-card-num">01</span><span class="chapter-card-tag">度量</span></div>
           <h3>可用性指标</h3>
-          <p>几个 9 如何换算成停机预算，串联链路为什么越走越脆弱，SLO 与错误预算怎样指导发布。</p>
+          <p>一年 52.6 分钟，一次大故障就能花完。先学会算这笔账，再谈怎么花。</p>
           <div class="chapter-card-art" aria-hidden="true">
             <svg viewBox="0 0 200 88">
               <text x="12" y="14" font-size="8" fill="var(--faint)">全年停机预算</text>
@@ -104,7 +104,7 @@
         <a class="chapter-card" href="redundancy.html">
           <div class="chapter-card-top"><span class="chapter-card-num">02</span><span class="chapter-card-tag">冗余</span></div>
           <h3>主备与多活</h3>
-          <p>单写入者与并发写的根本差别；RTO / RPO、脑裂与 fencing，以及单元化多活的工程取舍。</p>
+          <p>凌晨 2:17 主库失联，备机到底敢不敢切？这一章跟着一次真实切换走完。</p>
           <div class="chapter-card-art" aria-hidden="true">
             <svg viewBox="0 0 200 88">
               <rect class="dg-node-green" x="18" y="12" width="64" height="56" rx="7"/>
@@ -125,7 +125,7 @@
         <a class="chapter-card" href="load-balancing.html">
           <div class="chapter-card-top"><span class="chapter-card-num">03</span><span class="chapter-card-tag">入口</span></div>
           <h3>负载均衡</h3>
-          <p>健康检查、调度算法、四层与七层、会话保持、一致性哈希，以及入口层自身的高可用。</p>
+          <p>流量涨了十倍，请求却打到了一台坏节点上。问题不在机器，在入口。</p>
           <div class="chapter-card-art" aria-hidden="true">
             <svg viewBox="0 0 200 88">
               <rect class="dg-node-blue" x="10" y="34" width="46" height="22" rx="4"/><text x="33" y="49" text-anchor="middle" font-size="8" fill="var(--d-blue-ink)">请求</text>
@@ -145,7 +145,7 @@
         <a class="chapter-card" href="disaster-recovery.html">
           <div class="chapter-card-top"><span class="chapter-card-num">04</span><span class="chapter-card-tag">机房</span></div>
           <h3>容灾架构</h3>
-          <p>从备份、冷备、温备到双活，拆解两地三中心与异地多活的成本、延迟和一致性代价。</p>
+          <p>暴雨切到备用中心，结果证书过期、服务起不来。容灾不是建好就行，它得真的能跑。</p>
           <div class="chapter-card-art" aria-hidden="true">
             <svg viewBox="0 0 200 88">
               <circle cx="100" cy="42" r="34" fill="var(--d-blue)" opacity=".06"/>
@@ -166,7 +166,7 @@
         <a class="chapter-card" href="middleware.html">
           <div class="chapter-card-top"><span class="chapter-card-num">05</span><span class="chapter-card-tag">系统</span></div>
           <h3>中间件高可用</h3>
-          <p>Redis、MongoDB、MySQL、Kafka 的副本、选举与复制策略；跟着一笔订单，看四种不同解法。</p>
+          <p>跟着一笔订单，看 Redis、MongoDB、MySQL 和 Kafka 各自怎么扛故障。</p>
           <div class="chapter-card-art" aria-hidden="true">
             <svg viewBox="0 0 200 88">
               <rect class="dg-node-blue" x="10" y="16" width="42" height="56" rx="6"/>
@@ -189,7 +189,7 @@
         <a class="chapter-card" href="rate-limiting.html">
           <div class="chapter-card-top"><span class="chapter-card-num">06</span><span class="chapter-card-tag">保护</span></div>
           <h3>限流与过载保护</h3>
-          <p>倒金字塔分层限流、漏桶与令牌桶、分布式限流，以及超时、重试、熔断和降级的组合拳。</p>
+          <p>双 11 零点流量涨八倍，系统怎么决定先放弃谁？这一章讲限流和过载保护。</p>
           <div class="chapter-card-art" aria-hidden="true">
             <svg viewBox="0 0 200 88">
               <path d="M42 10 H158 L124 48 V68 L82 78 V48 Z" fill="var(--d-violet)" opacity=".1" stroke="var(--d-violet)" stroke-width="1.2"/>

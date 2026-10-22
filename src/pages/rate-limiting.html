@@ -7,7 +7,7 @@
           </nav>
           <p class="chapter-kicker">第 06 章 · 保护</p>
           <h1>限流与过载保护：让系统在洪峰中活下来</h1>
-          <p class="post-lede">双 11 零点，流量在 30 秒内涨了八倍。系统没有立刻拒绝所有请求，而是按层丢弃了一部分——这比整体宕机更好。本章从这次洪峰出发，逐层决定在哪里限流、用什么算法，以及限流之外还需要什么。</p>
+          <p class="post-lede">双 11 零点，流量在 30 秒内涨了八倍。系统没有把所有人拒之门外，而是按层丢掉了一部分请求。听起来残酷，但总比大家一起卡死好。</p>
           <div class="post-meta">
             <span>阅读约 18 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -16,21 +16,21 @@
         </header>
 
         <nav class="storyline" aria-label="本章故事线">
-          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">从案例出发，沿着这条线读完本章</span></div>
+          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">别急着记结论，先跟着这条线走一遍</span></div>
           <ol>
-            <li><a href="#why"><span class="storyline-index">01</span><span><strong>过载的拐点</strong><small>吞吐为什么会突然崩塌</small></span></a></li>
-            <li><a href="#layers"><span class="storyline-index">02</span><span><strong>分层限流</strong><small>在哪些层挡流量</small></span></a></li>
-            <li><a href="#client"><span class="storyline-index">03</span><span><strong>客户端限流</strong><small>成本最低的一层</small></span></a></li>
-            <li><a href="#algorithms"><span class="storyline-index">04</span><span><strong>选择算法</strong><small>漏桶、令牌桶与窗口</small></span></a></li>
-            <li><a href="#distributed"><span class="storyline-index">05</span><span><strong>共享配额</strong><small>多实例如何统一限流</small></span></a></li>
-            <li><a href="#ingress"><span class="storyline-index">06</span><span><strong>入口执行</strong><small>Nginx 与网关</small></span></a></li>
-            <li><a href="#resilience"><span class="storyline-index">07</span><span><strong>组合拳</strong><small>超时、熔断、舱壁与降级</small></span></a></li>
+            <li><a href="#why"><span class="storyline-index">01</span><span><strong>系统是怎么被压垮的</strong><small>排队、超时和重试一起拖下水</small></span></a></li>
+            <li><a href="#layers"><span class="storyline-index">02</span><span><strong>一层层卸力</strong><small>限流要分几层</small></span></a></li>
+            <li><a href="#client"><span class="storyline-index">03</span><span><strong>最便宜的一层</strong><small>客户端能挡掉一部分</small></span></a></li>
+            <li><a href="#algorithms"><span class="storyline-index">04</span><span><strong>四种算法，四种脾气</strong><small>漏桶、令牌桶与窗口</small></span></a></li>
+            <li><a href="#distributed"><span class="storyline-index">05</span><span><strong>十台机器共用一个额度</strong><small>分布式限流</small></span></a></li>
+            <li><a href="#ingress"><span class="storyline-index">06</span><span><strong>Nginx 和网关怎么挡</strong><small>入口层负责执行</small></span></a></li>
+            <li><a href="#resilience"><span class="storyline-index">07</span><span><strong>限流之外，还得有几手</strong><small>超时、熔断、舱壁与降级</small></span></a></li>
           </ol>
         </nav>
 
         <div class="post-body chapter-body" id="postBody">
           <section class="post-section" aria-labelledby="why">
-            <h2 id="why" data-toc>为什么会过载：吞吐的拐点</h2>
+            <h2 id="why" data-toc>系统是怎么被压垮的</h2>
             <div class="prose">
               <p>先理解一个反直觉的事实：请求越多，吞吐不一定越高。</p>
               <p>系统在低负载时，吞吐随请求量线性上升；接近容量上限后，排队开始变长，延迟上升；超过拐点后，线程、连接和内存被占满，重试又放大请求量，吞吐反而急剧下降。这就是过载崩溃：不是机器坏了，而是系统把全部资源花在了“处理已经无法完成的请求”上。</p>
@@ -54,11 +54,13 @@
               </svg>
               <figcaption>图示：吞吐不会随负载无限上升；超过拐点后，排队和重试会让吞吐骤降，限流应发生在拐点之前。</figcaption>
             </figure>
-            <p class="key-point key-point--red"><strong>重点</strong>过载崩溃不是“请求太多”，而是系统把资源花在了无法完成的请求上。限流的价值在于保住系统，而不是保住每一个请求。</p>
-                      <p class="story-bridge"><span>知道系统会在哪里崩，</span>接下来决定在哪些层挡流量。<a href="#layers">看倒金字塔分层</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>系统不是被请求压死的，是被排队和重试拖死的。限流是为了保住大多数人。</p>
+<p class="story-bridge"><span>知道系统怎么被压垮</span>接下来决定在哪些层挡。<a href="#layers">看分层限流</a></p>
           </section>
 <section class="post-section" aria-labelledby="layers">
-            <h2 id="layers" data-toc>分层限流：倒金字塔</h2>
+            <h2 id="layers" data-toc>限流要分几层</h2>
+            <div class="prose"><p>限流不是某个开关，是一层层卸力。</p></div>
             <div class="prose">
               <p>限流要发生在客户端、负载设备、网关、应用系统等多个节点；算法核心是漏桶和令牌桶。最终目的只有一个：减轻后端服务与数据库的压力。</p>
               <p>倒金字塔的含义是：越靠近用户，越适合做粗粒度拦截；越靠近数据层，越要保护。客户端可以挡掉误触和重复点击，负载层可以按 IP 或连接数限速，网关可以按服务、接口、用户和租户限流，服务内部再用信号量或并发上限保护关键资源。</p>
@@ -79,10 +81,11 @@
         </div>
 
         
-                      <p class="story-bridge"><span>从最外层开始，</span>客户端能先挡掉一部分误触和重复请求。<a href="#client">看四种客户端手段</a></p>
+                      <p class="story-bridge"><span>从最外层开始</span>客户端能先挡一部分。<a href="#client">看客户端手段</a></p>
           </section>
 <section class="post-section" aria-labelledby="client">
-            <h2 id="client" data-toc>客户端限流：成本最低的一层</h2>
+            <h2 id="client" data-toc>最便宜的限流，在客户端</h2>
+            <div class="prose"><p>最便宜的限流，在用户点按钮的那只手上。</p></div>
 <div class="prose">
           <p>大多数用户不会主动发起服务攻击。客户端限流主要针对高频操作与误触，投入低、见效快。</p>
         </div>
@@ -153,13 +156,15 @@
           </article>
         </div>
 
-        <p class="key-point"><strong>重点</strong>客户端限流成本最低，但只能挡住一部分请求；服务端必须在负载层、网关、服务层和数据层逐层限流，形成倒金字塔。</p>
+        
 
         
-                      <p class="story-bridge"><span>客户端只能挡住一小部分，</span>真正的速率控制需要算法。<a href="#algorithms">比较漏桶、令牌桶与窗口</a></p>
+                                  <p class="key-point"><strong>重点</strong>客户端限流便宜好用，但只能挡住一部分。别指望它解决全部问题。</p>
+<p class="story-bridge"><span>客户端挡不住的</span>得靠算法。<a href="#algorithms">比较四种算法</a></p>
           </section>
 <section class="post-section" aria-labelledby="algorithms">
-            <h2 id="algorithms" data-toc>漏桶、令牌桶与窗口算法</h2>
+            <h2 id="algorithms" data-toc>四种算法，四种脾气</h2>
+            <div class="prose"><p>漏桶、令牌桶、滑动窗口，各有各的脾气。</p></div>
             <div class="prose">
               <p>限流算法要回答两个问题：允不允许突发？超出的请求是排队还是拒绝？漏桶和令牌桶给出两种典型答案；固定窗口和滑动窗口则决定了计数的时间边界。</p>
             </div>
@@ -249,11 +254,13 @@
               <p>固定窗口实现最简单，但在窗口切换的瞬间可能放过接近两倍的流量；滑动窗口把时间切成更细的格子，按最近一段时间的总量判断，边界更平滑。漏桶把请求排队，以固定速率放行，适合保护下游数据库；令牌桶按固定速率补充令牌，允许请求在桶容量范围内突发，适合有明显峰谷的互联网流量。</p>
               <p>实际系统常把两者组合：入口用令牌桶吸收突发，下游用漏桶或并发上限保护数据库。算法只是工具，关键是限流阈值要来自容量评估和压测，而不是拍脑袋。</p>
             </div>
-            <p class="key-point key-point--amber"><strong>重点</strong>漏桶把突发削成平滑输出，代价是排队或拒绝；令牌桶允许突发通过，适合有明显峰谷的互联网流量。实际系统常把两者组合：入口用令牌桶吸收突发，下游用漏桶保护数据库。</p>
-                      <p class="story-bridge"><span>单机限流控制不了多实例的总量，</span>需要共享配额。<a href="#distributed">看分布式限流</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>漏桶把突发磨平，令牌桶让突发先过。选哪个，看你的下游怕不怕尖峰。</p>
+<p class="story-bridge"><span>单机限流管不住总量</span>多台机器要共享配额。<a href="#distributed">看分布式限流</a></p>
           </section>
 <section class="post-section" aria-labelledby="distributed">
-            <h2 id="distributed" data-toc>分布式限流：多实例如何共享配额</h2>
+            <h2 id="distributed" data-toc>多台机器，怎么共用一个额度</h2>
+            <div class="prose"><p>一台机器限流容易，难的是十台机器一起说：总共只放这么多。</p></div>
             <div class="prose">
               <p>单机限流只能保证“每个实例不超过 N”，实例扩容后总配额会线性放大。要控制全局流量，需要把计数放到共享存储里，或者采用“本地预取 + 全局配额”的两级结构。</p>
               <p>常见做法是用 Redis + Lua 实现原子令牌桶：Lua 脚本在 Redis 内部完成读取、补充、扣减和写回，避免并发竞态。缺点是每次限流都要访问 Redis，增加了延迟和 Redis 的负载；因此通常让每个实例先在本地预取一小批令牌，用完再向全局申请，以少量精度换取性能。</p>
@@ -295,11 +302,13 @@
                 </tbody>
               </table>
             </div>
-            <p class="key-point key-point--violet"><strong>重点</strong>单机限流控制不了全局总量；中心化限流精度高但增加依赖。实际系统常用“本地预取 + 全局配额”，并提前定义限流组件故障时的 fail-open / fail-closed 策略。</p>
-                      <p class="story-bridge"><span>全局配额决定放多少，</span>入口层负责执行。<a href="#ingress">看 Nginx 与网关限流</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>单机限流管不住总量，多机就要共享配额。Redis 挂了是放行还是拒绝，得提前想好。</p>
+<p class="story-bridge"><span>配额定了</span>入口层负责执行。<a href="#ingress">看 Nginx 和网关</a></p>
           </section>
 <section class="post-section" aria-labelledby="ingress">
-            <h2 id="ingress" data-toc>入口与服务端限流：Nginx 与网关</h2>
+            <h2 id="ingress" data-toc>入口层怎么执行限流</h2>
+            <div class="prose"><p>到了 Nginx 和网关这一层，限流才开始按业务说话。</p></div>
 <div class="two-col">
           <article class="fact-card">
             <h3><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-nginx"/></svg>服务端限流：Nginx 两个模块</h3>
@@ -364,12 +373,14 @@ server {
           </article>
         </div>
 
-        <p class="key-point key-point--amber"><strong>重点</strong>漏桶把突发削成平滑输出，代价是排队或拒绝；令牌桶允许突发通过，适合有明显峰谷的互联网流量。实际系统常把两者组合：入口用令牌桶吸收突发，下游用漏桶保护数据库。</p>
+        
 
-                      <p class="story-bridge"><span>即使限流正确，</span>慢依赖和重试仍可能拖垮系统。<a href="#resilience">补上过载保护组合拳</a></p>
+                                  <p class="key-point"><strong>重点</strong>入口层解决的是“在门口挡多少”，更细的业务规则交给网关。</p>
+<p class="story-bridge"><span>限流之外</span>还得防止慢依赖把系统拖垮。<a href="#resilience">补上组合拳</a></p>
           </section>
 <section class="post-section" aria-labelledby="resilience">
-            <h2 id="resilience" data-toc>过载保护组合拳：限流只是其中一招</h2>
+            <h2 id="resilience" data-toc>限流之外，还得有几手准备</h2>
+            <div class="prose"><p>限流只能决定放多少人进来，救不了已经被慢依赖拖住的系统。</p></div>
             <div class="prose">
               <p>限流决定“放多少请求进来”，但不能解决所有过载问题：下游变慢、依赖故障、重试放大、线程池耗尽，仍会把系统拖垮。完整的过载保护需要一组机制协同工作：超时、重试预算、熔断、舱壁、背压和降级。</p>
             </div>
@@ -448,11 +459,13 @@ server {
                 </tbody>
               </table>
             </div>
-            <p class="key-point"><strong>重点</strong>限流只控制进入量，不能替代超时、熔断、舱壁和降级。真正的过载保护是一组机制的协同，而不是一个 Nginx 配置。</p>
-                      <p class="story-bridge"><span>最后，</span>把限流和过载保护收拢成一张检查清单。<a href="#checklist">逐项检查限流策略</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>限流只控制进入量，替代不了超时、熔断、舱壁和降级。</p>
+<p class="story-bridge"><span>收束</span>最后用一张清单收尾。<a href="#checklist">检查限流策略</a></p>
           </section>
 <section class="post-section" aria-labelledby="checklist">
             <h2 id="checklist" data-toc>限流检查清单</h2>
+            <div class="prose"><p>限流和过载保护，最后用清单收个尾。</p></div>
             <div class="checklist-grid">
               <div class="checklist-item"><span>01</span><p>限流阈值是否来自容量评估和压测？是否留出了安全余量？</p></div>
               <div class="checklist-item"><span>02</span><p>限流是否分层？客户端、入口、网关、服务和数据层是否都有保护？</p></div>
@@ -461,8 +474,9 @@ server {
               <div class="checklist-item"><span>05</span><p>超时、重试、熔断和舱壁是否与限流配合，避免重试风暴？</p></div>
               <div class="checklist-item"><span>06</span><p>降级预案是否明确？哪些功能可以关闭，哪些必须保住？</p></div>
             </div>
-            <p class="key-point"><strong>下一章</strong>读到这里，你已经走完从度量、冗余、入口、容灾、中间件到过载保护的完整链路。下一章用十二道题检验理解。</p>
-          </section>
+            
+                      <p class="key-point"><strong>重点</strong>到这儿，六个章节就串成一条完整的链路了。下一章用十二道题检验一下。</p>
+</section>
         </div>
         {{PREV_NEXT}}
       </article>

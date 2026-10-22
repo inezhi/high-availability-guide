@@ -70,6 +70,20 @@
   </footer>
   </main>
 
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="放大图示" hidden>
+    <div class="lightbox-panel">
+      <div class="lightbox-bar">
+        <span class="lightbox-caption" id="lightboxCaption"></span>
+        <div class="lightbox-actions">
+          <button class="btn btn-small btn-ghost" id="lightboxZoom" type="button">放大</button>
+          <button class="btn btn-small btn-ghost" id="lightboxClose" type="button">关闭</button>
+        </div>
+      </div>
+      <div class="lightbox-stage" id="lightboxStage"></div>
+      <p class="lightbox-hint">点击图示可继续放大 · 按 Esc 关闭</p>
+    </div>
+  </div>
+
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js?v={{VERSION}}" defer></script>

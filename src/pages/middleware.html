@@ -7,7 +7,7 @@
           </nav>
           <p class="chapter-kicker">第 05 章 · 系统</p>
           <h1>中间件高可用：四种系统的同一道题</h1>
-          <p class="post-lede">把一笔订单拆开看：用户打开商品页，会话和热点数据在 Redis；商品详情来自 MongoDB；下单后订单写入 MySQL；支付成功，消息进入 Kafka。本章跟着这笔订单走一遍，看四种系统各自如何复制、选举和故障转移。</p>
+          <p class="post-lede">一笔订单看起来只是一次点击，背后却要经过缓存、商品库、订单库和消息队列。四种系统，四种脾气。这一章，我们跟着这笔订单走一遍。</p>
           <div class="post-meta">
             <span>阅读约 24 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -16,20 +16,20 @@
         </header>
 
         <nav class="storyline" aria-label="本章故事线">
-          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">从案例出发，沿着这条线读完本章</span></div>
+          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">别急着记结论，先跟着这条线走一遍</span></div>
           <ol>
-            <li><a href="#common"><span class="storyline-index">01</span><span><strong>共同框架</strong><small>复制、检测、选举、重定向</small></span></a></li>
-            <li><a href="#redis"><span class="storyline-index">02</span><span><strong>商品页第一站</strong><small>缓存、持久化与哨兵</small></span></a></li>
-            <li><a href="#mongodb"><span class="storyline-index">03</span><span><strong>商品详情落库</strong><small>副本集与分片</small></span></a></li>
-            <li><a href="#mysql"><span class="storyline-index">04</span><span><strong>订单落库</strong><small>主从与复制策略</small></span></a></li>
-            <li><a href="#kafka"><span class="storyline-index">05</span><span><strong>下单后的消息</strong><small>分区副本与 ISR</small></span></a></li>
-            <li><a href="#selection"><span class="storyline-index">06</span><span><strong>回到选型</strong><small>先看数据模型，再看高可用</small></span></a></li>
+            <li><a href="#common"><span class="storyline-index">01</span><span><strong>四种系统，同一道题</strong><small>复制、检测、选举、重定向</small></span></a></li>
+            <li><a href="#redis"><span class="storyline-index">02</span><span><strong>商品页最先遇到的那一层</strong><small>Redis：缓存、持久化与哨兵</small></span></a></li>
+            <li><a href="#mongodb"><span class="storyline-index">03</span><span><strong>缓存没命中，商品去哪</strong><small>MongoDB：副本集与分片</small></span></a></li>
+            <li><a href="#mysql"><span class="storyline-index">04</span><span><strong>点下提交订单之后</strong><small>MySQL：主从与复制策略</small></span></a></li>
+            <li><a href="#kafka"><span class="storyline-index">05</span><span><strong>订单落库之后的消息</strong><small>Kafka：分区副本与 ISR</small></span></a></li>
+            <li><a href="#selection"><span class="storyline-index">06</span><span><strong>走完一笔订单再选</strong><small>先看数据模型，再看高可用</small></span></a></li>
           </ol>
         </nav>
 
         <div class="post-body chapter-body" id="postBody">
           <section class="post-section" aria-labelledby="common">
-            <h2 id="common" data-toc>共同框架：复制、检测、选举、重定向</h2>
+            <h2 id="common" data-toc>四种系统，其实在解同一道题</h2>
             <div class="prose">
               <p>在跟着订单走之前，先把四种系统的共同骨架抽出来。</p>
               <p>几乎所有高可用中间件都可以拆成四个动作：把数据复制到多个节点；持续检测节点是否存活；在旧主失效后选出一个新主；让客户端把请求发到新主。不同产品的差异，主要在于复制单位有多大、选举由谁主持、客户端如何感知拓扑变化。</p>
@@ -74,11 +74,13 @@
                 </tbody>
               </table>
             </div>
-            <p class="key-point"><strong>重点</strong>看任何中间件的高可用，先问四个问题：复制单位是什么、谁负责选主、客户端如何找到新主、故障瞬间会丢多少数据。</p>
-                      <p class="story-bridge"><span>先从</span>用户打开商品页开始——请求最先到达的是缓存。<a href="#redis">看 Redis 的高可用</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>看中间件高可用，先问四件事：复制什么、谁选主、客户端怎么找新主、会丢多少数据。</p>
+<p class="story-bridge"><span>先跟着用户</span>打开商品页，第一站是缓存。<a href="#redis">看 Redis</a></p>
           </section>
 <section class="post-section product-section" aria-labelledby="redis">
             <h2 id="redis" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-redis"/></svg>Redis：内存存储、持久化与缓存失效</h2>
+            <div class="prose"><p>用户打开商品页，最先接住他的通常是缓存。</p></div>
             <div class="prose">
               <p>数据全在内存里，读写性能远超关系型数据库，通常作为缓存减少数据库访问和磁盘读写。高可用之外，先要照顾持久化和缓存失效。</p>
               <p>Redis 的高可用可以拆成两个问题：数据不能全丢（持久化），服务不能停（主从、哨兵、集群）。两者目标不同，配置也经常需要权衡。</p>
@@ -300,7 +302,7 @@
               </ol>
             </div>
 
-            <p class="key-point key-point--amber"><strong>重点</strong>RDB 会丢一个备份周期，AOF everysec 最多丢约 1 秒；哨兵依靠多数判定完成客观下线与主从切换，集群依靠 16384 个哈希槽分片，数据量大时才需要上集群。</p>
+            
 
 
             <div class="section-sub section-sub-tight">
@@ -321,11 +323,13 @@
               <p>哨兵和集群都解决了自动切换，但都没有把 Redis 的异步复制变成强一致。主节点故障时，尚未复制到从节点的写入仍可能丢失。对数据敏感的场景，可以开启 <code>min-replicas-to-write</code>，要求至少有一个从节点在线且复制延迟不超过阈值时才允许写入；代价是牺牲一部分可用性。</p>
               <p>缓存侧还要区分三类问题：雪崩是大面积失效，击穿是单个热点失效，穿透是查询根本不存在的数据。它们对应的治理手段不同：雪崩用过期时间打散和多级缓存，击穿用互斥锁或逻辑过期，穿透用布隆过滤器和空值缓存。</p>
             </div>
-            <p class="key-point key-point--amber"><strong>重点</strong>RDB 会丢一个备份周期，AOF everysec 最多丢约 1 秒；哨兵依靠多数判定完成客观下线与主从切换，集群依靠 16384 个哈希槽分片。自动切换不等于零丢失。</p>
-                      <p class="story-bridge"><span>缓存没命中，</span>请求落到商品库。<a href="#mongodb">看 MongoDB 的副本集与分片</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>Redis 快，但异步复制会丢最后一段；哨兵能切换，不等于零丢失。</p>
+<p class="story-bridge"><span>缓存没命中</span>请求落到商品库。<a href="#mongodb">看 MongoDB</a></p>
           </section>
 <section class="post-section product-section" aria-labelledby="mongodb">
             <h2 id="mongodb" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-mongo"/></svg>MongoDB：副本集与分片</h2>
+            <div class="prose"><p>缓存没命中，商品详情总得有个地方落下来。</p></div>
             <div class="prose">
               <p>副本集解决单节点故障：多数节点存活，即可选举出新的主节点。分片解决单机容量：数据按分片键分布到多个 shard，每个 shard 本身又是一个副本集。两者叠加，才能同时获得故障转移和水平扩展能力。</p>
               <p>下面先看整体结构，再看主从、副本集与分片三种部署形态。</p>
@@ -417,7 +421,7 @@
               <div class="split-row"><span class="mono">RANGE</span><div class="chunk-row chunk-range"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>连续区间，可能不均匀，末尾分片容易成热点。</p></div>
             </div>
 
-            <p class="key-point"><strong>重点</strong>副本集解决节点故障，分片解决单机容量；分片键一旦选定不可修改。Hash 分片均匀但范围查询要扫多个分片，Range 分片利于范围查询但容易出现热点。</p>
+            
 
 
             <div class="section-sub section-sub-tight">
@@ -464,11 +468,14 @@
                 </tbody>
               </table>
             </div>
-            <p class="key-point"><strong>重点</strong>MongoDB 的一致性由客户端选择：w:1 快但可能丢数据，w:majority 更安全但更慢。分片键一旦选定不可修改，选键时要同时考虑分布均匀和查询模式。</p>
-                      <p class="story-bridge"><span>用户决定下单，</span>订单要写入关系型数据库。<a href="#mysql">看 MySQL 的主从与复制策略</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>MongoDB 的一致性有一部分是客户端选的：w:1 快，w:majority 稳。</p>
+            <p class="key-point"><strong>重点</strong>分片键选错，后面天天救火。它选定后基本不能改。</p>
+<p class="story-bridge"><span>用户决定下单</span>订单要落库。<a href="#mysql">看 MySQL</a></p>
           </section>
 <section class="post-section product-section" aria-labelledby="mysql">
             <h2 id="mysql" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-mysql"/></svg>MySQL：主从复制与一致性取舍</h2>
+            <div class="prose"><p>用户点下提交订单，这一刻才真正开始考验数据库。</p></div>
             <div class="prose">
               <p>主备、主从、互为主从解决读扩展和备份，真正的取舍在复制策略：等不等从库，等几个从库。</p>
               <p>MySQL 的高可用主要围绕复制展开：主库把变更写入 binlog，从库拉取并回放。主备、主从、互为主从的区别，是复制拓扑和读写入口不同；异步、半同步、全同步的区别，是主库何时向客户端确认。</p>
@@ -644,7 +651,7 @@
             </div>
             <p class="fineprint">异步复制下，如果主库在数据到达从库前宕机，切到从库就会缺一段数据；这是拿一致性换响应速度的典型交易。</p>
 
-            <p class="key-point key-point--violet"><strong>重点</strong>异步复制快，但主库故障时可能丢数据；全同步一致性强，但等待所有从库、延迟最高；半同步只等至少一个从库确认，是两者的折中。复制策略不等于自动故障转移。</p>
+            
 
 
             <div class="section-sub section-sub-tight">
@@ -666,11 +673,13 @@
                 </tbody>
               </table>
             </div>
-            <p class="key-point key-point--violet"><strong>重点</strong>异步复制快，但主库故障时可能丢数据；全同步一致性强，但等待所有从库、延迟最高；半同步只等至少一个从库确认，是两者的折中。复制策略不等于自动故障转移。</p>
-                      <p class="story-bridge"><span>订单落库后，</span>系统还要通知库存、物流和积分。<a href="#kafka">看 Kafka 的分区副本</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>MySQL 的复制策略就是一道选择题：快、稳、还是折中。复制策略也不等于自动故障转移。</p>
+<p class="story-bridge"><span>订单落库后</span>还得通知库存和物流。<a href="#kafka">看 Kafka</a></p>
           </section>
 <section class="post-section product-section" aria-labelledby="kafka">
             <h2 id="kafka" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-kafka"/></svg>Kafka：分区副本撑起高可用</h2>
+            <div class="prose"><p>订单落库不等于结束。库存、物流、积分都还在等消息。</p></div>
             <div class="prose">
               <p>消息先进入分区，分区有 Leader 和 Follower 副本；Leader 故障，Follower 被选举上位。高可用发生在“分区”这一级，而不是整台 Broker。</p>
               <p>Kafka 的高可用单位是分区，而不是 Broker。每个分区有一个 Leader 和若干 Follower；生产者只写 Leader，Follower 持续拉取复制。Leader 故障后，集群从同步副本中选举新的 Leader，分区继续可写。</p>
@@ -757,7 +766,7 @@
               <li>生产者写 Leader 副本，Leader 同步给 Follower；Leader 故障，选举一个 Follower 升为 Leader。</li>
             </ul>
 
-            <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区：Leader 故障后由同步副本接替，分区继续可写。Broker 数量并不等于副本数量，扩分区时还要考虑副本分布。</p>
+            
 
 
             <div class="section-sub section-sub-tight">
@@ -800,11 +809,14 @@
             <div class="prose">
               <p>消费者侧的高可用由消费组负责：分区在消费者之间分配，某个消费者退出会触发 rebalance。rebalance 期间消费会短暂停顿，因此要避免频繁扩缩容和长时间处理单条消息；必要时可以用静态成员或增量协作协议减少抖动。</p>
             </div>
-            <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区：Leader 故障后由同步副本接替。可靠性取决于 acks 与 min.insync.replicas 的组合；允许非同步副本选主可以更快恢复，但可能丢消息。</p>
-                      <p class="story-bridge"><span>走完一笔订单，</span>再回看四种系统的选型。<a href="#selection">按数据模型选择高可用级别</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区，不是 Broker。Leader 挂了，得看同步副本接不接得上。</p>
+            <p class="key-point"><strong>重点</strong>acks 和 ISR 才决定会不会丢消息；允许非同步副本选主，能用，但可能丢。</p>
+<p class="story-bridge"><span>一笔订单走完</span>再回看四种系统。<a href="#selection">回到选型</a></p>
           </section>
 <section class="post-section" aria-labelledby="selection">
-            <h2 id="selection" data-toc>选型：先看数据模型，再看高可用</h2>
+            <h2 id="selection" data-toc>走完一笔订单，再回看选型</h2>
+            <div class="prose"><p>走完一笔订单再选型，会容易得多。</p></div>
             <div class="prose">
               <p>四种系统的高可用机制不同，但选型不应从“哪个切换最快”开始。先看数据模型和访问模式：需要事务和复杂查询，选 MySQL；需要文档结构和灵活 schema，选 MongoDB；需要极低延迟的缓存，选 Redis；需要高吞吐消息和解耦，选 Kafka。高可用是在选定系统之后，按业务对 RPO / RTO 的要求配置的。</p>
               <p>同一个系统也可以有不同的高可用级别：Redis 主从、哨兵、集群对应不同规模；MySQL 主备、半同步、组复制对应不同一致性要求。不要为了“看起来高可用”而直接上最复杂的一套，复杂度本身就是故障来源。</p>
@@ -821,8 +833,9 @@
                 </tbody>
               </table>
             </div>
-            <p class="key-point"><strong>下一章</strong>副本和选举保护的是“节点故障”；当流量本身超过系统容量时，还需要限流和过载保护。下一章讨论如何让系统在洪峰中活下来。</p>
-          </section>
+            
+                      <p class="key-point"><strong>重点</strong>走完一笔订单，选型就没那么抽象了：先看数据模型，再看高可用。</p>
+</section>
         </div>
         {{PREV_NEXT}}
       </article>

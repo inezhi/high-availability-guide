@@ -17,14 +17,14 @@
 
         <div class="post-body chapter-body" id="postBody">
           <section class="post-section" aria-labelledby="before">
-            <h2 id="before" data-toc>答题前：三个提示</h2>
+            <h2 id="before" data-toc>先别急着答题</h2>
             <div class="prose">
               <p>这些题不考配置项和产品参数，而是考判断：为什么这样设计、代价是什么、什么时候会失效。遇到不确定的题，可以先回想章节里的图和取舍，而不是死记结论。</p>
             </div>
             <div class="recap-grid">
-              <div class="recap-item"><span>01</span><p>先判断故障域和写入者数量，再看具体组件。</p></div>
-              <div class="recap-item"><span>02</span><p>任何“自动切换”都要追问：会不会丢数据，会不会脑裂。</p></div>
-              <div class="recap-item"><span>03</span><p>限流和容灾都是取舍：可用性、成本、一致性很少能同时最优。</p></div>
+              <div class="recap-item"><span>01</span><p>先看故障域和写入者数量，再看具体组件。</p></div>
+              <div class="recap-item"><span>02</span><p>任何“自动切换”都追问一句：会不会丢数据，会不会脑裂。</p></div>
+              <div class="recap-item"><span>03</span><p>限流和容灾都是取舍。可用性、成本、一致性，很少能同时最优。</p></div>
             </div>
           </section>
 
@@ -53,7 +53,7 @@
           </section>
 
           <section class="post-section" aria-labelledby="after">
-            <h2 id="after" data-toc>答完之后：怎么继续</h2>
+            <h2 id="after" data-toc>答完了，然后呢</h2>
             <div class="prose">
               <p>如果错题集中在某几章，建议回到对应页面，重点看图和“重点”段落，而不是从头重读。图示往往把机制压缩成了一个动作序列：谁检测、谁判定、谁接管、客户端如何找到新入口。能复述这条序列，比记住产品名词更有用。</p>
               <p>如果几乎全对，可以尝试把六章串成一条完整链路：从一个用户请求出发，经过 DNS / GSLB、负载均衡、网关、应用、缓存、数据库和消息队列，逐一说明每个环节的故障域、冗余方式、切换机制和限流策略。能讲清楚这条链路，说明已经掌握了高可用的整体框架。</p>

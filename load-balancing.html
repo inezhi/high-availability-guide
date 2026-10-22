@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/load-balancing.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/load-balancing.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-9">
+  <link rel="stylesheet" href="styles.css?v=20261022-12">
 </head>
 <body class="article-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -148,14 +148,14 @@
               <details class="toc-mobile">
           <summary>本页目录</summary>
           <nav aria-label="本页小节">
-            <a class="toc-level-2" href="#role">负载均衡的两个职责</a>
-            <a class="toc-level-2" href="#health">健康检查：只把流量给能服务的节点</a>
-            <a class="toc-level-2" href="#l4-l7">四层与七层：能力与开销的取舍</a>
-            <a class="toc-level-2" href="#algorithms">调度算法：每种策略都带着假设</a>
-            <a class="toc-level-2" href="#simulator">调度模拟器：观察策略如何改变分布</a>
-            <a class="toc-level-2" href="#self-ha">入口层自身的高可用</a>
-            <a class="toc-level-2" href="#global">全局负载：DNS、GSLB 与 Anycast</a>
-            <a class="toc-level-2" href="#consistent-hash">会话保持与一致性哈希</a>
+            <a class="toc-level-2" href="#role">负载均衡到底在忙什么</a>
+            <a class="toc-level-2" href="#health">别把请求发给已经挂了的节点</a>
+            <a class="toc-level-2" href="#l4-l7">四层还是七层，先看你要什么</a>
+            <a class="toc-level-2" href="#algorithms">把请求给谁：算法背后的假设</a>
+            <a class="toc-level-2" href="#simulator">动手试试，看流量怎么跑</a>
+            <a class="toc-level-2" href="#self-ha">负载均衡器自己也会挂</a>
+            <a class="toc-level-2" href="#global">用户从全国来，入口怎么选</a>
+            <a class="toc-level-2" href="#consistent-hash">会话保持：扩容时怎么少掉线</a>
             <a class="toc-level-2" href="#checklist">入口层检查清单</a>
           </nav>
         </details>
@@ -166,7 +166,7 @@
           </nav>
           <p class="chapter-kicker">第 03 章 · 入口</p>
           <h1>负载均衡：把流量分给健康的节点</h1>
-          <p class="post-lede">促销压测时，流量涨了十倍。团队加了三台应用服务器，却发现请求仍然打到了一台已经挂掉的节点上。本章从这次压测事故出发，先解决“把流量给谁”，再解决“谁来保护入口”。</p>
+          <p class="post-lede">大促压测那天，流量涨了十倍。团队临时加了三台机器，结果监控上还有请求打向一台已经挂掉的节点。问题不在机器数量，而在入口。</p>
           <div class="post-meta">
             <span>阅读约 16 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -175,22 +175,22 @@
         </header>
 
         <nav class="storyline" aria-label="本章故事线">
-          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">从案例出发，沿着这条线读完本章</span></div>
+          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">别急着记结论，先跟着这条线走一遍</span></div>
           <ol>
-            <li><a href="#role"><span class="storyline-index">01</span><span><strong>两个职责</strong><small>分发请求，也接住故障</small></span></a></li>
-            <li><a href="#health"><span class="storyline-index">02</span><span><strong>健康检查</strong><small>只把流量给能服务的节点</small></span></a></li>
-            <li><a href="#l4-l7"><span class="storyline-index">03</span><span><strong>四层还是七层</strong><small>先决定在哪一层看流量</small></span></a></li>
-            <li><a href="#algorithms"><span class="storyline-index">04</span><span><strong>调度算法</strong><small>节点同构、异构与有状态</small></span></a></li>
-            <li><a href="#simulator"><span class="storyline-index">05</span><span><strong>动手观察</strong><small>切换策略，看请求怎么分布</small></span></a></li>
-            <li><a href="#self-ha"><span class="storyline-index">06</span><span><strong>保护入口</strong><small>负载均衡器自己也会挂</small></span></a></li>
-            <li><a href="#global"><span class="storyline-index">07</span><span><strong>走向全局</strong><small>DNS、GSLB 与 Anycast</small></span></a></li>
-            <li><a href="#consistent-hash"><span class="storyline-index">08</span><span><strong>会话保持</strong><small>扩容时如何少迁移</small></span></a></li>
+            <li><a href="#role"><span class="storyline-index">01</span><span><strong>分流量，也接住故障</strong><small>负载均衡到底在忙什么</small></span></a></li>
+            <li><a href="#health"><span class="storyline-index">02</span><span><strong>别发给已经挂了的节点</strong><small>健康检查是第一道门槛</small></span></a></li>
+            <li><a href="#l4-l7"><span class="storyline-index">03</span><span><strong>看 IP，还是看 HTTP</strong><small>四层和七层的取舍</small></span></a></li>
+            <li><a href="#algorithms"><span class="storyline-index">04</span><span><strong>谁最闲</strong><small>算法背后都有假设</small></span></a></li>
+            <li><a href="#simulator"><span class="storyline-index">05</span><span><strong>点几下，看请求怎么跑</strong><small>亲手试比背名词有用</small></span></a></li>
+            <li><a href="#self-ha"><span class="storyline-index">06</span><span><strong>它自己也会挂</strong><small>入口层也需要冗余</small></span></a></li>
+            <li><a href="#global"><span class="storyline-index">07</span><span><strong>用户不会都在一个城市</strong><small>DNS、GSLB 与 Anycast</small></span></a></li>
+            <li><a href="#consistent-hash"><span class="storyline-index">08</span><span><strong>扩容时，别让用户掉线</strong><small>会话保持与一致性哈希</small></span></a></li>
           </ol>
         </nav>
 
         <div class="post-body chapter-body" id="postBody">
           <section class="post-section" aria-labelledby="role">
-            <h2 id="role" data-toc>负载均衡的两个职责</h2>
+            <h2 id="role" data-toc>负载均衡到底在忙什么</h2>
             <div class="prose">
               <p>压测事故的第一个结论是：只加机器不够，必须有人决定请求发给谁。</p>
               <p>从流量方向看，负载均衡可以分成南北向和东西向：南北向面对客户端进入数据中心的流量，通常由 F5、LVS、Nginx、云负载均衡承担；东西向面对服务之间的调用，常见于服务网格和内部网关。两者的算法相似，但故障域、性能要求和运维方式不同。</p>
@@ -252,13 +252,15 @@
           <p>按工作层次，负载均衡分为四层和七层：四层只看 IP 与端口，转发开销小；七层能解析 HTTP，按 URL、Header 路由，适合灰度、改写和细粒度限流。层次越高，能力越强，性能开销也越大。</p>
         </div>
 
-        <p class="key-point"><strong>重点</strong>负载均衡同时解决“容量不足”和“单节点故障”，但它自身也是新的单点；入口层必须做双机主备或多级冗余。</p>
+        
 
         
-                      <p class="story-bridge"><span>但</span>有了负载均衡，第一件事不是选算法，而是确保只把流量发给活着的节点。<a href="#health">先看健康检查</a></p>
+                                  <p class="key-point"><strong>重点</strong>负载均衡干两件事：把请求分出去，把坏节点踢出去。它自己也会挂。</p>
+<p class="story-bridge"><span>入口有了</span>第一件事不是选算法，而是别把请求发给坏节点。<a href="#health">看健康检查</a></p>
           </section>
 <section class="post-section" aria-labelledby="health">
-            <h2 id="health" data-toc>健康检查：只把流量给能服务的节点</h2>
+            <h2 id="health" data-toc>别把请求发给已经挂了的节点</h2>
+            <div class="prose"><p>负载均衡最怕的，是后端挂了一半，它还在往那边发请求。</p></div>
             <figure class="dg-wrap health-fig">
           <svg class="dg" viewBox="0 0 660 200" role="img" aria-label="负载均衡器通过健康检查只把流量分给健康节点">
             <rect class="dg-node-blue" x="8" y="70" width="66" height="52" rx="7"/>
@@ -332,11 +334,12 @@
                 </tbody>
               </table>
             </div>
-            <p class="key-point"><strong>重点</strong>健康检查要回答“这个节点现在能不能接业务”，而不只是“端口通不通”。阈值和恢复策略决定故障发现速度与误判率，必须结合业务延迟一起调。</p>
-                      <p class="story-bridge"><span>知道谁健康之后，</span>下一个问题是：在哪一层看流量、做转发。<a href="#l4-l7">比较四层与七层</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>健康检查不是看端口活没活，是看它还能不能接业务。</p>
+<p class="story-bridge"><span>知道谁健康之后</span>才轮到“在哪一层转发”。<a href="#l4-l7">比较四层和七层</a></p>
           </section>
 <section class="post-section" aria-labelledby="l4-l7">
-            <h2 id="l4-l7" data-toc>四层与七层：能力与开销的取舍</h2>
+            <h2 id="l4-l7" data-toc>四层还是七层，先看你要什么</h2>
             <div class="prose"><p>确定了“谁健康”，团队开始决定在哪一层做转发。四层只看 IP 和端口，七层能读懂 HTTP；能力与开销的取舍，从这里开始。</p></div>
 <div class="two-col">
           <div class="mini-cmp">
@@ -385,7 +388,7 @@
           </div>
         </div>
 
-        <p class="key-point key-point--violet"><strong>重点</strong>四层只读取 IP 与端口，转发快；七层能解析 HTTP，能力灵活但开销更大。多级负载把两者叠加，才能同时获得高吞吐与水平扩展。</p>
+        
 
         
             <div class="table-wrap">
@@ -401,15 +404,17 @@
                 </tbody>
               </table>
             </div>
-            <p class="key-point"><strong>重点</strong>四层只读取 IP 与端口，转发快；七层能解析 HTTP，能力灵活但开销更大。多级负载把两者叠加，才能同时获得高吞吐与水平扩展。</p>
-                      <p class="story-bridge"><span>确定层次，</span>才轮到“把请求给谁”的调度算法。<a href="#algorithms">看每种策略的适用假设</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>四层快，七层聪明。先问你要什么，再问谁更强。</p>
+<p class="story-bridge"><span>层次定了</span>再决定把请求给谁。<a href="#algorithms">看调度算法</a></p>
           </section>
 <section class="post-section" aria-labelledby="algorithms">
-            <h2 id="algorithms" data-toc>调度算法：每种策略都带着假设</h2>
+            <h2 id="algorithms" data-toc>把请求给谁：算法背后的假设</h2>
 <div class="section-sub">
           <p class="chapter-kicker">负载策略</p>
           <h3>常见负载策略及其适用假设</h3>
         </div>
+            <div class="prose"><p>名字很多，其实都在回答一个问题：你觉得哪个节点现在最闲？</p></div>
         <div class="strategy-grid">
           <div class="strategy">
             <h4>轮询</h4>
@@ -592,11 +597,13 @@
                 </tbody>
               </table>
             </div>
-            <p class="key-point key-point--violet"><strong>重点</strong>选择策略时先回答三个问题：服务是否有状态、节点能力是否一致、流量是否可预测。策略越“聪明”，对指标和调参的依赖越强。</p>
-                      <p class="story-bridge"><span>算法没有绝对优劣，</span>去模拟器里看它们如何改变请求分布。<a href="#simulator">动手切换调度策略</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>算法没有最好，只有适不适合。节点同不同构、服务有没有状态，先答这两个问题。</p>
+<p class="story-bridge"><span>别背策略</span>动手点几下更直观。<a href="#simulator">打开模拟器</a></p>
           </section>
 <section class="post-section" aria-labelledby="simulator">
-            <h2 id="simulator" data-toc>调度模拟器：观察策略如何改变分布</h2>
+            <h2 id="simulator" data-toc>动手试试，看流量怎么跑</h2>
+            <div class="prose"><p>与其背策略，不如亲手点几下。</p></div>
             <div class="prose">
               <p>下面的模拟器使用三个权重与处理速度不同的节点。切换策略可以观察请求分布如何变化；将某个节点下线，可以观察负载均衡器如何避开故障节点。</p>
             </div>
@@ -672,10 +679,11 @@
           <p>会话保持还有一个副作用：节点扩缩容时哈希映射会变化，部分用户会被重新分配到其他节点，原有会话可能失效。因此现代系统更倾向于把会话状态外置到 Redis 等共享存储，而不是依赖 IP 哈希。</p>
         </div>
 
-                              <p class="story-bridge"><span>但别忘了一个前提：</span>负载均衡器自己也是单点。<a href="#self-ha">给入口层做冗余</a></p>
+                              <p class="story-bridge"><span>流量分得再漂亮</span>负载均衡器自己挂了也白搭。<a href="#self-ha">给入口做冗余</a></p>
           </section>
 <section class="post-section" aria-labelledby="self-ha">
-            <h2 id="self-ha" data-toc>入口层自身的高可用</h2>
+            <h2 id="self-ha" data-toc>负载均衡器自己也会挂</h2>
+            <div class="prose"><p>你给后端做了冗余，那负载均衡器自己呢？</p></div>
 <div class="prose">
           <p>负载均衡器自身是流量入口，一旦不可用，后端再健康也无法访问。常见的做法是双机主备：两台 Nginx 通过 Keepalived 绑定同一个 VIP，由 VRRP 决定谁持有 VIP；主节点故障时，备节点在数秒内接管 VIP。需要注意，VIP 漂移只解决入口故障，不能提升单机 Nginx 的连接数上限，因此高并发场景还需要多级负载。</p>
           <p>多级负载把不同层次的设备串联起来：硬负载负责最外层的高吞吐，LVS/HAProxy 做四层转发，Nginx 做七层路由与应用层能力。每一层都可以用 Keepalived 做成主备，从而避免任何单台设备成为整条链路的单点。</p>
@@ -724,11 +732,13 @@
         </div>
 
         
-            <p class="key-point key-point--violet"><strong>重点</strong>Keepalived 只能解决入口设备的单点，不能提升单机连接数上限；高并发场景需要 LVS / HAProxy + Nginx 的多级结构，并让每一层都具备冗余。</p>
-                      <p class="story-bridge"><span>同机房入口稳了，</span>用户却可能来自全国甚至全球。<a href="#global">把负载扩展到全局</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>后端做了冗余，入口没有，等于白做。</p>
+<p class="story-bridge"><span>机房入口稳了</span>用户却可能来自全国。<a href="#global">把入口扩展到全局</a></p>
           </section>
 <section class="post-section" aria-labelledby="global">
-            <h2 id="global" data-toc>全局负载：DNS、GSLB 与 Anycast</h2>
+            <h2 id="global" data-toc>用户从全国来，入口怎么选</h2>
+            <div class="prose"><p>用户不会都在同一个城市。入口只放一个机房，远方用户第一步就慢了。</p></div>
 <div class="dns-block">
           <div class="dns-copy">
             <p class="chapter-kicker">DNS 轮询</p>
@@ -771,7 +781,7 @@
           </div>
         </div>
 
-        <p class="key-point key-point--amber"><strong>重点</strong>DNS 轮询没有健康检查，节点宕机后坏 IP 不会被自动摘除，因此 DNS 轮询不能独立完成故障转移。</p>
+        
 
             <div class="prose">
               <p>DNS 轮询是最简单的全局负载：域名绑定多个 IP，解析时按顺序返回。它能把用户分配到不同机房，但 DNS 没有健康探测，节点宕机后坏 IP 仍可能留在解析结果里；TTL 缓存还会让切换延迟从几秒到几十分钟不等。</p>
@@ -811,11 +821,13 @@
               </svg>
               <figcaption>图示：GSLB 根据用户位置和机房健康状态返回不同入口；坏机房不会继续被解析。</figcaption>
             </figure>
-            <p class="key-point key-point--amber"><strong>重点</strong>DNS 轮询没有健康检查，节点宕机后坏 IP 不会被自动摘除，因此 DNS 轮询不能独立完成故障转移。GSLB 把健康检查带入解析层，但仍要受 DNS 缓存 TTL 约束。</p>
-                      <p class="story-bridge"><span>全局入口把用户带到机房，</span>进入机房后又遇到会话保持问题。<a href="#consistent-hash">用一致性哈希减少迁移</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>DNS 轮询不会探活，坏 IP 照样返回。GSLB 好一些，但也得看 TTL 脸色。</p>
+<p class="story-bridge"><span>用户进了机房</span>又会遇到会话保持的问题。<a href="#consistent-hash">看一致性哈希</a></p>
           </section>
 <section class="post-section" aria-labelledby="consistent-hash">
-            <h2 id="consistent-hash" data-toc>会话保持与一致性哈希</h2>
+            <h2 id="consistent-hash" data-toc>会话保持：扩容时怎么少掉线</h2>
+            <div class="prose"><p>会话保持最尴尬的时刻，是扩容。</p></div>
             <div class="prose">
               <p>需要会话保持时，IP 哈希可以让同一来源固定落到同一节点。但普通取模哈希在节点增减时会把几乎所有 key 重新映射，导致缓存大面积失效、会话集中掉线。一致性哈希把节点和 key 映射到同一个环上，节点变化时只影响相邻区间，迁移量大幅减少。</p>
               <p>一致性哈希并不能消除热点：如果 key 分布不均，某个节点仍可能承担过多请求。工程上通常引入虚拟节点，让每个物理节点在环上出现多次，使分布更均匀。即使如此，热点 key 仍需要单独处理，例如本地缓存、key 拆分或请求合并。</p>
@@ -845,11 +857,13 @@
               </svg>
               <figcaption>图示：一致性哈希把节点和 key 放在同一个环上，扩缩容只影响相邻区间，减少缓存和会话迁移。</figcaption>
             </figure>
-            <p class="key-point"><strong>重点</strong>会话保持会带来副作用：节点扩缩容时映射变化，部分会话会失效。更稳妥的做法是把会话状态外置到 Redis 等共享存储，而不是依赖 IP 哈希。</p>
-                      <p class="story-bridge"><span>最后，</span>把入口层的检查项收拢成一张清单。<a href="#checklist">逐项检查入口层</a></p>
+            
+                                  <p class="key-point"><strong>重点</strong>会话保持最怕扩容。能外置就外置，别把用户绑死在某台机器上。</p>
+<p class="story-bridge"><span>收束</span>入口层的细节差不多了，用一张清单收尾。<a href="#checklist">检查一遍</a></p>
           </section>
 <section class="post-section" aria-labelledby="checklist">
             <h2 id="checklist" data-toc>入口层检查清单</h2>
+            <div class="prose"><p>入口层的东西很碎，最后用一张清单收个尾。</p></div>
             <div class="checklist-grid">
               <div class="checklist-item"><span>01</span><p>负载均衡器本身是否双机或多级冗余？VIP / DNS 切换是否演练过？</p></div>
               <div class="checklist-item"><span>02</span><p>健康检查是否覆盖真实业务路径？失败阈值和恢复阈值是否调过？</p></div>
@@ -858,8 +872,9 @@
               <div class="checklist-item"><span>05</span><p>DNS TTL 是否与故障切换目标匹配？GSLB 是否能感知机房健康？</p></div>
               <div class="checklist-item"><span>06</span><p>后端超时、重试和熔断是否与负载均衡策略配合，避免重试风暴？</p></div>
             </div>
-            <p class="key-point"><strong>下一章</strong>负载均衡解决“一个机房内的入口”，容灾则把故障域扩展到机房、城市和地域。下一章讨论两地三中心与异地多活。</p>
-          </section>
+            
+                      <p class="key-point"><strong>重点</strong>负载均衡解决一个机房内的入口。下一章把故障域扩大到城市和地域。</p>
+</section>
         </div>
               <nav class="post-pager" aria-label="章节导航">
         <a class="pager-link pager-prev" href="redundancy.html"><span>上一篇 · 02</span><strong>冗余</strong></a>
@@ -869,14 +884,14 @@
       <aside class="toc" aria-label="本页目录">
         <p class="toc-label">本页目录</p>
                 <nav class="toc-nav" id="tocNav" aria-label="本页小节">
-          <a class="toc-link toc-level-2" href="#role">负载均衡的两个职责</a>
-          <a class="toc-link toc-level-2" href="#health">健康检查：只把流量给能服务的节点</a>
-          <a class="toc-link toc-level-2" href="#l4-l7">四层与七层：能力与开销的取舍</a>
-          <a class="toc-link toc-level-2" href="#algorithms">调度算法：每种策略都带着假设</a>
-          <a class="toc-link toc-level-2" href="#simulator">调度模拟器：观察策略如何改变分布</a>
-          <a class="toc-link toc-level-2" href="#self-ha">入口层自身的高可用</a>
-          <a class="toc-link toc-level-2" href="#global">全局负载：DNS、GSLB 与 Anycast</a>
-          <a class="toc-link toc-level-2" href="#consistent-hash">会话保持与一致性哈希</a>
+          <a class="toc-link toc-level-2" href="#role">负载均衡到底在忙什么</a>
+          <a class="toc-link toc-level-2" href="#health">别把请求发给已经挂了的节点</a>
+          <a class="toc-link toc-level-2" href="#l4-l7">四层还是七层，先看你要什么</a>
+          <a class="toc-link toc-level-2" href="#algorithms">把请求给谁：算法背后的假设</a>
+          <a class="toc-link toc-level-2" href="#simulator">动手试试，看流量怎么跑</a>
+          <a class="toc-link toc-level-2" href="#self-ha">负载均衡器自己也会挂</a>
+          <a class="toc-link toc-level-2" href="#global">用户从全国来，入口怎么选</a>
+          <a class="toc-link toc-level-2" href="#consistent-hash">会话保持：扩容时怎么少掉线</a>
           <a class="toc-link toc-level-2" href="#checklist">入口层检查清单</a>
         </nav>
         <a class="toc-top" href="#top">回到顶部 <span aria-hidden="true">↑</span></a>
@@ -897,8 +912,22 @@
   </footer>
   </main>
 
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="放大图示" hidden>
+    <div class="lightbox-panel">
+      <div class="lightbox-bar">
+        <span class="lightbox-caption" id="lightboxCaption"></span>
+        <div class="lightbox-actions">
+          <button class="btn btn-small btn-ghost" id="lightboxZoom" type="button">放大</button>
+          <button class="btn btn-small btn-ghost" id="lightboxClose" type="button">关闭</button>
+        </div>
+      </div>
+      <div class="lightbox-stage" id="lightboxStage"></div>
+      <p class="lightbox-hint">点击图示可继续放大 · 按 Esc 关闭</p>
+    </div>
+  </div>
+
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-9" defer></script>
+  <script src="app.js?v=20261022-12" defer></script>
 </body>
 </html>
