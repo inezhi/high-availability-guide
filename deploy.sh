@@ -4,6 +4,10 @@ set -euo pipefail
 cd "$(dirname "$0")"
 REPO_NAME="${1:-high-availability-guide}"
 
+if command -v python3 >/dev/null 2>&1 && [ -f tools/build.py ]; then
+  python3 tools/build.py
+fi
+
 if ! command -v gh >/dev/null 2>&1; then
   echo "未找到 GitHub CLI。请先执行：brew install gh"
   exit 1
@@ -29,7 +33,7 @@ fi
 
 git add -A
 if ! git diff --cached --quiet; then
-  git commit -m "Add interactive high-availability guide
+  git commit -m "Add multi-page interactive high-availability guide
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 fi

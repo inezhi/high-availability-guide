@@ -1,0 +1,75 @@
+<div class="prose">
+          <p class="lede">高可用用“几个 9”来度量。99.9% 是一年约 8.8 小时停机，99.99% 约 53 分钟，99.999% 只剩约 5 分钟。每多一个 9，停机时间缩小十倍，成本通常涨得更多。</p>
+          <p>其计算公式为：<span class="formula">可用性 = 正常服务时间 ÷ 总时间</span>。通常按年折算成停机分钟数。4 个 9 意味着全年停机小于 53 分钟；5 个 9 小于 5 分钟。这两个数字构成一年内可接受的停机预算。</p>
+        </div>
+
+        <div class="instrument nines" id="nines">
+          <div class="instrument-bar">
+            <span class="status-dot status-dot-good"></span>
+            <span class="instrument-title">可用性换算器</span>
+            <span class="instrument-meta mono">DOWNTIME / YEAR</span>
+          </div>
+          <div class="nines-controls">
+            <div class="seg" role="group" aria-label="选择可用性水平" id="ninesGroup">
+              <button type="button" data-nines="2">99%</button>
+              <button type="button" data-nines="3">99.9%</button>
+              <button type="button" data-nines="4" class="is-active" aria-pressed="true">99.99%</button>
+              <button type="button" data-nines="5">99.999%</button>
+              <button type="button" data-nines="6">99.9999%</button>
+            </div>
+            <p class="nines-rate">每多一个 9，允许的停机时间变为原来的 <strong>1/10</strong>。</p>
+          </div>
+          <div class="nines-readout">
+            <div class="nines-big">
+              <span id="ninesValue">99.99%</span>
+              <small>目标可用性</small>
+            </div>
+            <div class="nines-stats">
+              <div class="stat"><span>每年</span><strong id="ninesYear">52.6 分钟</strong></div>
+              <div class="stat"><span>每月</span><strong id="ninesMonth">4.4 分钟</strong></div>
+              <div class="stat"><span>每周</span><strong id="ninesWeek">1.0 分钟</strong></div>
+            </div>
+          </div>
+          <div class="nines-chart" id="ninesBars" aria-label="不同可用性水平的年度停机分钟数对比"></div>
+          <p class="chart-note">年度停机分钟数，横条为对数刻度。通常按约数写作 4 个 9 ≈ 53 分钟、5 个 9 ≈ 5 分钟。</p>
+        </div>
+
+        <div class="prose prose-tight">
+          <p><strong>如何读这张图：</strong>横条采用对数刻度，因为不同可用性水平之间的停机时间相差一个数量级。每增加一个 9，年度停机时间缩小为原来的十分之一，但达到下一级所需的工程投入通常远高于十倍：需要覆盖数据库、缓存、消息队列、网络和发布流程的整条链路。</p>
+          <p><strong>串联链路的可用性：</strong>一个请求往往依次经过客户端、负载均衡、网关、应用和数据库。串联环节的可用性近似为各环节可用性的乘积，环节越多，整体可用性越低。因此提升整体可用性有两条路径：减少不必要的串行依赖，或为关键环节增加冗余与快速故障转移。</p>
+          <p><strong>停机预算的用法：</strong>把年度允许停机时间视为预算，计划内发布、故障和演练都会消耗它。预算越紧，越需要自动化发布、灰度、回滚和故障演练；仅靠“机器不坏”无法达到高可用目标。</p>
+        </div>
+
+        <figure class="dg-wrap chain-fig">
+          <svg class="dg" viewBox="0 0 660 150" role="img" aria-label="串联链路的可用性约为各环节可用性的乘积">
+            <rect class="dg-node-blue" x="8" y="30" width="100" height="58" rx="7"/>
+            <g style="color:var(--d-blue)"><use href="#i-user" x="18" y="38" width="16" height="16"/></g>
+            <text class="dg-tiny" x="58" y="63" text-anchor="middle">客户端</text>
+            <text class="dg-xs" x="58" y="80" text-anchor="middle">99.99%</text>
+            <line class="dg-line-blue" x1="108" y1="59" x2="138" y2="59" marker-end="url(#arr)"/>
+            <rect class="dg-node-violet" x="140" y="30" width="100" height="58" rx="7"/>
+            <g style="color:var(--d-violet)"><use href="#i-network" x="150" y="38" width="16" height="16"/></g>
+            <text class="dg-tiny" x="190" y="63" text-anchor="middle">负载均衡</text>
+            <text class="dg-xs" x="190" y="80" text-anchor="middle">99.99%</text>
+            <line class="dg-line-blue" x1="240" y1="59" x2="270" y2="59" marker-end="url(#arr)"/>
+            <rect class="dg-node-cyan" x="272" y="30" width="100" height="58" rx="7"/>
+            <g style="color:var(--d-cyan)"><use href="#i-cloud" x="282" y="38" width="16" height="16"/></g>
+            <text class="dg-tiny" x="322" y="63" text-anchor="middle">网关</text>
+            <text class="dg-xs" x="322" y="80" text-anchor="middle">99.95%</text>
+            <line class="dg-line-blue" x1="372" y1="59" x2="402" y2="59" marker-end="url(#arr)"/>
+            <rect class="dg-node-amber" x="404" y="30" width="100" height="58" rx="7"/>
+            <g style="color:var(--d-amber)"><use href="#i-server" x="414" y="38" width="16" height="16"/></g>
+            <text class="dg-tiny" x="454" y="63" text-anchor="middle">应用</text>
+            <text class="dg-xs" x="454" y="80" text-anchor="middle">99.9%</text>
+            <line class="dg-line-blue" x1="504" y1="59" x2="534" y2="59" marker-end="url(#arr)"/>
+            <rect class="dg-node-green" x="536" y="30" width="100" height="58" rx="7"/>
+            <g style="color:var(--d-green)"><use href="#i-db" x="546" y="38" width="16" height="16"/></g>
+            <text class="dg-tiny" x="586" y="63" text-anchor="middle">数据库</text>
+            <text class="dg-xs" x="586" y="80" text-anchor="middle">99.99%</text>
+            <text class="dg-s" x="330" y="120" text-anchor="middle">整体可用性 ≈ 99.99% × 99.99% × 99.95% × 99.9% × 99.99% ≈ 99.8%</text>
+            <text class="dg-tiny dg-t-muted" x="330" y="138" text-anchor="middle">串联环节越多，整体可用性越低；关键环节需要冗余</text>
+          </svg>
+          <figcaption>图示：把各环节的可用性相乘，得到整条链路的可用性；链路越长，整体越难达到高可用。</figcaption>
+        </figure>
+
+        <p class="key-point"><strong>重点</strong>可用性按整条链路计算，而不是按单台机器计算。每增加一个 9，停机时间缩小十倍，工程成本通常远不止十倍。</p>

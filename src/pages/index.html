@@ -1,0 +1,292 @@
+    <section class="hero" id="top">
+      <div class="hero-intro">
+        <div class="series">
+          <span>系统设计系列</span>
+          <span class="series-part">第 01 篇</span>
+        </div>
+        <h1>高可用架构</h1>
+        <p class="hero-lede">高可用，是不间断提供服务的能力。它不依赖某个永不故障的组件，而依赖一整套冗余、检测与转移机制——从主备、多活，到负载均衡、容灾、中间件复制和限流。</p>
+        <p class="hero-sub">这是一份按章节组织的交互式指南。每一章都可以独立阅读，也可以按顺序走完从指标到故障转移的完整链路。</p>
+        <div class="hero-facts">
+          <div class="hero-fact">
+            <span class="fact-value">99.99%</span>
+            <span class="fact-label">全年停机约 <strong>52.6 分钟</strong></span>
+          </div>
+          <div class="hero-fact">
+            <span class="fact-value">RTO / RPO</span>
+            <span class="fact-label">恢复时间与恢复点，是两笔分开算的账</span>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="availability.html">从第 01 章读起</a>
+          <a class="btn btn-ghost" href="redundancy.html">直接进入故障演练</a>
+        </div>
+      </div>
+
+      <div class="hero-viz instrument" aria-label="主备集群交互演示">
+        <div class="instrument-bar">
+          <span class="status-dot status-dot-good"></span>
+          <span class="instrument-title">冗余集群</span>
+          <span class="instrument-meta mono">ACTIVE / PASSIVE</span>
+        </div>
+        <div class="topo" id="heroStage">
+          <div class="topo-ingress">
+            <span class="ingress-label">请求入口</span>
+            <span class="ingress-pulse" aria-hidden="true"></span>
+          </div>
+          <div class="topo-flow" aria-hidden="true"><span>请求流量</span></div>
+          <div class="topo-nodes">
+            <article class="topo-node is-primary" id="heroNodeA">
+              <div class="topo-node-head">
+                <span class="led"></span>
+                <svg class="spot-icon node-icon" aria-hidden="true"><use href="#i-server"/></svg>
+                <strong>A</strong>
+                <span class="node-role" data-node-role="A">主</span>
+              </div>
+              <div class="mini-load"><span style="width: 62%"></span></div>
+              <div class="topo-node-meta mono"><span>WRITE</span><span>1.2k/s</span></div>
+            </article>
+            <article class="topo-node is-standby" id="heroNodeB">
+              <div class="topo-node-head">
+                <span class="led"></span>
+                <svg class="spot-icon node-icon" aria-hidden="true"><use href="#i-server"/></svg>
+                <strong>B</strong>
+                <span class="node-role" data-node-role="B">备</span>
+              </div>
+              <div class="mini-load"><span style="width: 8%"></span></div>
+              <div class="topo-node-meta mono"><span>REPLICA</span><span>热备</span></div>
+            </article>
+          </div>
+          <div class="topo-packets" id="heroPackets" aria-hidden="true"></div>
+        </div>
+        <div class="hero-viz-foot">
+          <p id="heroStatus" aria-live="polite">A 正在服务，B 热备中。</p>
+          <button class="btn btn-small btn-ghost" id="heroFail" type="button">模拟故障</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="hero-strip">
+      <span class="strip-label">全书主线</span>
+      <span>度量</span><i aria-hidden="true"></i>
+      <span>冗余</span><i aria-hidden="true"></i>
+      <span>转移</span><i aria-hidden="true"></i>
+      <span>容灾</span><i aria-hidden="true"></i>
+      <span>过载保护</span>
+    </div>
+
+    <section class="home-section home-chapters" id="chapters">
+      <header class="home-section-head">
+        <p class="chapter-kicker">全书目录</p>
+        <h2>一条从指标到故障转移的阅读路径</h2>
+        <p>六个章节按依赖关系排列：先定义“可用”如何度量，再讨论冗余与切换；负载均衡和容灾把故障转移扩展到入口与机房；最后用中间件和限流收束到具体系统。</p>
+      </header>
+
+      <div class="chapter-grid">
+        <a class="chapter-card" href="availability.html">
+          <div class="chapter-card-top"><span class="chapter-card-num">01</span><span class="chapter-card-tag">度量</span></div>
+          <h3>可用性指标</h3>
+          <p>几个 9 如何换算成停机预算，串联链路为什么越走越脆弱，SLO 与错误预算怎样指导发布。</p>
+          <div class="chapter-card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 88">
+              <path d="M18 70 A66 66 0 0 1 182 70" fill="none" stroke="var(--line-strong)" stroke-width="9" stroke-linecap="round"/>
+              <path d="M18 70 A66 66 0 0 1 170 28" fill="none" stroke="var(--d-green)" stroke-width="9" stroke-linecap="round"/>
+              <path d="M170 28 A66 66 0 0 1 182 70" fill="none" stroke="var(--d-red)" stroke-width="9" stroke-linecap="round"/>
+              <text x="100" y="48" text-anchor="middle" font-size="20" font-weight="700" fill="var(--ink)">99.99%</text>
+              <text x="100" y="64" text-anchor="middle" font-size="8" fill="var(--muted)">52.6 min / year</text>
+              <circle cx="24" cy="18" r="4" fill="var(--d-amber)"/>
+              <text x="34" y="21" font-size="8" fill="var(--faint)">停机预算</text>
+            </svg>
+          </div>
+          <span class="chapter-card-link">阅读本章 <span aria-hidden="true">→</span></span>
+        </a>
+
+        <a class="chapter-card" href="redundancy.html">
+          <div class="chapter-card-top"><span class="chapter-card-num">02</span><span class="chapter-card-tag">冗余</span></div>
+          <h3>主备与多活</h3>
+          <p>单写入者与并发写的根本差别；RTO / RPO、脑裂与 fencing，以及单元化多活的工程取舍。</p>
+          <div class="chapter-card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 88">
+              <rect class="dg-node-green" x="18" y="12" width="64" height="56" rx="7"/>
+              <rect x="30" y="24" width="40" height="8" rx="2" fill="var(--d-green)" opacity=".18"/>
+              <rect x="30" y="38" width="40" height="8" rx="2" fill="var(--d-green)" opacity=".12"/>
+              <text x="50" y="60" text-anchor="middle" font-size="8" fill="var(--d-green-ink)">A · 主</text>
+              <rect class="dg-node-amber" x="118" y="12" width="64" height="56" rx="7" stroke-dasharray="4 3"/>
+              <rect x="130" y="24" width="40" height="8" rx="2" fill="var(--d-amber)" opacity=".16"/>
+              <rect x="130" y="38" width="40" height="8" rx="2" fill="var(--d-amber)" opacity=".1"/>
+              <text x="150" y="60" text-anchor="middle" font-size="8" fill="var(--d-amber-ink)">B · 备</text>
+              <path class="dg-line-blue dg-dash" d="M82 40 H116" marker-end="url(#arr)"/>
+              <text x="100" y="34" text-anchor="middle" font-size="7" fill="var(--d-blue-ink)">复制</text>
+            </svg>
+          </div>
+          <span class="chapter-card-link">阅读本章 <span aria-hidden="true">→</span></span>
+        </a>
+
+        <a class="chapter-card" href="load-balancing.html">
+          <div class="chapter-card-top"><span class="chapter-card-num">03</span><span class="chapter-card-tag">入口</span></div>
+          <h3>负载均衡</h3>
+          <p>健康检查、调度算法、四层与七层、会话保持、一致性哈希，以及入口层自身的高可用。</p>
+          <div class="chapter-card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 88">
+              <rect class="dg-node-blue" x="10" y="34" width="46" height="22" rx="4"/><text x="33" y="49" text-anchor="middle" font-size="8" fill="var(--d-blue-ink)">请求</text>
+              <path class="dg-line-blue" d="M56 45 H82" marker-end="url(#arr)"/>
+              <rect class="dg-node-violet" x="84" y="28" width="46" height="34" rx="6"/><text x="107" y="49" text-anchor="middle" font-size="8" fill="var(--d-violet-ink)">LB</text>
+              <path class="dg-line-cyan" d="M130 38 H160" marker-end="url(#arr-info)"/>
+              <path class="dg-line-cyan" d="M130 52 H160" marker-end="url(#arr-info)"/>
+              <rect class="dg-node-green" x="162" y="12" width="30" height="22" rx="4"/><text x="177" y="27" text-anchor="middle" font-size="7" fill="var(--d-green-ink)">S1</text>
+              <rect class="dg-node-amber" x="162" y="42" width="30" height="22" rx="4"/><text x="177" y="57" text-anchor="middle" font-size="7" fill="var(--d-amber-ink)">S2</text>
+              <rect class="dg-node-ghost" x="162" y="72" width="30" height="10" rx="3"/>
+              <text x="100" y="84" text-anchor="middle" font-size="7" fill="var(--faint)">只把请求分给健康节点</text>
+            </svg>
+          </div>
+          <span class="chapter-card-link">阅读本章 <span aria-hidden="true">→</span></span>
+        </a>
+
+        <a class="chapter-card" href="disaster-recovery.html">
+          <div class="chapter-card-top"><span class="chapter-card-num">04</span><span class="chapter-card-tag">机房</span></div>
+          <h3>容灾架构</h3>
+          <p>从备份、冷备、温备到双活，拆解两地三中心与异地多活的成本、延迟和一致性代价。</p>
+          <div class="chapter-card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 88">
+              <circle cx="100" cy="42" r="34" fill="var(--d-blue)" opacity=".06"/>
+              <circle cx="100" cy="42" r="34" fill="none" stroke="var(--d-blue)" stroke-width="1"/>
+              <ellipse cx="100" cy="42" rx="13" ry="34" fill="none" stroke="var(--d-blue)" stroke-width=".8" opacity=".5"/>
+              <path d="M66 42h68M71 24h58M71 60h58" stroke="var(--d-blue)" stroke-width=".8" opacity=".5"/>
+              <g style="color:var(--d-violet)"><use href="#i-building" x="12" y="58" width="22" height="22"/></g>
+              <g style="color:var(--d-green)"><use href="#i-building" x="88" y="58" width="22" height="22"/></g>
+              <g style="color:var(--d-amber)"><use href="#i-building" x="164" y="58" width="22" height="22"/></g>
+              <text x="23" y="86" text-anchor="middle" font-size="7" fill="var(--faint)">DC1</text>
+              <text x="99" y="86" text-anchor="middle" font-size="7" fill="var(--faint)">DC2</text>
+              <text x="175" y="86" text-anchor="middle" font-size="7" fill="var(--faint)">DC3</text>
+            </svg>
+          </div>
+          <span class="chapter-card-link">阅读本章 <span aria-hidden="true">→</span></span>
+        </a>
+
+        <a class="chapter-card" href="middleware.html">
+          <div class="chapter-card-top"><span class="chapter-card-num">05</span><span class="chapter-card-tag">系统</span></div>
+          <h3>中间件高可用</h3>
+          <p>MongoDB、Redis、Kafka、MySQL 的副本、选举与复制策略；同一道题，四种不同解法。</p>
+          <div class="chapter-card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 88">
+              <rect class="dg-node-blue" x="10" y="16" width="42" height="56" rx="6"/>
+              <svg x="20" y="26" width="22" height="22" style="color:var(--d-blue)"><use href="#i-db"/></svg>
+              <text x="31" y="62" text-anchor="middle" font-size="7" fill="var(--d-blue-ink)">Mongo</text>
+              <rect class="dg-node-amber" x="60" y="16" width="42" height="56" rx="6"/>
+              <svg x="70" y="26" width="22" height="22" style="color:var(--d-amber)"><use href="#i-layers"/></svg>
+              <text x="81" y="62" text-anchor="middle" font-size="7" fill="var(--d-amber-ink)">Redis</text>
+              <rect class="dg-node-magenta" x="110" y="16" width="42" height="56" rx="6"/>
+              <svg x="120" y="26" width="22" height="22" style="color:var(--d-magenta)"><use href="#i-mail"/></svg>
+              <text x="131" y="62" text-anchor="middle" font-size="7" fill="var(--d-magenta-ink)">Kafka</text>
+              <rect class="dg-node-cyan" x="160" y="16" width="30" height="56" rx="6"/>
+              <svg x="164" y="26" width="22" height="22" style="color:var(--d-cyan)"><use href="#i-db"/></svg>
+              <text x="175" y="62" text-anchor="middle" font-size="7" fill="var(--d-cyan-ink)">SQL</text>
+            </svg>
+          </div>
+          <span class="chapter-card-link">阅读本章 <span aria-hidden="true">→</span></span>
+        </a>
+
+        <a class="chapter-card" href="rate-limiting.html">
+          <div class="chapter-card-top"><span class="chapter-card-num">06</span><span class="chapter-card-tag">保护</span></div>
+          <h3>限流与过载保护</h3>
+          <p>倒金字塔分层限流、漏桶与令牌桶、分布式限流，以及超时、重试、熔断和降级的组合拳。</p>
+          <div class="chapter-card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 88">
+              <path d="M42 10 H158 L124 48 V68 L82 78 V48 Z" fill="var(--d-violet)" opacity=".1" stroke="var(--d-violet)" stroke-width="1.2"/>
+              <circle cx="74" cy="6" r="2.5" fill="var(--d-cyan)"/><circle cx="100" cy="4" r="2.5" fill="var(--d-cyan)"/><circle cx="126" cy="6" r="2.5" fill="var(--d-cyan)"/>
+              <path class="dg-line-cyan" d="M74 9 V14 M100 7 V14 M126 9 V14"/>
+              <g style="color:var(--d-green)"><use href="#i-server" x="90" y="62" width="20" height="20"/></g>
+              <text x="100" y="86" text-anchor="middle" font-size="7" fill="var(--faint)">越往下，越要保护</text>
+            </svg>
+          </div>
+          <span class="chapter-card-link">阅读本章 <span aria-hidden="true">→</span></span>
+        </a>
+      </div>
+
+      <a class="chapter-card chapter-card-quiz" href="quiz.html">
+        <div class="chapter-card-top"><span class="chapter-card-num">07</span><span class="chapter-card-tag">检验</span></div>
+        <div>
+          <h3>知识自测</h3>
+          <p>十二道选择题覆盖六个章节。答完会看到每题的解释，适合在读完一章后立刻检验。</p>
+        </div>
+        <span class="chapter-card-link">开始自测 <span aria-hidden="true">→</span></span>
+      </a>
+    </section>
+
+    <section class="home-section home-path" id="path">
+      <div class="home-path-copy">
+        <p class="chapter-kicker">阅读路径</p>
+        <h2>先度量，再冗余，最后才是切换</h2>
+        <p>高可用不是“多买一台机器”。它是一条从目标到手段的链路：先确定业务能接受的停机时间，再决定冗余方式和切换机制，最后用演练验证假设。</p>
+        <p>如果顺序反过来，很容易出现“做了主备，却不知道能恢复多快”；或者“上了多活，却没人能说清数据冲突怎么处理”。</p>
+      </div>
+      <figure class="dg-wrap home-path-fig">
+        <svg class="dg" viewBox="0 0 640 150" role="img" aria-label="高可用的阅读路径：度量、冗余、转移、验证">
+          <rect class="dg-node-blue" x="8" y="28" width="132" height="62" rx="8"/>
+          <g style="color:var(--d-blue)"><use href="#i-gauge" x="20" y="38" width="18" height="18"/></g>
+          <text class="dg-xs" x="48" y="52" text-anchor="start">度量</text>
+          <text class="dg-tiny" x="20" y="74">几个 9 · RTO / RPO</text>
+          <line class="dg-line-blue" x1="140" y1="59" x2="168" y2="59" marker-end="url(#arr)"/>
+          <rect class="dg-node-violet" x="170" y="28" width="132" height="62" rx="8"/>
+          <g style="color:var(--d-violet)"><use href="#i-layers" x="182" y="38" width="18" height="18"/></g>
+          <text class="dg-xs" x="210" y="52" text-anchor="start">冗余</text>
+          <text class="dg-tiny" x="182" y="74">主备 · 多活 · 副本</text>
+          <line class="dg-line-blue" x1="302" y1="59" x2="330" y2="59" marker-end="url(#arr)"/>
+          <rect class="dg-node-amber" x="332" y="28" width="132" height="62" rx="8"/>
+          <g style="color:var(--d-amber)"><use href="#i-network" x="344" y="38" width="18" height="18"/></g>
+          <text class="dg-xs" x="372" y="52" text-anchor="start">转移</text>
+          <text class="dg-tiny" x="344" y="74">检测 · 判定 · 切流</text>
+          <line class="dg-line-blue" x1="464" y1="59" x2="492" y2="59" marker-end="url(#arr)"/>
+          <rect class="dg-node-green" x="494" y="28" width="138" height="62" rx="8"/>
+          <g style="color:var(--d-green)"><use href="#i-shield" x="506" y="38" width="18" height="18"/></g>
+          <text class="dg-xs" x="534" y="52" text-anchor="start">验证</text>
+          <text class="dg-tiny" x="506" y="74">演练 · 演练 · 再演练</text>
+          <text class="dg-tiny dg-t-muted" x="320" y="120" text-anchor="middle">目标决定手段，手段必须被验证；顺序反过来，架构就会变成一堆无法兑现的假设。</text>
+        </svg>
+      </figure>
+    </section>
+
+    <section class="home-section home-principles" id="principles">
+      <header class="home-section-head">
+        <p class="chapter-kicker">五条原则</p>
+        <h2>贯穿全书的判断标准</h2>
+        <p>具体技术会变，下面五条原则不变。它们也是后面所有章节反复回到的基线。</p>
+      </header>
+      <div class="principle-list">
+        <article class="principle-item">
+          <span class="principle-num">01</span>
+          <div><h3>可用性按整条链路计算</h3><p>客户端、负载、网关、应用、数据库任一环节故障，用户都会感知。单机五个 9，抵不过链路上一个单点。</p></div>
+        </article>
+        <article class="principle-item">
+          <span class="principle-num">02</span>
+          <div><h3>冗余只有在故障时才算数</h3><p>备机是否能接管，取决于数据是否追平、配置是否一致、切换是否演练过。没有验证的冗余只是心理安慰。</p></div>
+        </article>
+        <article class="principle-item">
+          <span class="principle-num">03</span>
+          <div><h3>单写入者让一致性变简单</h3><p>主备只有一个写入者，天然不需要合并冲突；多活允许多个写入者，就必须为并发写付出工程成本。</p></div>
+        </article>
+        <article class="principle-item">
+          <span class="principle-num">04</span>
+          <div><h3>切换之前，先解决 fencing</h3><p>网络分区时，旧主和新主可能同时存在。没有仲裁、租约或 STONITH，故障转移会变成双写事故。</p></div>
+        </article>
+        <article class="principle-item">
+          <span class="principle-num">05</span>
+          <div><h3>保护数据层，保护最后一道防线</h3><p>缓存和消息队列可以重放，数据库往往不能。限流、熔断、降级的目的，都是让数据层不被洪峰压垮。</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="home-section home-about" id="about">
+      <div class="home-about-main">
+        <p class="chapter-kicker">关于这份指南</p>
+        <h2>文档为骨，工程实践为肉</h2>
+        <p>原始文档给出了概念骨架和关键结论：几个 9、主备与多活、负载均衡、两地三中心、中间件复制和限流。本指南保留了这些结论，并补充了公开资料中较为通用的工程细节——例如错误预算、fencing、ISR、GTID、滑动窗口和过载保护组合。</p>
+        <p>所有图示均为内联 SVG，交互由原生 JavaScript 实现，不依赖外部 CDN。你可以按章节顺序阅读，也可以直接跳到关心的主题；每章末尾都有要点和下一篇入口。</p>
+      </div>
+      <aside class="home-about-side">
+        <span class="mono">READING MODES</span>
+        <div><strong>顺序读</strong><p>从 01 到 07，建立完整链路。</p></div>
+        <div><strong>按需查</strong><p>用左侧章节导航或右侧本页目录定位。</p></div>
+        <div><strong>动手试</strong><p>切换主备、暂停节点、注入突发流量。</p></div>
+      </aside>
+    </section>

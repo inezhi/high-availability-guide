@@ -1,0 +1,544 @@
+    <div class="page-wrap" id="top">
+      {{MOBILE_TOC}}
+      <article class="post">
+        <header class="post-head">
+          <nav class="breadcrumb" aria-label="面包屑">
+            <a href="index.html">首页</a><span aria-hidden="true">/</span><span>第 02 章</span>
+          </nav>
+          <p class="chapter-kicker">第 02 章 · 冗余</p>
+          <h1>冗余与故障转移：主备、多活与脑裂</h1>
+          <p class="post-lede">冗余是高可用的核心思想：用额外的副本换取故障时的接管能力。但“多一台机器”并不等于高可用——主备与多活的根本差别，不在机器数量，而在同一时刻有多少个写入者，以及故障发生时谁来判定、谁来接管。</p>
+          <div class="post-meta">
+            <span>阅读约 18 分钟</span>
+            <span class="meta-dot" aria-hidden="true"></span>
+            <span>关键词：主备 · 多活 · RTO / RPO · fencing · 单元化</span>
+          </div>
+        </header>
+
+        <aside class="post-takeaways" aria-label="本章要点">
+          <span class="takeaways-label">本章要点</span>
+          <ul>
+            <li>主备是单写入者模型：任何时刻只有一个写入者，故障时转移写入权。</li>
+            <li>RTO 主要耗在检测与判定；RPO 由同步或异步复制决定，两者不可兼得。</li>
+            <li>没有 fencing 的主备会在网络分区时出现双主，仲裁、租约或 STONITH 是必需项。</li>
+            <li>多活的本质是并发写问题；工程主流是“单元化 + 异步复制”，不是任意多写。</li>
+          </ul>
+        </aside>
+
+        <div class="post-body chapter-body" id="postBody">
+          <section class="post-section" aria-labelledby="redundancy-basics">
+            <h2 id="redundancy-basics" data-toc>冗余的层次：从机器到机房</h2>
+            <div class="prose">
+              <p>冗余可以发生在很多层次：进程、机器、机架、可用区、机房、地域。层次越高，隔离的故障越大，成本也越高。同一机架上的两台服务器可以防进程崩溃和单机硬件故障，却无法防机架掉电；同城两个机房可以防火灾，却无法防城市级灾害。</p>
+              <p>设计冗余时先画故障域：哪些组件会一起故障？共享电源、共享交换机、共享配置中心、共享发布流程，都会把“两个副本”变回“一个故障域”。冗余的数量不是关键，故障域是否真正隔离才是关键。</p>
+            </div>
+
+            <figure class="dg-wrap">
+              <svg class="dg" viewBox="0 0 660 220" role="img" aria-label="冷备、温备、热备的就绪程度与恢复时间对比">
+                <text class="dg-tiny dg-t-muted" x="24" y="22">备机就绪程度 →</text>
+                <line class="dg-line" x1="24" y1="30" x2="636" y2="30" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="30" y="56" width="180" height="104" rx="8"/>
+                <text class="dg-xs" x="44" y="78" text-anchor="start">冷备 · cold</text>
+                <rect class="dg-bar-blue" x="44" y="92" width="34" height="7" rx="3.5"/>
+                <text class="dg-tiny" x="44" y="118">机器可能未运行，应用未部署</text>
+                <text class="dg-tiny" x="44" y="134">数据靠定期备份恢复</text>
+                <text class="dg-tiny dg-t-bad" x="44" y="152">RTO：小时级</text>
+                <rect class="dg-node-amber" x="240" y="56" width="180" height="104" rx="8"/>
+                <text class="dg-xs" x="254" y="78" text-anchor="start">温备 · warm</text>
+                <rect class="dg-bar-amber" x="254" y="92" width="90" height="7" rx="3.5"/>
+                <text class="dg-tiny" x="254" y="118">机器运行，数据持续复制</text>
+                <text class="dg-tiny" x="254" y="134">服务未接流量，配置已就绪</text>
+                <text class="dg-tiny dg-t-amber" x="254" y="152">RTO：分钟级</text>
+                <rect class="dg-node-green" x="450" y="56" width="180" height="104" rx="8"/>
+                <text class="dg-xs" x="464" y="78" text-anchor="start">热备 · hot</text>
+                <rect class="dg-bar-green" x="464" y="92" width="150" height="7" rx="3.5"/>
+                <text class="dg-tiny" x="464" y="118">服务在线，数据实时同步</text>
+                <text class="dg-tiny" x="464" y="134">随时可接管，只差流量切换</text>
+                <text class="dg-tiny dg-t-green" x="464" y="152">RTO：秒级</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="188" text-anchor="middle">冷、温、热的区别不是“有没有机器”，而是备机准备到了哪一步：数据、环境、进程和流量入口。</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="206" text-anchor="middle">N+1 / N+2 描述的是容量冗余；它与主备的“接管能力”是两件不同的事。</text>
+              </svg>
+              <figcaption>图示：备机就绪程度越高，RTO 越短，但日常成本也越高；选择取决于业务能接受多长的恢复时间。</figcaption>
+            </figure>
+
+            <p class="key-point"><strong>重点</strong>冗余的有效性取决于故障域是否隔离。两台机器共享电源、交换机或配置，本质上仍是一个故障域；备份能恢复数据，但不等于能快速接管服务。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="active-passive">
+            <h2 id="active-passive" data-toc>主备：单写入者模型</h2>
+            <div class="def-pair">
+              <div class="def">
+                <span class="def-tag">主备 · active-passive</span>
+                <p>A 对外服务，B 是与 A 硬件、环境、部署完全一致的备用节点，持续复制数据但不对外服务。A 发生故障时，将写入权转移至 B。冷备、温备、热备的区别，在于备机的就绪程度。</p>
+              </div>
+              <div class="def">
+                <span class="def-tag">多活 · active-active</span>
+                <p>A、B、C 同时对外服务并接受写入。单个节点故障不会中断服务，但多个节点同时修改同一条数据时，必须解决写入冲突。</p>
+              </div>
+            </div>
+
+            <div class="instrument failover" id="foDemo" data-mode="active-passive">
+              <div class="instrument-bar">
+                <span class="status-dot status-dot-good"></span>
+                <span class="instrument-title">故障切换演练台</span>
+                <span class="instrument-meta mono">FAILOVER SIM</span>
+              </div>
+              <div class="fo-toolbar">
+                <div class="seg seg-small" role="group" aria-label="选择冗余模式" id="foMode">
+                  <button type="button" data-mode="active-passive" class="is-active" aria-pressed="true">主备</button>
+                  <button type="button" data-mode="active-active" aria-pressed="false">多活</button>
+                </div>
+                <div class="fo-actions">
+                  <button class="btn btn-small btn-primary" id="foFail" type="button">模拟主节点故障</button>
+                  <button class="btn btn-small btn-ghost" id="foReset" type="button">重置</button>
+                </div>
+              </div>
+
+              <div class="fo-stage">
+                <div class="fo-source">
+                  <span class="mono">CLIENT</span>
+                  <strong>写入请求</strong>
+                </div>
+                <div class="fo-vip" id="foVip"><span>VIP</span><small>流量入口</small></div>
+                <div class="fo-servers">
+                  <article class="fo-server is-primary" id="foA" data-name="A">
+                    <div class="fo-server-head"><span class="led"></span><svg class="spot-icon node-icon" aria-hidden="true"><use href="#i-server"/></svg><strong>A</strong><span class="server-state">主 · 读写</span></div>
+                    <div class="fo-server-body">
+                      <span class="mono">WRITE 1.2k/s</span>
+                      <div class="mini-load"><span style="width: 62%"></span></div>
+                    </div>
+                  </article>
+                  <article class="fo-server is-standby" id="foB" data-name="B">
+                    <div class="fo-server-head"><span class="led"></span><svg class="spot-icon node-icon" aria-hidden="true"><use href="#i-server"/></svg><strong>B</strong><span class="server-state">备 · 只复制</span></div>
+                    <div class="fo-server-body">
+                      <span class="mono">REPLICA 0/s</span>
+                      <div class="mini-load"><span style="width: 4%"></span></div>
+                    </div>
+                  </article>
+                  <article class="fo-server is-active" id="foC" data-name="C" hidden>
+                    <div class="fo-server-head"><span class="led"></span><svg class="spot-icon node-icon" aria-hidden="true"><use href="#i-server"/></svg><strong>C</strong><span class="server-state">运行 · 读写</span></div>
+                    <div class="fo-server-body">
+                      <span class="mono">WRITE 1.0k/s</span>
+                      <div class="mini-load"><span style="width: 54%"></span></div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+
+              <div class="fo-readouts">
+                <div class="fo-readout"><span>写入者</span><strong id="foWriters">1 个</strong></div>
+                <div class="fo-readout"><span>停机时间</span><strong id="foDowntime">检测 + 判定期间</strong></div>
+                <div class="fo-readout"><span>一致性</span><strong id="foConsistency">单写入者，天然简单</strong></div>
+              </div>
+
+              <div class="fo-lower">
+                <ol class="fo-steps" id="foSteps" aria-label="主备切换步骤">
+                  <li data-step="1"><span>检测故障</span><small>心跳超时</small></li>
+                  <li data-step="2"><span>判定</span><small>避免误切</small></li>
+                  <li data-step="3"><span>提升备机</span><small>B 变为主</small></li>
+                  <li data-step="4"><span>切换流量</span><small>VIP / DNS / 网关</small></li>
+                </ol>
+                <div class="fo-multi" id="foMulti" hidden>
+                  <strong>多活：0 停机，但写入冲突是代价</strong>
+                  <p>三个节点同时在线。单节点故障时，流量自动转移；但两个节点同时写同一条数据时，需要 LWW、CRDT 或业务层合并来处理冲突。</p>
+                </div>
+                <div class="fo-status">
+                  <span class="mono" id="foRto">RTO ≈ 30–60s（示意）</span>
+                  <p id="foStatus" aria-live="polite">点击“模拟主节点故障”，观察一次完整切换。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="prose">
+              <p>从演练台可以看到，主备切换不是一次瞬时动作，而是“检测 → 判定 → 提升 → 切流”的连续过程。RTO 主要消耗在前两步：检测要等心跳超时，判定要避免网络抖动导致误切；真正提升备机和切换 VIP 反而很快。因此缩短 RTO 的关键，是设计可靠的故障检测与仲裁机制，而不是单纯提高机器性能。</p>
+              <p>RPO 则由复制方式决定。同步复制要求主库等待备库确认，故障时数据不丢，但写入延迟上升；异步复制先返回客户端，性能更好，故障瞬间可能丢失尚未复制的那一段写入。选择哪一种，取决于业务能否接受数据缺失。</p>
+            </div>
+
+            <p class="key-point key-point--amber"><strong>重点</strong>RTO 主要卡在“检测 + 判定”，RPO 由同步或异步复制决定。想同时要 RPO = 0 和低写入延迟，这两者不可兼得。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="rto-rpo">
+            <h2 id="rto-rpo" data-toc>RTO、RPO 与脑裂：主备的三个约束</h2>
+            <div class="deep-grid">
+              <article class="deep-card">
+                <h3>RTO 与 RPO：两个独立指标</h3>
+                <p><strong>RTO</strong> 表示恢复服务所需的时间，主要取决于“检测 + 判定”，主备通常为几十秒到几分钟。<strong>RPO</strong> 表示可能丢失的数据量，取决于复制方式。</p>
+                <figure class="dg-wrap">
+                  <svg class="dg" viewBox="0 0 560 220" role="img" aria-label="RTO 与 RPO 时间线示意">
+                    <text class="dg-m" x="10" y="22">RTO</text>
+                    <line class="dg-line" x1="74" y1="38" x2="540" y2="38" marker-end="url(#arr)"/>
+                    <circle class="dg-dot dg-dot-bad" cx="94" cy="38" r="4"/>
+                    <text class="dg-s" x="94" y="24" text-anchor="middle">故障</text>
+                    <circle class="dg-dot" cx="158" cy="38" r="3.5"/>
+                    <text class="dg-s" x="170" y="56" text-anchor="middle">检测</text>
+                    <circle class="dg-dot" cx="238" cy="38" r="3.5"/>
+                    <text class="dg-s" x="262" y="56" text-anchor="middle">判定 · 避免误切</text>
+                    <circle class="dg-dot" cx="330" cy="38" r="3.5"/>
+                    <text class="dg-s" x="330" y="24" text-anchor="middle">提升备机</text>
+                    <circle class="dg-dot dg-dot-ok" cx="410" cy="38" r="4"/>
+                    <text class="dg-s" x="410" y="56" text-anchor="middle">切换流量</text>
+                    <rect class="dg-span" x="94" y="68" width="316" height="7" rx="3.5"/>
+                    <text class="dg-xs" x="252" y="90" text-anchor="middle">RTO：通常几十秒到几分钟</text>
+
+                    <text class="dg-m" x="10" y="124">RPO</text>
+                    <text class="dg-xs" x="74" y="112">异步复制</text>
+                    <rect class="dg-bar-ok" x="74" y="122" width="300" height="9" rx="4.5"/>
+                    <rect class="dg-bar-bad" x="376" y="122" width="84" height="9" rx="4.5"/>
+                    <text class="dg-xs dg-t-ok" x="224" y="146" text-anchor="middle">已复制</text>
+                    <text class="dg-xs dg-t-bad" x="418" y="146" text-anchor="middle">丢失窗口</text>
+                    <circle class="dg-dot dg-dot-bad" cx="460" cy="126.5" r="4"/>
+                    <text class="dg-s" x="460" y="164" text-anchor="middle">故障</text>
+
+                    <text class="dg-xs" x="74" y="188">同步复制</text>
+                    <rect class="dg-bar-ok" x="74" y="198" width="386" height="9" rx="4.5"/>
+                    <circle class="dg-dot dg-dot-bad" cx="460" cy="202.5" r="4"/>
+                    <text class="dg-xs dg-t-ok" x="486" y="206" text-anchor="start">RPO = 0</text>
+                  </svg>
+                  <figcaption>同步复制等从库确认，RPO 为 0；异步复制先返回，故障瞬间可能丢掉最后一段写入。</figcaption>
+                </figure>
+                <div class="mini-table">
+                  <div><span>同步复制</span><strong>RPO = 0</strong><em>拖慢主库写入</em></div>
+                  <div><span>异步复制</span><strong>可能丢最后一段</strong><em>写入性能更好</em></div>
+                </div>
+                <p class="fineprint">两者不可兼得，需要根据业务对性能与一致性的要求做出取舍。</p>
+              </article>
+              <article class="deep-card deep-card-warn">
+                <h3>脑裂：主备最大的风险</h3>
+                <p>网络分区时，主备都以为自己该服务，两边各写各的。必须有 fencing 机制：<strong>STONITH、仲裁节点、租约</strong>，把“谁是主”变成必须多数同意才能变更的事实。</p>
+                <figure class="dg-wrap">
+                  <svg class="dg" viewBox="0 0 560 212" role="img" aria-label="脑裂与 fencing 示意">
+                    <rect class="dg-node dg-node-bad" x="28" y="28" width="184" height="76" rx="8"/>
+                    <circle class="dg-dot dg-dot-bad" cx="48" cy="48" r="3.5"/>
+                    <text class="dg-s dg-t-strong" x="60" y="52">数据中心 A</text>
+                    <text class="dg-xs" x="46" y="74">以为自己是主</text>
+                    <text class="dg-xs dg-t-bad" x="46" y="90">继续接受写入</text>
+
+                    <rect class="dg-node dg-node-bad" x="348" y="28" width="184" height="76" rx="8"/>
+                    <circle class="dg-dot dg-dot-bad" cx="368" cy="48" r="3.5"/>
+                    <text class="dg-s dg-t-strong" x="380" y="52">数据中心 B</text>
+                    <text class="dg-xs" x="366" y="74">也以为自己是主</text>
+                    <text class="dg-xs dg-t-bad" x="366" y="90">继续接受写入</text>
+
+                    <line class="dg-line-bad dg-dash" x1="212" y1="66" x2="258" y2="66"/>
+                    <line class="dg-line-bad dg-dash" x1="302" y1="66" x2="348" y2="66"/>
+                    <path class="dg-x" d="M270 57l20 20M290 57l-20 20"/>
+                    <text class="dg-xs dg-t-bad" x="280" y="46" text-anchor="middle">网络分区</text>
+
+                    <line class="dg-line-bad" x1="120" y1="104" x2="120" y2="132" marker-end="url(#arr-bad)"/>
+                    <rect class="dg-node" x="58" y="136" width="124" height="28" rx="6"/>
+                    <text class="dg-xs" x="120" y="154" text-anchor="middle">DB A ← 另一条写入线</text>
+
+                    <line class="dg-line-bad" x1="440" y1="104" x2="440" y2="132" marker-end="url(#arr-bad)"/>
+                    <rect class="dg-node" x="378" y="136" width="124" height="28" rx="6"/>
+                    <text class="dg-xs" x="440" y="154" text-anchor="middle">DB B ← 独立写入</text>
+
+                    <rect class="dg-band" x="120" y="180" width="320" height="24" rx="6"/>
+                    <text class="dg-xs dg-t-ok" x="280" y="196" text-anchor="middle">fencing：STONITH / 仲裁 / 租约 · 多数同意才能变更主</text>
+                  </svg>
+                  <figcaption>脑裂的本质是“两个主同时写”。fencing 不解决网络，它只保证只有一个主有资格写。</figcaption>
+                </figure>
+                <p class="fineprint">主备的优势在于单写入者，数据一致性天然简单；写入路径唯一，不需要考虑冲突合并。</p>
+              </article>
+            </div>
+
+            <p class="key-point key-point--red"><strong>重点</strong>没有 fencing 的主备，在网络分区时会出现双主：两边都接受写入，数据可能被同时修改。仲裁、租约或 STONITH 必须保证“同一时刻只有一个主”。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="quorum">
+            <h2 id="quorum" data-toc>仲裁、租约与 fencing：谁来判定“只有一个主”</h2>
+            <div class="prose">
+              <p>故障检测只能说明“我联系不上对方”，不能证明“对方已经停止工作”。网络分区、GC 停顿、机器假死都会造成类似现象。如果备机仅凭“ping 不通”就提升自己，旧主可能仍在处理请求，于是出现双主。解决这个问题需要额外的仲裁机制，而不是更灵敏的心跳。</p>
+              <p>常见机制有三类。第一是多数派仲裁：只有获得超过半数投票者的同意，才能成为主；少数派一侧即使还有机器，也不能提供服务。第二是租约：主节点持有带过期时间的租约，必须在到期前续约，过期后自动失去写资格。第三是 STONITH（Shoot The Other Node In The Head）：在提升新主前，先通过电源、网络或存储隔离把旧主强制关掉。</p>
+            </div>
+
+            <figure class="dg-wrap">
+              <svg class="dg" viewBox="0 0 660 236" role="img" aria-label="五节点仲裁：多数派一侧可以选主，少数派一侧不能">
+                <rect class="dg-frame" x="18" y="18" width="320" height="150" rx="10"/>
+                <text class="dg-s" x="34" y="42">分区 A · 3 个投票节点</text>
+                <rect class="dg-node-green" x="40" y="60" width="70" height="42" rx="6"/>
+                <text class="dg-xs" x="75" y="86" text-anchor="middle">节点 1</text>
+                <rect class="dg-node-green" x="130" y="60" width="70" height="42" rx="6"/>
+                <text class="dg-xs" x="165" y="86" text-anchor="middle">节点 2</text>
+                <rect class="dg-node-green" x="220" y="60" width="70" height="42" rx="6"/>
+                <text class="dg-xs" x="255" y="86" text-anchor="middle">节点 3</text>
+                <rect class="dg-band" x="40" y="118" width="250" height="26" rx="6"/>
+                <text class="dg-xs dg-t-ok" x="165" y="135" text-anchor="middle">3 / 5 ≥ 多数 · 可以选主</text>
+
+                <path class="dg-x" d="M348 88l16 16M364 88l-16 16"/>
+                <text class="dg-xs dg-t-bad" x="356" y="72" text-anchor="middle">分区</text>
+                <text class="dg-tiny dg-t-muted" x="356" y="126" text-anchor="middle">网络中断</text>
+
+                <rect class="dg-frame dg-frame-bad" x="386" y="18" width="256" height="150" rx="10"/>
+                <text class="dg-s" x="402" y="42">分区 B · 2 个投票节点</text>
+                <rect class="dg-node" x="408" y="60" width="70" height="42" rx="6"/>
+                <text class="dg-xs" x="443" y="86" text-anchor="middle">节点 4</text>
+                <rect class="dg-node" x="498" y="60" width="70" height="42" rx="6"/>
+                <text class="dg-xs" x="533" y="86" text-anchor="middle">节点 5</text>
+                <rect class="dg-node-bad" x="588" y="60" width="42" height="42" rx="6"/>
+                <text class="dg-xs dg-t-bad" x="609" y="86" text-anchor="middle">2/5</text>
+                <rect class="dg-band dg-band-bad" x="408" y="118" width="222" height="26" rx="6"/>
+                <text class="dg-xs dg-t-bad" x="519" y="135" text-anchor="middle">不足多数 · 拒绝写入</text>
+
+                <rect class="dg-node-violet" x="18" y="188" width="190" height="34" rx="6"/>
+                <text class="dg-xs" x="113" y="209" text-anchor="middle">租约：到期未续则失效</text>
+                <line class="dg-line-violet" x1="208" y1="205" x2="236" y2="205" marker-end="url(#arr)"/>
+                <rect class="dg-node-amber" x="238" y="188" width="190" height="34" rx="6"/>
+                <text class="dg-xs" x="333" y="209" text-anchor="middle">STONITH：先隔离旧主</text>
+                <line class="dg-line-violet" x1="428" y1="205" x2="456" y2="205" marker-end="url(#arr)"/>
+                <rect class="dg-node-blue" x="458" y="188" width="184" height="34" rx="6"/>
+                <text class="dg-xs" x="550" y="209" text-anchor="middle">fencing token：单调递增</text>
+              </svg>
+              <figcaption>图示：多数派保证同一时刻只有一个分区能产生主；租约、STONITH 与 fencing token 进一步阻止旧主继续写入。</figcaption>
+            </figure>
+
+            <div class="prose">
+              <p>还有一个容易被忽略的细节：客户端也要参与 fencing。旧主可能已经在本地完成写入，但它的写请求不应再被存储层接受。单调递增的 fencing token 可以让存储层拒绝旧主的请求：每次选主发放一个更大的 token，存储层只接受不小于已见最大值的写请求。</p>
+              <p>仲裁不是免费的：投票节点增加了部署复杂度，跨机房仲裁还会引入额外延迟；STONITH 则要求电源和网络可控。对于单机主备，至少应该使用 VIP 漂移加租约，避免“两台机器都认为自己持有 VIP”。</p>
+            </div>
+            <p class="key-point key-point--violet"><strong>重点</strong>故障检测回答“我看不到谁”，仲裁回答“谁有资格写”。没有后者的自动切换，只是把故障从“服务不可用”升级成“数据双写”。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="active-active">
+            <div class="section-sub">
+              <p class="chapter-kicker">多活的实现方式</p>
+              <h2 id="active-active" data-toc>从只读多活到任意多写</h2>
+              <p class="sub-lede">多活的本质是并发写问题；所需的一致性强度，直接决定工程成本。</p>
+            </div>
+            <div class="tiers">
+              <article class="tier">
+                <div class="tier-head"><span class="tier-index">01</span><h4>只读多活</h4><span class="tag">简单</span></div>
+                <figure class="tier-fig">
+                  <svg class="dg" viewBox="0 0 300 100" role="img" aria-label="只读多活示意：写请求进入主库，读副本分散在多地">
+                    <rect class="dg-node" x="118" y="6" width="64" height="22" rx="5"/>
+                    <text class="dg-xs" x="150" y="21" text-anchor="middle">主库 · 写单点</text>
+                    <line class="dg-line" x1="150" y1="28" x2="75" y2="64" marker-end="url(#arr)"/>
+                    <line class="dg-line" x1="150" y1="28" x2="225" y2="64" marker-end="url(#arr)"/>
+                    <text class="dg-m" x="150" y="44" text-anchor="middle">REPLICATE</text>
+                    <rect class="dg-node" x="20" y="66" width="110" height="24" rx="5"/>
+                    <text class="dg-xs" x="75" y="82" text-anchor="middle">读副本 · 北京</text>
+                    <rect class="dg-node" x="170" y="66" width="110" height="24" rx="5"/>
+                    <text class="dg-xs" x="225" y="82" text-anchor="middle">读副本 · 上海</text>
+                    <text class="dg-xs dg-t-muted" x="150" y="97" text-anchor="middle">写仍然回主库</text>
+                  </svg>
+                  <figcaption>图示：写请求进入主库，读请求分散到各地副本。</figcaption>
+                </figure>
+                <p>读流量分散到多地，写入仍回到主库。写侧仍是单点，同时受跨地域延迟约束。</p>
+                <div class="tier-scale"><span>一致性 强</span><span>复杂度 低</span></div>
+              </article>
+              <article class="tier">
+                <div class="tier-head"><span class="tier-index">02</span><h4>分区多活 · 单元化</h4><span class="tag tag-info">工程主流</span></div>
+                <figure class="tier-fig">
+                  <svg class="dg" viewBox="0 0 300 100" role="img" aria-label="单元化多活示意：用户按单元切片，各自有独立数据库">
+                    <text class="dg-m" x="34" y="12">USERS A</text>
+                    <text class="dg-m" x="222" y="12">USERS B</text>
+                    <rect class="dg-node" x="10" y="18" width="96" height="22" rx="5"/>
+                    <text class="dg-xs" x="58" y="33" text-anchor="middle">单元 A</text>
+                    <rect class="dg-node" x="194" y="18" width="96" height="22" rx="5"/>
+                    <text class="dg-xs" x="242" y="33" text-anchor="middle">单元 B</text>
+                    <line class="dg-line" x1="58" y1="40" x2="58" y2="56" marker-end="url(#arr)"/>
+                    <line class="dg-line" x1="242" y1="40" x2="242" y2="56" marker-end="url(#arr)"/>
+                    <rect class="dg-node dg-node-ok" x="10" y="58" width="96" height="24" rx="5"/>
+                    <text class="dg-xs" x="58" y="74" text-anchor="middle">DB A</text>
+                    <rect class="dg-node dg-node-ok" x="194" y="58" width="96" height="24" rx="5"/>
+                    <text class="dg-xs" x="242" y="74" text-anchor="middle">DB B</text>
+                    <line class="dg-line dg-dash" x1="106" y1="70" x2="194" y2="70" marker-end="url(#arr)"/>
+                    <text class="dg-xs dg-t-muted" x="150" y="64" text-anchor="middle">异步复制</text>
+                    <text class="dg-xs dg-t-muted" x="150" y="92" text-anchor="middle">每单元只服务自己那片</text>
+                  </svg>
+                  <figcaption>图示：用户按单元切片，单元内闭环，单元间异步复制。</figcaption>
+                </figure>
+                <p>按用户或租户把数据切片，每个单元只服务自己那片。单元内闭环，跨单元异步复制。</p>
+                <div class="tier-scale"><span>一致性 强</span><span>复杂度 中</span></div>
+              </article>
+              <article class="tier">
+                <div class="tier-head"><span class="tier-index">03</span><h4>任意多写 + 冲突解决</h4><span class="tag tag-warn">一致性降级</span></div>
+                <figure class="tier-fig">
+                  <svg class="dg" viewBox="0 0 300 100" role="img" aria-label="任意多写示意：三个节点同时可写，同一记录产生冲突">
+                    <rect class="dg-node" x="16" y="14" width="58" height="22" rx="5"/>
+                    <text class="dg-xs" x="45" y="29" text-anchor="middle">节点 A</text>
+                    <rect class="dg-node" x="226" y="14" width="58" height="22" rx="5"/>
+                    <text class="dg-xs" x="255" y="29" text-anchor="middle">节点 B</text>
+                    <rect class="dg-node" x="121" y="64" width="58" height="22" rx="5"/>
+                    <text class="dg-xs" x="150" y="79" text-anchor="middle">节点 C</text>
+                    <line class="dg-line" x1="74" y1="25" x2="226" y2="25" marker-start="url(#arr)" marker-end="url(#arr)"/>
+                    <line class="dg-line" x1="60" y1="36" x2="132" y2="64" marker-start="url(#arr)" marker-end="url(#arr)"/>
+                    <line class="dg-line" x1="240" y1="36" x2="168" y2="64" marker-start="url(#arr)" marker-end="url(#arr)"/>
+                    <rect class="dg-node dg-node-bad" x="96" y="28" width="66" height="20" rx="4"/>
+                    <text class="dg-xs dg-t-bad" x="129" y="42" text-anchor="middle">key:42 冲突</text>
+                    <text class="dg-xs dg-t-muted" x="150" y="97" text-anchor="middle">LWW / CRDT / 业务合并</text>
+                  </svg>
+                  <figcaption>图示：多个节点同时可写，同一 key 的并发写会产生冲突。</figcaption>
+                </figure>
+                <p>LWW、CRDT、业务层合并。多个节点随时可写，代价是很多业务接受不了一致性降级。</p>
+                <div class="tier-scale"><span>一致性 可降级</span><span>复杂度 高</span></div>
+              </article>
+            </div>
+
+            <div class="prose">
+              <p>三类方案的核心差异在于写入冲突由谁承担：只读多活把写留在主库，单元化把冲突限制在单元内部，任意多写则必须引入冲突解决机制。方案越靠后，并发能力越强，但一致性保障越弱、工程复杂度越高。选择时先看业务能否接受跨单元延迟和冲突合并，再决定投入哪一档。</p>
+            </div>
+
+            <p class="key-point key-point--violet"><strong>重点</strong>工程上的异地多活，通常是“单元化 + 异步复制”，而不是任意节点都能写任意数据。任意多写必须引入 LWW、CRDT 或业务合并，一致性会降级。</p>
+
+            <aside class="note note-info latency-note">
+              <div class="note-head"><svg class="icon"><use href="#i-network"/></svg>跨地域强一致，基本不现实</div>
+              <p>Raft / Paxos 的多数派确认需要跨地域完成一次 RTT。北京到上海约 30ms，每次写入都需付出该延迟，吞吐会下降一个量级。因此工程上的“异地多活”，几乎都是<strong>单元化 + 异步复制</strong>，而不是“任意节点都能写任意数据”。</p>
+              <figure class="dg-wrap dg-wrap-inline">
+                <svg class="dg" viewBox="0 0 520 96" role="img" aria-label="跨地域一次 RTT 约 30 毫秒，每次写入都要付出这个代价">
+                  <rect class="dg-node" x="12" y="24" width="84" height="32" rx="6"/>
+                  <text class="dg-xs" x="54" y="44" text-anchor="middle">北京</text>
+                  <rect class="dg-node" x="424" y="24" width="84" height="32" rx="6"/>
+                  <text class="dg-xs" x="466" y="44" text-anchor="middle">上海</text>
+                  <line class="dg-line" x1="96" y1="34" x2="424" y2="34" marker-end="url(#arr)"/>
+                  <text class="dg-xs" x="260" y="26" text-anchor="middle">写入 / 多数派请求</text>
+                  <line class="dg-line dg-line-ok" x1="424" y1="50" x2="96" y2="50" marker-end="url(#arr-ok)"/>
+                  <text class="dg-xs" x="260" y="64" text-anchor="middle">确认</text>
+                  <text class="dg-m" x="260" y="88" text-anchor="middle">RTT ≈ 30ms · 每一次写入都要付</text>
+                </svg>
+                <figcaption>图示：一次跨地域 RTT 约 30ms；多数派写入每次都要等待这次往返。</figcaption>
+              </figure>
+            </aside>
+
+            <div class="table-wrap">
+              <table class="cmp">
+                <caption>主备与多活的选型对比</caption>
+                <thead><tr><th scope="col"></th><th scope="col">主备</th><th scope="col">多活</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">写入者</th><td>任何时刻只有一个</td><td>多个，同时可写</td></tr>
+                  <tr><th scope="row">故障动作</th><td>检测 → 判定 → 提升 → 切流</td><td>流量自动绕开，无需提升</td></tr>
+                  <tr><th scope="row">停机时间</th><td>几十秒到几分钟</td><td>接近 0</td></tr>
+                  <tr><th scope="row">数据一致性</th><td>天然简单</td><td>需要冲突解决</td></tr>
+                  <tr><th scope="row">成本与复杂度</th><td>低</td><td>高</td></tr>
+                  <tr><th scope="row">典型场景</th><td>数据库主库、有状态服务</td><td>读服务、单元化业务、可合并的写</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="post-section" aria-labelledby="conflict">
+            <h2 id="conflict" data-toc>冲突解决：LWW、CRDT 与业务合并</h2>
+            <div class="prose">
+              <p>一旦允许多个节点同时写同一条数据，冲突就不再是异常，而是常态。冲突解决不是“选一个看起来最新的值”这么简单，它决定了并发写入时哪一方会被保留、哪一方会被丢弃，以及业务能否接受这种丢弃。</p>
+            </div>
+            <div class="table-wrap">
+              <table class="cmp">
+                <caption>三种常见冲突解决策略</caption>
+                <thead><tr><th scope="col">策略</th><th scope="col">做法</th><th scope="col">代价</th><th scope="col">适用数据</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">LWW · 最后写入获胜</th><td>用时间戳或版本号决定保留哪次写入</td><td>依赖时钟；并发写会静默丢失一方</td><td>用户资料、偏好设置等可覆盖数据</td></tr>
+                  <tr><th scope="row">CRDT · 无冲突复制数据类型</th><td>使用可交换、可合并的数据结构，如计数器、集合、寄存器</td><td>数据类型受限；元数据开销较大</td><td>购物车、点赞数、在线状态</td></tr>
+                  <tr><th scope="row">业务层合并</th><td>把冲突暴露给业务规则，按领域语义合并</td><td>实现复杂；需要业务方深度参与</td><td>库存、订单、账务等强语义数据</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="prose">
+              <p>更常见的做法不是“解决冲突”，而是“避免冲突”：按用户 ID、租户 ID 或订单 ID 做单元化路由，让同一条数据始终由同一个单元写入；对无法切分的数据保留单写入点；对跨单元操作使用幂等键和补偿事务，而不是并发写同一条记录。</p>
+              <p>无论采用哪种策略，都要回答三个问题：冲突发生的概率有多大？冲突时丢失一笔写，业务是否能接受？如果无法接受，是否应该改成串行写入？这三个问题比选择具体算法更重要。</p>
+            </div>
+            <p class="key-point key-point--red"><strong>重点</strong>冲突解决的核心不是技术选型，而是业务对“丢失或合并一次写”的容忍度。不能容忍，就不要让两个节点同时写同一条数据。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="failover-patterns">
+            <h2 id="failover-patterns" data-toc>故障转移的工程细节：客户端也要配合</h2>
+            <div class="prose">
+              <p>服务端完成切换，不代表用户请求就能恢复。客户端可能仍持有旧连接、仍在重试失败节点，或者因为超时时间过长而拖垮线程池。故障转移是一套端到端的协作机制，服务端、客户端和网络入口都要参与。</p>
+            </div>
+            <div class="deep-grid">
+              <article class="deep-card">
+                <h3>重试要有预算，不能无限放大</h3>
+                <p>故障时大量客户端同时重试，会把已经紧张的节点再次压垮，形成重试风暴。正确做法是：只重试幂等请求；使用指数退避加随机抖动；为每次请求设置重试预算；当错误率超过阈值时快速失败，而不是继续重试。</p>
+                <figure class="dg-wrap dg-wrap-inline">
+                  <svg class="dg" viewBox="0 0 320 148" role="img" aria-label="没有重试预算时请求量被重试放大，有熔断时快速失败">
+                    <text class="dg-tiny dg-t-muted" x="8" y="16">无熔断</text>
+                    <rect class="dg-node" x="8" y="24" width="52" height="24" rx="4"/>
+                    <text class="dg-tiny" x="34" y="40" text-anchor="middle">客户端</text>
+                    <path class="dg-line" d="M60 30 H116" marker-end="url(#arr)"/>
+                    <path class="dg-line" d="M60 42 H116" marker-end="url(#arr)"/>
+                    <path class="dg-line" d="M60 54 H116" marker-end="url(#arr)"/>
+                    <rect class="dg-node-bad" x="118" y="22" width="62" height="38" rx="4"/>
+                    <text class="dg-tiny dg-t-bad" x="149" y="45" text-anchor="middle">过载</text>
+                    <path class="dg-line-bad" d="M180 34 H232" marker-end="url(#arr-bad)"/>
+                    <path class="dg-line-bad" d="M180 48 H232" marker-end="url(#arr-bad)"/>
+                    <rect class="dg-node-bad" x="234" y="26" width="70" height="30" rx="4"/>
+                    <text class="dg-tiny dg-t-bad" x="269" y="45" text-anchor="middle">雪崩</text>
+                    <text class="dg-tiny dg-t-muted" x="8" y="96">有熔断</text>
+                    <rect class="dg-node" x="8" y="104" width="52" height="24" rx="4"/>
+                    <text class="dg-tiny" x="34" y="120" text-anchor="middle">客户端</text>
+                    <path class="dg-line-ok" d="M60 116 H116" marker-end="url(#arr-ok)"/>
+                    <rect class="dg-node-ok" x="118" y="102" width="62" height="38" rx="4"/>
+                    <text class="dg-tiny dg-t-ok" x="149" y="125" text-anchor="middle">快速失败</text>
+                    <path class="dg-line dg-dash" d="M180 116 H232" marker-end="url(#arr)"/>
+                    <rect class="dg-node-ghost" x="234" y="106" width="70" height="30" rx="4"/>
+                    <text class="dg-tiny dg-t-muted" x="269" y="125" text-anchor="middle">保护下游</text>
+                  </svg>
+                  <figcaption>重试没有预算，会把一次故障放大成一场雪崩；熔断让失败快速返回，给下游恢复时间。</figcaption>
+                </figure>
+              </article>
+              <article class="deep-card">
+                <h3>隔离：别让一个依赖拖垮全部</h3>
+                <p>舱壁模式（Bulkhead）把线程池、连接池或队列按依赖隔开。某个下游变慢时，只有对应的舱壁被占满，其他功能仍可用。配合超时、并发上限和队列上限，可以避免“一个慢接口拖垮整个进程”。</p>
+                <figure class="dg-wrap dg-wrap-inline">
+                  <svg class="dg" viewBox="0 0 320 148" role="img" aria-label="舱壁模式把资源按依赖隔离，一个舱壁进水不淹没其他舱壁">
+                    <rect class="dg-frame" x="10" y="14" width="300" height="118" rx="10"/>
+                    <rect class="dg-node" x="26" y="34" width="78" height="34" rx="5"/>
+                    <text class="dg-tiny" x="65" y="55" text-anchor="middle">订单 · 10 线程</text>
+                    <rect class="dg-node" x="118" y="34" width="78" height="34" rx="5"/>
+                    <text class="dg-tiny" x="157" y="55" text-anchor="middle">用户 · 10 线程</text>
+                    <rect class="dg-node-bad" x="210" y="34" width="84" height="34" rx="5"/>
+                    <text class="dg-tiny dg-t-bad" x="252" y="55" text-anchor="middle">库存 · 已占满</text>
+                    <rect class="dg-node-green" x="26" y="82" width="170" height="32" rx="5"/>
+                    <text class="dg-tiny" x="111" y="102" text-anchor="middle">其他功能继续可用</text>
+                    <path class="dg-line-bad" d="M252 68 V80" marker-end="url(#arr-bad)"/>
+                    <text class="dg-tiny dg-t-bad" x="252" y="126" text-anchor="middle">故障被限制在舱壁内</text>
+                  </svg>
+                  <figcaption>舱壁把资源池按依赖切开；一个下游变慢，不会耗尽所有线程和连接。</figcaption>
+                </figure>
+              </article>
+            </div>
+            <div class="prose">
+              <p>此外，客户端应缓存服务端地址并支持重新解析，避免 DNS 或 VIP 切换后仍连接旧地址；长连接需要设置合理的空闲超时；切换期间可以短暂返回降级结果，而不是让请求无限等待。故障转移的目标是“整体恢复”，不是“每个请求都成功”。</p>
+            </div>
+            <p class="key-point key-point--amber"><strong>重点</strong>故障转移不是服务端的独角戏。没有超时、重试预算、熔断和舱壁，客户端会把一次局部故障放大成全局雪崩。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="chaos">
+            <h2 id="chaos" data-toc>演练与混沌工程：验证冗余真的有效</h2>
+            <div class="prose">
+              <p>冗余最大的风险不是“没有备机”，而是“以为有备机”。备机可能没有追平数据、配置可能不一致、VIP 可能漂移失败、客户端可能不会重连。这些问题只有在真实切换时才会暴露，因此必须通过演练提前发现。</p>
+              <p>演练可以从桌面推演开始：把架构图、依赖关系、切换步骤和联系人摆在桌面上，逐项走一遍。之后再做受控实验：在低峰期、小流量范围内注入故障，观察系统是否按预期恢复。每次演练都要有明确假设、影响范围和中止条件。</p>
+            </div>
+            <div class="table-wrap">
+              <table class="cmp">
+                <caption>常见故障演练项目</caption>
+                <thead><tr><th scope="col">实验</th><th scope="col">验证什么</th><th scope="col">观察指标</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">杀掉主节点进程</th><td>故障检测、选主、流量切换</td><td>中断时长、错误率、数据是否追平</td></tr>
+                  <tr><th scope="row">断开节点网络</th><td>网络分区下的仲裁与 fencing</td><td>是否出现双主、少数派是否拒绝写入</td></tr>
+                  <tr><th scope="row">注入下游延迟</th><td>超时、熔断、舱壁是否生效</td><td>线程池占用、错误传播范围</td></tr>
+                  <tr><th scope="row">关闭一个可用区</th><td>机房级容灾与容量余量</td><td>剩余容量、切换时间、依赖是否可用</td></tr>
+                  <tr><th scope="row">回滚一次发布</th><td>发布失败时的恢复路径</td><td>回滚耗时、数据兼容性、用户影响</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="key-point"><strong>重点</strong>没有被验证过的冗余，只是架构图上的假设。演练要从小范围开始，明确中止条件，并把发现的问题转成可跟踪的改进项。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="summary">
+            <h2 id="summary" data-toc>本章小结</h2>
+            <div class="recap-grid">
+              <div class="recap-item"><span>01</span><p>冗余要隔离故障域；冷、温、热的差别是备机准备到了哪一步。</p></div>
+              <div class="recap-item"><span>02</span><p>主备是单写入者模型；RTO 卡在检测与判定，RPO 由复制方式决定。</p></div>
+              <div class="recap-item"><span>03</span><p>脑裂必须用仲裁、租约或 STONITH 解决；切换前先确保旧主不能写。</p></div>
+              <div class="recap-item"><span>04</span><p>多活的核心是并发写；优先单元化，无法切分的数据保留单写入点。</p></div>
+            </div>
+            <p class="key-point"><strong>下一章</strong>冗余解决“有备用节点”，但流量如何找到健康节点、如何在多个节点之间分配，是负载均衡要回答的问题。</p>
+          </section>
+        </div>
+        {{PREV_NEXT}}
+      </article>
+      <aside class="toc" aria-label="本页目录">
+        <p class="toc-label">本页目录</p>
+        {{TOC}}
+        <a class="toc-top" href="#top">回到顶部 <span aria-hidden="true">↑</span></a>
+      </aside>
+    </div>

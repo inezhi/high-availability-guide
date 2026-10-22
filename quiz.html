@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>知识自测：高可用架构 · 高可用架构</title>
+  <meta name="description" content="用十二道题检验对可用性指标、冗余、负载均衡、容灾、中间件与限流的理解。">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="知识自测：高可用架构 · 高可用架构">
+  <meta property="og:description" content="用十二道题检验对可用性指标、冗余、负载均衡、容灾、中间件与限流的理解。">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/quiz.html">
+  <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/quiz.html">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=20261022-4">
+</head>
+<body class="article-page">
+  <a class="skip-link" href="#main">跳到正文</a>
+  <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <svg class="svg-sprite" aria-hidden="true">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--muted)"/></marker>
+      <marker id="arr-ok" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--signal)"/></marker>
+      <marker id="arr-bad" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--danger)"/></marker>
+      <marker id="arr-info" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--info)"/></marker>
+    </defs>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M2 12h4l2.5-6 4 12 3-8 1.5 2H22"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5 9.5 18 20 6.5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5M12 17.5v.5"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 20 5v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3Z"/><path d="m8.5 12 2.4 2.5 4.6-5"/></symbol>
+    <symbol id="i-network" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5v4M12 11.5 6.5 16.7M12 11.5l5.5 5.2"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-4 3.4-6 7-6s6.2 2 7 6"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .8-7.9A6 6 0 0 0 6.2 9.5 4.5 4.5 0 0 0 7 18Z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V5l8-3v19M12 21h8V9l-8-4"/><path d="M7 8h2M7 12h2M7 16h2M15 12h2M15 16h2"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 18a9 9 0 1 1 16 0"/><path d="M12 18l4-5"/><circle cx="12" cy="18" r="1.5"/></symbol>
+    <symbol id="i-funnel" viewBox="0 0 24 24"><path d="M3 4h18l-7 8v7l-4 2v-9L3 4Z"/></symbol>
+    <symbol id="logo-redis" viewBox="0 0 32 32">
+      <path d="M4 10 16 4l12 6-12 6L4 10Z" fill="#e74c3c"/>
+      <path d="M4 16 16 10l12 6-12 6L4 16Z" fill="#d82c20"/>
+      <path d="M4 22 16 16l12 6-12 6L4 22Z" fill="#b02a1f"/>
+      <path d="M4 10v12M28 10v12M16 16v12" stroke="#7a1b12" stroke-width="1" opacity=".55"/>
+      <path d="M12 8.5 16 6.5l4 2-4 2-4-2Z" fill="#fff" opacity=".55"/>
+    </symbol>
+    <symbol id="logo-mongo" viewBox="0 0 32 32">
+      <path d="M16 2.5c6.5 6.5 8.5 13 0 27C7.5 15.5 9.5 9 16 2.5Z" fill="#2563eb"/>
+      <path d="M16 6c3.5 5 4.5 10.5 0 20.5V6Z" fill="#1e40af"/>
+      <path d="M16 27.5v3" stroke="#1e40af" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="logo-kafka" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="4.5" fill="#1f6fb2"/>
+      <circle cx="7" cy="8" r="3.2" fill="#1f6fb2"/>
+      <circle cx="7" cy="24" r="3.2" fill="#1f6fb2"/>
+      <circle cx="25" cy="8" r="3.2" fill="#1f6fb2"/>
+      <circle cx="25" cy="24" r="3.2" fill="#1f6fb2"/>
+      <path d="M12 13 9 10M12 19 9 22M20 13 23 10M20 19 23 22" stroke="#1f6fb2" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="16" cy="16" r="1.6" fill="#fff"/>
+    </symbol>
+    <symbol id="logo-mysql" viewBox="0 0 32 32">
+      <path d="M17.5 7.5 22 3.5l1 5.5Z" fill="#00758f"/>
+      <path d="M5 22.5c5.5-1 9-5 10-10.5 1-4 5-6.5 9.5-4.5 3.5 2 4.5 6.5 2 10-2.5 4-8 6.5-13.5 7.5L5 22.5Z" fill="#00758f"/>
+      <path d="M9.5 23.5c3-4 4-8.5 3-13" stroke="#f29111" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <circle cx="21.5" cy="11.5" r="1.2" fill="#fff"/>
+    </symbol>
+    <symbol id="logo-nginx" viewBox="0 0 32 32">
+      <path d="M16 2 28 9v14l-12 7-12-7V9L16 2Z" fill="#2563eb"/>
+      <path d="M11 22V10l10 12V10" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="logo-f5" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#e4002b"/>
+      <text x="16" y="21" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="Arial, sans-serif">F5</text>
+    </symbol>
+    <symbol id="logo-haproxy" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#0b6fb8"/>
+      <path d="M16 2a14 14 0 0 1 0 28V2Z" fill="#e4002b" opacity=".85"/>
+      <text x="16" y="21" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="Arial, sans-serif">HA</text>
+    </symbol>
+    <symbol id="logo-lvs" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#1f4e79"/>
+      <circle cx="16" cy="10" r="3" fill="#fff"/>
+      <circle cx="10" cy="21" r="3" fill="#fff"/>
+      <circle cx="22" cy="21" r="3" fill="#fff"/>
+      <path d="M16 13v2M13.5 18.5 11.5 20M18.5 18.5 20.5 20" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <aside class="rail" id="rail">
+    <a class="rail-brand" href="index.html" aria-label="返回首页">
+      <span class="brand-mark"><svg class="icon"><use href="#i-pulse"/></svg></span>
+      <span class="brand-text"><strong>高可用架构</strong><small>从指标到故障转移</small></span>
+    </a>
+    <nav class="rail-nav" aria-label="全书章节">
+              <a href="availability.html" data-page="availability"><span class="nav-num">01</span><span>可用性</span></a>
+        <a href="redundancy.html" data-page="redundancy"><span class="nav-num">02</span><span>冗余</span></a>
+        <a href="load-balancing.html" data-page="loadbalancing"><span class="nav-num">03</span><span>负载均衡</span></a>
+        <a href="disaster-recovery.html" data-page="disaster"><span class="nav-num">04</span><span>容灾</span></a>
+        <a href="middleware.html" data-page="middleware"><span class="nav-num">05</span><span>中间件</span></a>
+        <a href="rate-limiting.html" data-page="ratelimit"><span class="nav-num">06</span><span>限流</span></a>
+        <a href="quiz.html" data-page="quiz" class="is-active" aria-current="page"><span class="nav-num">07</span><span>自测</span></a>
+    </nav>
+    <div class="rail-foot">
+      <div class="rail-meter" aria-hidden="true"><span id="railProgress"></span></div>
+      <div class="rail-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到浅色主题" title="切换主题">
+          <svg class="icon icon-sun"><use href="#i-sun"/></svg>
+          <svg class="icon icon-moon"><use href="#i-moon"/></svg>
+        </button>
+        <a class="icon-btn" href="https://github.com/inezhi/high-availability-guide" target="_blank" rel="noreferrer" aria-label="GitHub 仓库" title="GitHub 仓库">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33s1.7.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85V21c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <header class="mobile-bar">
+    <a class="mobile-brand" href="index.html"><svg class="icon"><use href="#i-pulse"/></svg><span>高可用架构</span></a>
+    <button class="icon-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="mobileIndex" aria-label="打开目录">
+      <svg class="icon icon-menu"><use href="#i-menu"/></svg>
+      <svg class="icon icon-close"><use href="#i-close"/></svg>
+    </button>
+  </header>
+  <nav class="mobile-index" id="mobileIndex" aria-label="移动端全书目录">
+        <a href="availability.html"><span>01</span>可用性</a>
+    <a href="redundancy.html"><span>02</span>冗余</a>
+    <a href="load-balancing.html"><span>03</span>负载均衡</a>
+    <a href="disaster-recovery.html"><span>04</span>容灾</a>
+    <a href="middleware.html"><span>05</span>中间件</a>
+    <a href="rate-limiting.html"><span>06</span>限流</a>
+    <a href="quiz.html" class="is-active" aria-current="page"><span>07</span>自测</a>
+  </nav>
+
+  <main id="main" class="article-main">
+        <div class="page-wrap" id="top">
+              <details class="toc-mobile">
+          <summary>本页目录</summary>
+          <nav aria-label="本页小节">
+            <a class="toc-level-2" href="#before">答题前：三个提示</a>
+            <a class="toc-level-2" href="#quiz">开始自测</a>
+            <a class="toc-level-2" href="#after">答完之后：怎么继续</a>
+          </nav>
+        </details>
+      <article class="post">
+        <header class="post-head">
+          <nav class="breadcrumb" aria-label="面包屑">
+            <a href="index.html">首页</a><span aria-hidden="true">/</span><span>第 07 章</span>
+          </nav>
+          <p class="chapter-kicker">第 07 章 · 检验</p>
+          <h1>知识自测：十二道题</h1>
+          <p class="post-lede">题目覆盖可用性指标、冗余、负载均衡、容灾、中间件和限流六个章节。答错不是问题，重要的是回到对应章节，把机制和取舍重新讲清楚。</p>
+          <div class="post-meta">
+            <span>约 8 分钟</span>
+            <span class="meta-dot" aria-hidden="true"></span>
+            <span>每道题都有解释</span>
+          </div>
+        </header>
+
+        <div class="post-body chapter-body" id="postBody">
+          <section class="post-section" aria-labelledby="before">
+            <h2 id="before" data-toc>答题前：三个提示</h2>
+            <div class="prose">
+              <p>这些题不考配置项和产品参数，而是考判断：为什么这样设计、代价是什么、什么时候会失效。遇到不确定的题，可以先回想章节里的图和取舍，而不是死记结论。</p>
+            </div>
+            <div class="recap-grid">
+              <div class="recap-item"><span>01</span><p>先判断故障域和写入者数量，再看具体组件。</p></div>
+              <div class="recap-item"><span>02</span><p>任何“自动切换”都要追问：会不会丢数据，会不会脑裂。</p></div>
+              <div class="recap-item"><span>03</span><p>限流和容灾都是取舍：可用性、成本、一致性很少能同时最优。</p></div>
+            </div>
+          </section>
+
+          <section class="post-section" aria-labelledby="quiz">
+            <h2 id="quiz" data-toc>开始自测</h2>
+            <div class="quiz instrument" id="quizCard">
+              <div class="instrument-bar">
+                <span class="status-dot status-dot-good"></span>
+                <span class="instrument-title">十二道题</span>
+                <span class="instrument-meta mono" id="quizProgress">1 / 12</span>
+              </div>
+              <div class="quiz-body">
+                <p class="quiz-question" id="quizQuestion">加载中…</p>
+                <div class="quiz-options" id="quizOptions" role="group" aria-labelledby="quizQuestion"></div>
+                <p class="quiz-feedback" id="quizFeedback" aria-live="polite"></p>
+                <div class="quiz-foot">
+                  <button class="btn btn-small btn-primary" id="quizNext" type="button" disabled>下一题</button>
+                </div>
+              </div>
+              <div class="quiz-result" id="quizResult" hidden>
+                <span class="quiz-score" id="quizScore">0 / 12</span>
+                <p id="quizVerdict"></p>
+                <button class="btn btn-small btn-ghost" id="quizRestart" type="button">再来一次</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="post-section" aria-labelledby="after">
+            <h2 id="after" data-toc>答完之后：怎么继续</h2>
+            <div class="prose">
+              <p>如果错题集中在某几章，建议回到对应页面，重点看图和“重点”段落，而不是从头重读。图示往往把机制压缩成了一个动作序列：谁检测、谁判定、谁接管、客户端如何找到新入口。能复述这条序列，比记住产品名词更有用。</p>
+              <p>如果几乎全对，可以尝试把六章串成一条完整链路：从一个用户请求出发，经过 DNS / GSLB、负载均衡、网关、应用、缓存、数据库和消息队列，逐一说明每个环节的故障域、冗余方式、切换机制和限流策略。能讲清楚这条链路，说明已经掌握了高可用的整体框架。</p>
+            </div>
+            <div class="chapter-links">
+              <a href="availability.html"><span>01</span>可用性指标</a>
+              <a href="redundancy.html"><span>02</span>主备与多活</a>
+              <a href="load-balancing.html"><span>03</span>负载均衡</a>
+              <a href="disaster-recovery.html"><span>04</span>容灾架构</a>
+              <a href="middleware.html"><span>05</span>中间件</a>
+              <a href="rate-limiting.html"><span>06</span>限流</a>
+            </div>
+          </section>
+        </div>
+              <nav class="post-pager" aria-label="章节导航">
+        <a class="pager-link pager-prev" href="rate-limiting.html"><span>上一篇 · 06</span><strong>限流</strong></a>
+        <a class="pager-link pager-home" href="index.html"><span>读完啦</span><strong>返回全书目录</strong></a>
+      </nav>
+      </article>
+      <aside class="toc" aria-label="本页目录">
+        <p class="toc-label">本页目录</p>
+                <nav class="toc-nav" id="tocNav" aria-label="本页小节">
+          <a class="toc-link toc-level-2" href="#before">答题前：三个提示</a>
+          <a class="toc-link toc-level-2" href="#quiz">开始自测</a>
+          <a class="toc-link toc-level-2" href="#after">答完之后：怎么继续</a>
+        </nav>
+        <a class="toc-top" href="#top">回到顶部 <span aria-hidden="true">↑</span></a>
+      </aside>
+    </div>
+
+
+  <footer class="site-foot">
+    <div class="foot-main">
+      <span class="brand-mark"><svg class="icon"><use href="#i-pulse"/></svg></span>
+      <div><strong>高可用架构 · 从指标到故障转移</strong><p>内容依据《四大原则 · 01-高可用架构》整理，并补充了公开资料中的通用工程实践；交互与视觉为学习用途重新制作。</p></div>
+    </div>
+    <div class="foot-meta">
+      <span class="mono">SYSTEM DESIGN NOTES / 01</span>
+      <span>部署于 GitHub Pages · 2026</span>
+      <a href="https://github.com/inezhi/high-availability-guide" target="_blank" rel="noreferrer">GitHub 仓库</a>
+    </div>
+  </footer>
+  </main>
+
+  <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js?v=20261022-4" defer></script>
+</body>
+</html>

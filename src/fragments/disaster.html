@@ -1,0 +1,217 @@
+<div class="prose">
+          <p class="lede">容灾将机房级故障纳入可用性范围。两地三中心侧重快速接管，异地多活让多个数据中心同时提供服务；两者都以成本换取恢复能力。</p>
+        </div>
+
+        <div class="instrument dr-demo" id="drDemo">
+          <div class="instrument-bar">
+            <span class="status-dot status-dot-good"></span>
+            <span class="instrument-title">两地三中心</span>
+            <span class="instrument-meta mono">2 CITIES / 3 DCs</span>
+          </div>
+          <div class="dc-row" id="dcRow">
+            <article class="dc-card is-active" id="drDC1">
+              <div class="dc-head"><span class="led"></span><svg class="spot-icon dc-icon" aria-hidden="true"><use href="#i-building"/></svg><strong>DC 1</strong><span class="tag">深圳</span></div>
+              <p>生产中心 · 对外服务</p>
+              <span class="dc-badge">对外服务</span>
+              <div class="dc-meta mono">ACTIVE</div>
+            </article>
+            <div class="dc-sync" aria-hidden="true"><span>同步复制</span><i></i></div>
+            <article class="dc-card is-standby" id="drDC2">
+              <div class="dc-head"><span class="led"></span><svg class="spot-icon dc-icon" aria-hidden="true"><use href="#i-building"/></svg><strong>DC 2</strong><span class="tag tag-warn">东莞</span></div>
+              <p>同城热备 · 闲置待命</p>
+              <span class="dc-badge" hidden>对外服务</span>
+              <div class="dc-meta mono">STANDBY</div>
+            </article>
+            <div class="dc-sync dc-sync-far" aria-hidden="true"><span>备份</span><i></i></div>
+            <article class="dc-card is-backup" id="drDC3">
+              <div class="dc-head"><span class="led"></span><svg class="spot-icon dc-icon" aria-hidden="true"><use href="#i-building"/></svg><strong>DC 3</strong><span class="tag">上海</span></div>
+              <p>异地备份 · 只同步</p>
+              <span class="dc-badge" hidden>对外服务</span>
+              <div class="dc-meta mono">BACKUP</div>
+            </article>
+          </div>
+          <div class="dr-foot">
+            <p id="drStatus" aria-live="polite">同一时间只有 DC 1 对外服务；DC 2 保持环境一致，DC 3 只做数据备份。</p>
+            <div class="dr-actions">
+              <button class="btn btn-small btn-primary" id="drFail" type="button">演练：DC 1 故障</button>
+              <button class="btn btn-small btn-ghost" id="drReset" type="button">重置</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="prose">
+          <p>灾备切换并不只是修改一条 DNS 记录：数据库需要确认复制位点，备用中心需要具备完整的运行环境和最新配置，客户端与 DNS 缓存还要等待 TTL 过期。因此真实的灾备切换依赖详细的运行手册和定期演练，而不是临时操作。日常发布必须在两个中心都执行，正是为了避免“主中心能跑、备中心跑不起来”。</p>
+          <p>跨地域复制通常依赖专线，带宽和延迟都会影响 RPO。灾备方案设计时，需要把数据同步方式、切换判定条件、回切流程和演练频率一起确定，否则备用中心只是名义上存在。</p>
+        </div>
+
+        <p class="key-point"><strong>重点</strong>两地三中心是“单活 + 热备”：同一时间只有一个数据中心对外服务。切换依赖数据同步、环境一致性和反复演练；备用中心长期不运行，切换时未必可靠。</p>
+
+        <div class="two-col two-col-wide">
+          <article class="fact-card">
+            <h3>两地三中心的运行方式</h3>
+            <figure class="dg-wrap dg-wrap-inline">
+              <svg class="dg" viewBox="0 0 300 122" role="img" aria-label="代码、DDL、配置等发布必须在两个数据中心都执行">
+                <rect class="dg-chip" x="8" y="10" width="56" height="20" rx="4"/><text class="dg-tiny" x="36" y="24" text-anchor="middle">代码发布</text>
+                <rect class="dg-chip" x="8" y="44" width="56" height="20" rx="4"/><text class="dg-tiny" x="36" y="58" text-anchor="middle">数据库 DDL</text>
+                <rect class="dg-chip" x="8" y="78" width="56" height="20" rx="4"/><text class="dg-tiny" x="36" y="92" text-anchor="middle">环境配置</text>
+                <path class="dg-line" d="M64 20 H92 V40" marker-end="url(#arr)"/>
+                <path class="dg-line" d="M64 54 H92 V40" marker-end="url(#arr)"/>
+                <path class="dg-line" d="M64 88 H92 V94" marker-end="url(#arr)"/>
+                <path class="dg-line" d="M92 40 H118" marker-end="url(#arr)"/>
+                <path class="dg-line" d="M92 94 H118" marker-end="url(#arr)"/>
+                <rect class="dg-node dg-node-ok" x="120" y="22" width="168" height="34" rx="5"/>
+                <text class="dg-xs" x="204" y="43" text-anchor="middle">DC 1 · 深圳</text>
+                <rect class="dg-node dg-node-ok" x="120" y="76" width="168" height="34" rx="5"/>
+                <text class="dg-xs" x="204" y="97" text-anchor="middle">DC 2 · 东莞</text>
+                <text class="dg-tiny dg-t-muted" x="204" y="16" text-anchor="middle">同一套发布，两边都执行</text>
+              </svg>
+              <figcaption>图示：同一套代码、DDL 与配置必须同时发布到两个数据中心。</figcaption>
+            </figure>
+            <ul class="tight-list">
+              <li>同城或邻近城市（如深圳、东莞）建两个数据中心，距离近、延迟低，数据几乎实时同步。</li>
+              <li>一个数据中心发生火灾、地震等毁灭性事故，快速切到另一个，短时间恢复服务。</li>
+              <li>两个都不可用时，在更远的位置（如上海）用备份数据重建。</li>
+              <li>日常发布——代码、数据库 DDL、环境配置——必须在两个 DC 都执行，保证环境完全一致。</li>
+              <li>数据库主从同步；跨地域同步有延迟，需要拉专线。</li>
+            </ul>
+          </article>
+          <article class="fact-card fact-card-warn">
+            <h3>热备的代价</h3>
+            <p>始终有一个数据中心处于闲置状态，资源利用率低，成本浪费明显。更重要的是，备用数据中心长期没有真实业务，实际切换时未必能可靠运行。</p>
+            <p>节省成本的做法：只给核心业务做灾备，灾难时优先保证核心系统。</p>
+          </article>
+        </div>
+
+        <div class="section-sub">
+          <p class="chapter-kicker">异地多活</p>
+          <h3>多个数据中心同时提供服务</h3>
+          <p class="sub-lede">全国乃至全球部署，让用户访问最近的数据中心。部署成本极高，技术复杂，资金和人员投入巨大。</p>
+        </div>
+        <div class="multi-dc" aria-hidden="true">
+          <div class="mdc"><span class="led"></span><strong>北京</strong><small>读写 · 单元 A</small></div>
+          <div class="mdc"><span class="led"></span><strong>上海</strong><small>读写 · 单元 B</small></div>
+          <div class="mdc"><span class="led"></span><strong>深圳</strong><small>读写 · 单元 C</small></div>
+          <div class="mdc-links"><i></i><i></i><i></i></div>
+          <p class="mdc-caption">多活数据中心同时服务；跨地域复制是异步的，延迟无法避免。</p>
+        </div>
+
+        <div class="prose">
+          <p>异地多活的核心不是多建几个机房，而是把流量和数据按单元切开。每个单元只服务一部分用户，交易在单元内闭环，跨单元只做异步复制。这样既能就近接入降低延迟，也能在单个单元故障时把流量切到其他单元。代价是单元之间存在复制延迟，跨单元查询可能读到旧值。</p>
+          <p>单元划分需要稳定的分片维度，例如用户 ID 或租户 ID；划分之后，用户归属、数据迁移和扩容都会成为长期约束。这也是异地多活“技术复杂、投入巨大”的主要原因。</p>
+        </div>
+
+        <p class="key-point key-point--violet"><strong>重点</strong>异地多活是多活：多个数据中心同时服务，单点故障时流量自动绕开。代价是接受异步复制延迟，并把业务按稳定维度切成单元。</p>
+
+        <div class="deep-grid">
+          <article class="deep-card">
+            <h3>难点一：跨 DC 调用慢</h3>
+            <p>分布式系统里，一个请求可能发生数十次服务调用。如果这些调用不能发生在同一个 IDC 内，延迟就会叠高。</p>
+            <figure class="dg-wrap dg-wrap-inline">
+              <svg class="dg" viewBox="0 0 320 112" role="img" aria-label="跨 DC 调用会把毫秒级调用放大到几十毫秒">
+                <rect class="dg-frame" x="6" y="8" width="198" height="88" rx="8"/>
+                <text class="dg-m" x="16" y="24">DC 1</text>
+                <rect class="dg-node" x="18" y="42" width="44" height="24" rx="4"/>
+                <text class="dg-tiny" x="40" y="57" text-anchor="middle">服务 A</text>
+                <rect class="dg-node" x="80" y="42" width="44" height="24" rx="4"/>
+                <text class="dg-tiny" x="102" y="57" text-anchor="middle">服务 B</text>
+                <rect class="dg-node" x="142" y="42" width="44" height="24" rx="4"/>
+                <text class="dg-tiny" x="164" y="57" text-anchor="middle">服务 C</text>
+                <line class="dg-line" x1="62" y1="54" x2="80" y2="54" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="124" y1="54" x2="142" y2="54" marker-end="url(#arr)"/>
+                <text class="dg-tiny dg-t-ok" x="102" y="80" text-anchor="middle">1ms</text>
+                <rect class="dg-frame dg-frame-bad" x="222" y="8" width="92" height="88" rx="8"/>
+                <text class="dg-m" x="232" y="24">DC 2</text>
+                <rect class="dg-node" x="238" y="42" width="60" height="24" rx="4"/>
+                <text class="dg-tiny" x="268" y="57" text-anchor="middle">服务 D</text>
+                <line class="dg-line-bad" x1="186" y1="54" x2="238" y2="54" marker-end="url(#arr-bad)"/>
+                <text class="dg-tiny dg-t-bad" x="212" y="78" text-anchor="middle">30ms</text>
+              </svg>
+              <figcaption>图示：调用留在同一 IDC 只需约 1ms，跨 DC 一次调用约 30ms。</figcaption>
+            </figure>
+            <p class="fineprint">所以异地多活的第一个要求：尽量让一笔交易在同一个 IDC 内闭环，避免跨区访问。</p>
+          </article>
+          <article class="deep-card">
+            <h3>难点二：数据无法实时同步</h3>
+            <p>距离带来延迟，复制无法做到实时。用户在北京下单，订单查询却到了上海，就可能看到旧数据。</p>
+            <figure class="dg-wrap dg-wrap-inline">
+              <svg class="dg" viewBox="0 0 320 112" role="img" aria-label="复制延迟导致异地读到旧数据的时间线">
+                <line class="dg-line" x1="10" y1="64" x2="310" y2="64" marker-end="url(#arr)"/>
+                <circle class="dg-dot dg-dot-ok" cx="50" cy="64" r="4"/>
+                <text class="dg-xs" x="50" y="48" text-anchor="middle">北京写入</text>
+                <text class="dg-tiny dg-t-ok" x="50" y="84" text-anchor="middle">已支付</text>
+                <circle class="dg-dot dg-dot-bad" cx="132" cy="64" r="4"/>
+                <text class="dg-xs dg-t-bad" x="132" y="48" text-anchor="middle">上海读</text>
+                <text class="dg-tiny dg-t-bad" x="132" y="84" text-anchor="middle">旧值：待支付</text>
+                <circle class="dg-dot dg-dot-ok" cx="252" cy="64" r="4"/>
+                <text class="dg-xs" x="252" y="48" text-anchor="middle">复制完成</text>
+                <text class="dg-tiny dg-t-ok" x="252" y="84" text-anchor="middle">新值</text>
+                <path class="dg-line dg-dash" d="M50 26 H252"/>
+                <text class="dg-tiny dg-t-muted" x="151" y="20" text-anchor="middle">复制延迟</text>
+              </svg>
+              <figcaption>图示：写入尚未复制到异地时，跨地域读取会返回旧值。</figcaption>
+            </figure>
+            <p class="fineprint">伪异地多活：数据库不拆分也不同步，集中在一个 IDC，多地服务共享一套数据源，以一致性换取实现简单。真异地多活：各 DC 数据库独立部署，再通过同步复制，延迟无法避免。</p>
+          </article>
+        </div>
+
+        <div class="diagram-pair">
+          <figure class="dg-wrap">
+            <div class="pair-head"><span class="tag tag-warn">伪多活</span><h4>共享一个数据源</h4></div>
+            <svg class="dg" viewBox="0 0 320 140" role="img" aria-label="伪异地多活：三个数据中心的服务共享一个集中数据库">
+              <rect class="dg-node" x="8" y="10" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="52" y="28" text-anchor="middle">北京服务</text>
+              <rect class="dg-node" x="116" y="10" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="160" y="28" text-anchor="middle">上海服务</text>
+              <rect class="dg-node" x="224" y="10" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="268" y="28" text-anchor="middle">深圳服务</text>
+              <path class="dg-line dg-dash" d="M52 38 V84 M160 38 V84 M268 38 V84" marker-end="url(#arr)"/>
+              <rect class="dg-node dg-node-ok" x="84" y="86" width="152" height="32" rx="5"/>
+              <text class="dg-xs" x="160" y="106" text-anchor="middle">共享数据源 · 一个 IDC</text>
+              <text class="dg-tiny dg-t-bad" x="160" y="134" text-anchor="middle">一致性好，但数据库仍是单点与跨区瓶颈</text>
+            </svg>
+            <figcaption>图示：多地服务共享一个集中数据库；一致性容易保证，但数据库仍是单点。</figcaption>
+          </figure>
+          <figure class="dg-wrap">
+            <div class="pair-head"><span class="tag tag-info">真多活</span><h4>独立数据库 + 异步同步</h4></div>
+            <svg class="dg" viewBox="0 0 320 140" role="img" aria-label="真异地多活：每个数据中心有独立数据库，通过异步复制同步">
+              <rect class="dg-node" x="8" y="10" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="52" y="28" text-anchor="middle">北京服务</text>
+              <rect class="dg-node" x="116" y="10" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="160" y="28" text-anchor="middle">上海服务</text>
+              <rect class="dg-node" x="224" y="10" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="268" y="28" text-anchor="middle">深圳服务</text>
+              <line class="dg-line" x1="52" y1="38" x2="52" y2="78" marker-end="url(#arr)"/>
+              <line class="dg-line" x1="160" y1="38" x2="160" y2="78" marker-end="url(#arr)"/>
+              <line class="dg-line" x1="268" y1="38" x2="268" y2="78" marker-end="url(#arr)"/>
+              <rect class="dg-node dg-node-ok" x="8" y="80" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="52" y="98" text-anchor="middle">DB 北京</text>
+              <rect class="dg-node dg-node-ok" x="116" y="80" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="160" y="98" text-anchor="middle">DB 上海</text>
+              <rect class="dg-node dg-node-ok" x="224" y="80" width="88" height="28" rx="5"/>
+              <text class="dg-tiny" x="268" y="98" text-anchor="middle">DB 深圳</text>
+              <line class="dg-line dg-dash" x1="96" y1="94" x2="116" y2="94" marker-start="url(#arr)" marker-end="url(#arr)"/>
+              <line class="dg-line dg-dash" x1="204" y1="94" x2="224" y2="94" marker-start="url(#arr)" marker-end="url(#arr)"/>
+              <text class="dg-tiny dg-t-muted" x="160" y="134" text-anchor="middle">本地写、异步复制：低延迟，但要接受复制延迟</text>
+            </svg>
+            <figcaption>图示：每个数据中心拥有独立数据库，本地写入、异步复制。</figcaption>
+          </figure>
+        </div>
+
+        <aside class="note note-warn">
+          <div class="note-head"><svg class="icon"><use href="#i-alert"/></svg>不是所有业务都适合异地多活</div>
+          <p>账户余额、转账等对一致性与实时性要求极高的业务不适合异地多活；低频交易通常也无需采用该架构。登录频率高且是业务入口，适合多活；用户资料修改频率低，通常无需为此投入多活成本。异地双活是异地多活的特例：两个远距离城市同时提供服务。</p>
+        </aside>
+
+        <div class="table-wrap">
+          <table class="cmp">
+            <caption>两地三中心 vs 异地多活</caption>
+            <thead><tr><th scope="col"></th><th scope="col">两地三中心</th><th scope="col">异地多活</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">服务形态</th><td>单活 + 热备，同一时间一个 DC 服务</td><td>多活，多个 DC 同时服务</td></tr>
+              <tr><th scope="row">故障切换</th><td>分钟级，需要切换流程</td><td>接近 0，流量绕开</td></tr>
+              <tr><th scope="row">访问延迟</th><td>集中在同城，远处用户慢</td><td>就近接入，全国/全球更快</td></tr>
+              <tr><th scope="row">成本</th><td>中，备用 DC 闲置</td><td>极高，技术复杂</td></tr>
+              <tr><th scope="row">典型用途</th><td>灾备合规、核心系统兜底</td><td>全国/全球业务、单元化架构</td></tr>
+            </tbody>
+          </table>
+        </div>

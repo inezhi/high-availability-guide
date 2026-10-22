@@ -94,15 +94,30 @@
      Reading progress and section tracking
      ------------------------------------------------------------------ */
 
-  const navLinks = $$(".rail-nav a");
-  const sections = navLinks
-    .map(function (link) {
-      return document.getElementById(link.dataset.nav);
-    })
-    .filter(Boolean);
   const progressBar = $("#progressBar");
   const railProgress = $("#railProgress");
   const toTop = $("#toTop");
+  const tocLinks = $$(".toc-link, .toc-mobile a");
+  const tocTargets = [];
+
+  tocLinks.forEach(function (link) {
+    const id = decodeURIComponent((link.getAttribute("href") || "").replace(/^#/, ""));
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (target && !tocTargets.some(function (item) { return item.id === id; })) {
+      tocTargets.push({ id: id, el: target });
+    }
+  });
+
+  const tocMobile = $(".toc-mobile");
+  if (tocMobile) {
+    $$("a", tocMobile).forEach(function (link) {
+      link.addEventListener("click", function () {
+        tocMobile.removeAttribute("open");
+      });
+    });
+  }
+
   let scrollQueued = false;
 
   function updateScrollState() {
@@ -114,16 +129,27 @@
     if (railProgress) railProgress.style.width = percent;
     if (toTop) toTop.classList.toggle("is-visible", window.scrollY > 700);
 
-    const probe = window.scrollY + window.innerHeight * 0.32;
-    let current = null;
+    if (tocTargets.length) {
+      const probe = window.scrollY + window.innerHeight * 0.28;
+      let currentId = tocTargets[0].id;
 
-    sections.forEach(function (section) {
-      if (section.offsetTop <= probe) current = section;
-    });
+      tocTargets.forEach(function (item) {
+        if (item.el.getBoundingClientRect().top + window.scrollY <= probe) {
+          currentId = item.id;
+        }
+      });
 
-    navLinks.forEach(function (link) {
-      link.classList.toggle("is-active", Boolean(current) && link.dataset.nav === current.id);
-    });
+      tocLinks.forEach(function (link) {
+        const id = decodeURIComponent((link.getAttribute("href") || "").replace(/^#/, ""));
+        const active = Boolean(currentId) && id === currentId;
+        link.classList.toggle("is-active", active);
+        if (active) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
 
     scrollQueued = false;
   }
@@ -1457,6 +1483,36 @@
       options: ["所有从库执行完", "主库落盘即可", "客户端确认", "至少一个从库确认接收"],
       answer: 3,
       why: "半同步只等至少一个从库确认接收，兼顾响应速度和一致性；全同步才等待所有从库。"
+    },
+    {
+      question: "五个 99.9% 的环节串联，整体可用性大约是多少？",
+      options: ["99.9%", "99.5%", "99.99%", "95%"],
+      answer: 1,
+      why: "串联链路按乘积计算：0.999⁵ ≈ 0.995，也就是约 99.5%。链路越长，整体越难达到高可用。"
+    },
+    {
+      question: "月度 SLO 为 99.95% 时，大约允许多长时间不可用？",
+      options: ["约 4.4 分钟", "约 21.6 分钟", "约 43 分钟", "约 8.8 小时"],
+      answer: 1,
+      why: "99.95% 的月度错误预算约为 21.6 分钟；99.99% 才约为 4.4 分钟。"
+    },
+    {
+      question: "Kafka 要尽量不丢消息，生产者与主题应如何配合？",
+      options: ["acks=0", "acks=1", "acks=all + min.insync.replicas", "关闭 ISR"],
+      answer: 2,
+      why: "acks=all 等待 ISR 副本确认，min.insync.replicas 保证仍有足够的同步副本；两者配合才可靠。"
+    },
+    {
+      question: "两地三中心的典型运行方式是什么？",
+      options: ["三个中心同时写入", "同一时间只有一个中心对外服务", "只做备份，从不切换", "两个中心都只读"],
+      answer: 1,
+      why: "两地三中心是“单活 + 热备”：同一时间只有一个中心对外服务，另一个保持环境一致，第三个做异地备份。"
+    },
+    {
+      question: "固定窗口限流在窗口边界可能出现什么问题？",
+      options: ["请求全部丢失", "瞬时放过接近两倍流量", "令牌永远用不完", "无法统计请求"],
+      answer: 1,
+      why: "固定窗口在前后两个窗口的交界处可能各放行一次上限流量，形成接近两倍的瞬时突刺；滑动窗口更平滑。"
     }
   ];
 
@@ -1561,11 +1617,14 @@
       if (quizScore) quizScore.textContent = quizState.score + " / " + quizData.length;
 
       let verdict = "";
-      if (quizState.score === quizData.length) {
+      const total = quizData.length;
+      const good = Math.ceil(total * 0.75);
+      const basic = Math.ceil(total * 0.5);
+      if (quizState.score === total) {
         verdict = "全部正确。对核心概念与关键取舍的掌握较为完整。";
-      } else if (quizState.score >= 5) {
+      } else if (quizState.score >= good) {
         verdict = "掌握良好。建议复核错题对应的章节与图示，巩固细节。";
-      } else if (quizState.score >= 3) {
+      } else if (quizState.score >= basic) {
         verdict = "基础概念已具备。建议重点复习第 02、05 章的机制与取舍。";
       } else {
         verdict = "建议先阅读第 01–03 章并完成故障演练，再进行自测。";

@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>可用性指标：从几个 9 到停机预算 · 高可用架构</title>
+  <meta name="description" content="理解可用性的计算方式、几个 9 的停机预算、串联与并联链路、SLO / SLI / SLA 与错误预算。">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="可用性指标：从几个 9 到停机预算 · 高可用架构">
+  <meta property="og:description" content="理解可用性的计算方式、几个 9 的停机预算、串联与并联链路、SLO / SLI / SLA 与错误预算。">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/availability.html">
+  <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/availability.html">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=20261022-4">
+</head>
+<body class="article-page">
+  <a class="skip-link" href="#main">跳到正文</a>
+  <div class="scroll-progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <svg class="svg-sprite" aria-hidden="true">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--muted)"/></marker>
+      <marker id="arr-ok" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--signal)"/></marker>
+      <marker id="arr-bad" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--danger)"/></marker>
+      <marker id="arr-info" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--info)"/></marker>
+    </defs>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M2 12h4l2.5-6 4 12 3-8 1.5 2H22"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5 9.5 18 20 6.5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5M12 17.5v.5"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 20 5v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3Z"/><path d="m8.5 12 2.4 2.5 4.6-5"/></symbol>
+    <symbol id="i-network" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5v4M12 11.5 6.5 16.7M12 11.5l5.5 5.2"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-4 3.4-6 7-6s6.2 2 7 6"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .8-7.9A6 6 0 0 0 6.2 9.5 4.5 4.5 0 0 0 7 18Z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+    <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V5l8-3v19M12 21h8V9l-8-4"/><path d="M7 8h2M7 12h2M7 16h2M15 12h2M15 16h2"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 18a9 9 0 1 1 16 0"/><path d="M12 18l4-5"/><circle cx="12" cy="18" r="1.5"/></symbol>
+    <symbol id="i-funnel" viewBox="0 0 24 24"><path d="M3 4h18l-7 8v7l-4 2v-9L3 4Z"/></symbol>
+    <symbol id="logo-redis" viewBox="0 0 32 32">
+      <path d="M4 10 16 4l12 6-12 6L4 10Z" fill="#e74c3c"/>
+      <path d="M4 16 16 10l12 6-12 6L4 16Z" fill="#d82c20"/>
+      <path d="M4 22 16 16l12 6-12 6L4 22Z" fill="#b02a1f"/>
+      <path d="M4 10v12M28 10v12M16 16v12" stroke="#7a1b12" stroke-width="1" opacity=".55"/>
+      <path d="M12 8.5 16 6.5l4 2-4 2-4-2Z" fill="#fff" opacity=".55"/>
+    </symbol>
+    <symbol id="logo-mongo" viewBox="0 0 32 32">
+      <path d="M16 2.5c6.5 6.5 8.5 13 0 27C7.5 15.5 9.5 9 16 2.5Z" fill="#2563eb"/>
+      <path d="M16 6c3.5 5 4.5 10.5 0 20.5V6Z" fill="#1e40af"/>
+      <path d="M16 27.5v3" stroke="#1e40af" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="logo-kafka" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="4.5" fill="#1f6fb2"/>
+      <circle cx="7" cy="8" r="3.2" fill="#1f6fb2"/>
+      <circle cx="7" cy="24" r="3.2" fill="#1f6fb2"/>
+      <circle cx="25" cy="8" r="3.2" fill="#1f6fb2"/>
+      <circle cx="25" cy="24" r="3.2" fill="#1f6fb2"/>
+      <path d="M12 13 9 10M12 19 9 22M20 13 23 10M20 19 23 22" stroke="#1f6fb2" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="16" cy="16" r="1.6" fill="#fff"/>
+    </symbol>
+    <symbol id="logo-mysql" viewBox="0 0 32 32">
+      <path d="M17.5 7.5 22 3.5l1 5.5Z" fill="#00758f"/>
+      <path d="M5 22.5c5.5-1 9-5 10-10.5 1-4 5-6.5 9.5-4.5 3.5 2 4.5 6.5 2 10-2.5 4-8 6.5-13.5 7.5L5 22.5Z" fill="#00758f"/>
+      <path d="M9.5 23.5c3-4 4-8.5 3-13" stroke="#f29111" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <circle cx="21.5" cy="11.5" r="1.2" fill="#fff"/>
+    </symbol>
+    <symbol id="logo-nginx" viewBox="0 0 32 32">
+      <path d="M16 2 28 9v14l-12 7-12-7V9L16 2Z" fill="#2563eb"/>
+      <path d="M11 22V10l10 12V10" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="logo-f5" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#e4002b"/>
+      <text x="16" y="21" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="Arial, sans-serif">F5</text>
+    </symbol>
+    <symbol id="logo-haproxy" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#0b6fb8"/>
+      <path d="M16 2a14 14 0 0 1 0 28V2Z" fill="#e4002b" opacity=".85"/>
+      <text x="16" y="21" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="Arial, sans-serif">HA</text>
+    </symbol>
+    <symbol id="logo-lvs" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#1f4e79"/>
+      <circle cx="16" cy="10" r="3" fill="#fff"/>
+      <circle cx="10" cy="21" r="3" fill="#fff"/>
+      <circle cx="22" cy="21" r="3" fill="#fff"/>
+      <path d="M16 13v2M13.5 18.5 11.5 20M18.5 18.5 20.5 20" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <aside class="rail" id="rail">
+    <a class="rail-brand" href="index.html" aria-label="返回首页">
+      <span class="brand-mark"><svg class="icon"><use href="#i-pulse"/></svg></span>
+      <span class="brand-text"><strong>高可用架构</strong><small>从指标到故障转移</small></span>
+    </a>
+    <nav class="rail-nav" aria-label="全书章节">
+              <a href="availability.html" data-page="availability" class="is-active" aria-current="page"><span class="nav-num">01</span><span>可用性</span></a>
+        <a href="redundancy.html" data-page="redundancy"><span class="nav-num">02</span><span>冗余</span></a>
+        <a href="load-balancing.html" data-page="loadbalancing"><span class="nav-num">03</span><span>负载均衡</span></a>
+        <a href="disaster-recovery.html" data-page="disaster"><span class="nav-num">04</span><span>容灾</span></a>
+        <a href="middleware.html" data-page="middleware"><span class="nav-num">05</span><span>中间件</span></a>
+        <a href="rate-limiting.html" data-page="ratelimit"><span class="nav-num">06</span><span>限流</span></a>
+        <a href="quiz.html" data-page="quiz"><span class="nav-num">07</span><span>自测</span></a>
+    </nav>
+    <div class="rail-foot">
+      <div class="rail-meter" aria-hidden="true"><span id="railProgress"></span></div>
+      <div class="rail-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到浅色主题" title="切换主题">
+          <svg class="icon icon-sun"><use href="#i-sun"/></svg>
+          <svg class="icon icon-moon"><use href="#i-moon"/></svg>
+        </button>
+        <a class="icon-btn" href="https://github.com/inezhi/high-availability-guide" target="_blank" rel="noreferrer" aria-label="GitHub 仓库" title="GitHub 仓库">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33s1.7.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85V21c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <header class="mobile-bar">
+    <a class="mobile-brand" href="index.html"><svg class="icon"><use href="#i-pulse"/></svg><span>高可用架构</span></a>
+    <button class="icon-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="mobileIndex" aria-label="打开目录">
+      <svg class="icon icon-menu"><use href="#i-menu"/></svg>
+      <svg class="icon icon-close"><use href="#i-close"/></svg>
+    </button>
+  </header>
+  <nav class="mobile-index" id="mobileIndex" aria-label="移动端全书目录">
+        <a href="availability.html" class="is-active" aria-current="page"><span>01</span>可用性</a>
+    <a href="redundancy.html"><span>02</span>冗余</a>
+    <a href="load-balancing.html"><span>03</span>负载均衡</a>
+    <a href="disaster-recovery.html"><span>04</span>容灾</a>
+    <a href="middleware.html"><span>05</span>中间件</a>
+    <a href="rate-limiting.html"><span>06</span>限流</a>
+    <a href="quiz.html"><span>07</span>自测</a>
+  </nav>
+
+  <main id="main" class="article-main">
+        <div class="page-wrap" id="top">
+              <details class="toc-mobile">
+          <summary>本页目录</summary>
+          <nav aria-label="本页小节">
+            <a class="toc-level-2" href="#what">什么是高可用</a>
+            <a class="toc-level-2" href="#nines">几个 9：把停机时间变成预算</a>
+            <a class="toc-level-2" href="#chain">串联链路：为什么整体总比单机差</a>
+            <a class="toc-level-2" href="#slo">SLO、SLI 与 SLA：把目标写清楚</a>
+            <a class="toc-level-2" href="#mttr">MTTR 与 MTBF：恢复速度也是可用性</a>
+            <a class="toc-level-2" href="#measure">怎么测量：拨测、指标与真实用户</a>
+            <a class="toc-level-2" href="#budget">停机预算怎么花</a>
+            <a class="toc-level-2" href="#summary">本章小结</a>
+          </nav>
+        </details>
+      <article class="post">
+        <header class="post-head">
+          <nav class="breadcrumb" aria-label="面包屑">
+            <a href="index.html">首页</a><span aria-hidden="true">/</span><span>第 01 章</span>
+          </nav>
+          <p class="chapter-kicker">第 01 章 · 度量</p>
+          <h1>可用性指标：从几个 9 到停机预算</h1>
+          <p class="post-lede">高可用不是一句口号，而是一笔可以计算的账：一年允许多少分钟不可用，一次故障允许多长时间恢复，哪些环节会把整条链路拖下水。先把这笔账算清楚，后面的冗余、切换和容灾才有判断标准。</p>
+          <div class="post-meta">
+            <span>阅读约 12 分钟</span>
+            <span class="meta-dot" aria-hidden="true"></span>
+            <span>关键词：几个 9 · SLO · 错误预算 · MTTR</span>
+          </div>
+        </header>
+
+        <aside class="post-takeaways" aria-label="本章要点">
+          <span class="takeaways-label">本章要点</span>
+          <ul>
+            <li>可用性 = 正常服务时间 ÷ 总时间；4 个 9 约等于全年 52.6 分钟停机。</li>
+            <li>串联链路的可用性是各环节的乘积，链路越长，整体越脆弱。</li>
+            <li>SLO 定义目标，错误预算决定发布节奏；预算耗尽时应冻结变更。</li>
+            <li>缩短 MTTR 往往比降低故障率更划算，而 MTTR 主要耗在检测和判断上。</li>
+          </ul>
+        </aside>
+
+        <div class="post-body chapter-body" id="postBody">
+          <section class="post-section" aria-labelledby="what">
+            <h2 id="what" data-toc>什么是高可用</h2>
+            <div class="prose">
+              <p>高可用（High Availability）指的是系统在一段时间内持续提供服务的能力。它衡量的不是“机器有没有坏”，而是“用户能不能完成想做的事”。一个页面能打开、但支付接口超时，对正在付款的用户来说，系统依然是不可用的。</p>
+              <p>因此，可用性通常从用户旅程出发定义：登录、浏览、下单、支付这些关键路径的成功率与耗时，比某台服务器的 CPU 使用率更接近真实的可用性。基础设施指标用于定位原因，业务指标用于判断结果，两者不能互相替代。</p>
+            </div>
+            <div class="def-pair">
+              <div class="def">
+                <span class="def-tag">可用性 · availability</span>
+                <p>系统在需要时能够提供服务的时间比例。关注“能不能用”，通常用正常服务时间除以总时间，折算成几个 9。</p>
+              </div>
+              <div class="def">
+                <span class="def-tag">可靠性 · reliability</span>
+                <p>系统在一段时间内不出故障的概率。关注“会不会坏”，常用 MTBF（平均无故障时间）描述。可靠不等于可用：容易坏但恢复很快的系统，可用性也可能很高。</p>
+              </div>
+            </div>
+            <p class="key-point"><strong>重点</strong>可用性是用户视角的结果指标。讨论高可用时，先问“哪条用户路径不可用了”，再问“哪台机器出了问题”。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="nines">
+            <h2 id="nines" data-toc>几个 9：把停机时间变成预算</h2>
+            <div class="prose">
+              <p class="lede">高可用常用“几个 9”来度量。99.9% 是一年约 8.8 小时停机，99.99% 约 53 分钟，99.999% 只剩约 5 分钟。每多一个 9，允许的停机时间缩小十倍，工程成本通常涨得更多。</p>
+              <p>其计算公式为：<span class="formula">可用性 = 正常服务时间 ÷ 总时间</span>。通常按年折算成停机分钟数。4 个 9 意味着全年停机小于 53 分钟；5 个 9 小于 5 分钟。这两个数字构成一年内可接受的停机预算。</p>
+            </div>
+
+            <div class="instrument nines">
+              <div class="instrument-bar">
+                <span class="status-dot status-dot-good"></span>
+                <span class="instrument-title">可用性换算器</span>
+                <span class="instrument-meta mono">DOWNTIME / YEAR</span>
+              </div>
+              <div class="nines-controls">
+                <div class="seg" role="group" aria-label="选择可用性水平" id="ninesGroup">
+                  <button type="button" data-nines="2">99%</button>
+                  <button type="button" data-nines="3">99.9%</button>
+                  <button type="button" data-nines="4" class="is-active" aria-pressed="true">99.99%</button>
+                  <button type="button" data-nines="5">99.999%</button>
+                  <button type="button" data-nines="6">99.9999%</button>
+                </div>
+                <p class="nines-rate">每多一个 9，允许的停机时间变为原来的 <strong>1/10</strong>。</p>
+              </div>
+              <div class="nines-readout">
+                <div class="nines-big">
+                  <span id="ninesValue">99.99%</span>
+                  <small>目标可用性</small>
+                </div>
+                <div class="nines-stats">
+                  <div class="stat"><span>每年</span><strong id="ninesYear">52.6 分钟</strong></div>
+                  <div class="stat"><span>每月</span><strong id="ninesMonth">4.4 分钟</strong></div>
+                  <div class="stat"><span>每周</span><strong id="ninesWeek">1.0 分钟</strong></div>
+                </div>
+              </div>
+              <div class="nines-chart" id="ninesBars" aria-label="不同可用性水平的年度停机分钟数对比"></div>
+              <p class="chart-note">年度停机分钟数，横条为对数刻度。通常按约数写作 4 个 9 ≈ 53 分钟、5 个 9 ≈ 5 分钟。</p>
+            </div>
+
+            <div class="prose prose-tight">
+              <p><strong>如何读这张图：</strong>横条采用对数刻度，因为不同可用性水平之间的停机时间相差一个数量级。每增加一个 9，年度停机时间缩小为原来的十分之一，但达到下一级所需的工程投入通常远高于十倍：需要覆盖数据库、缓存、消息队列、网络和发布流程的整条链路。</p>
+              <p>几个 9 不是营销数字，而是运维能力的刻度。3 个 9 允许每月四十多分钟停机，人工处理一次故障还来得及；4 个 9 只剩每月四分多钟，必须依赖自动检测和自动切换；5 个 9 则要求几乎所有的日常变更都能在线完成，且故障切换不产生可感知的中断。</p>
+            </div>
+
+            <div class="table-wrap">
+              <table class="cmp">
+                <caption>常见可用性等级与停机预算</caption>
+                <thead><tr><th scope="col">目标</th><th scope="col">每年</th><th scope="col">每月</th><th scope="col">工程含义</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">99%</th><td>3.65 天</td><td>约 7.2 小时</td><td>允许计划内停机；单机或人工恢复即可</td></tr>
+                  <tr><th scope="row">99.9%</th><td>8.76 小时</td><td>约 43 分钟</td><td>需要监控、告警和基本的主备切换</td></tr>
+                  <tr><th scope="row">99.99%</th><td>52.6 分钟</td><td>约 4.4 分钟</td><td>需要自动故障转移、灰度发布和快速回滚</td></tr>
+                  <tr><th scope="row">99.999%</th><td>5.26 分钟</td><td>约 26 秒</td><td>需要多活、冗余链路和高度自动化的运维</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="key-point"><strong>重点</strong>每增加一个 9，停机时间缩小十倍，工程成本通常远不止十倍。目标应从业务能承受的损失反推，而不是直接照搬“五个 9”。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="chain">
+            <h2 id="chain" data-toc>串联链路：为什么整体总比单机差</h2>
+            <div class="prose">
+              <p>一个请求往往依次经过客户端、负载均衡、网关、应用和数据库。串联环节的可用性近似为各环节可用性的乘积，环节越多，整体可用性越低。五个 99.9% 的环节串起来，整体只剩约 99.5%；如果其中一个是 99%，整条链路就会被拉到 98.5% 左右。</p>
+              <p>因此提升整体可用性有两条路径：减少不必要的串行依赖，或为关键环节增加冗余与快速故障转移。前者常被忽略——一次请求里少两次同步调用，可能比给每台机器加备机更有效。</p>
+            </div>
+
+            <figure class="dg-wrap chain-fig">
+              <svg class="dg" viewBox="0 0 660 150" role="img" aria-label="串联链路的可用性约为各环节可用性的乘积">
+                <rect class="dg-node-blue" x="8" y="30" width="100" height="58" rx="7"/>
+                <g style="color:var(--d-blue)"><use href="#i-user" x="18" y="38" width="16" height="16"/></g>
+                <text class="dg-tiny" x="58" y="63" text-anchor="middle">客户端</text>
+                <text class="dg-xs" x="58" y="80" text-anchor="middle">99.99%</text>
+                <line class="dg-line-blue" x1="108" y1="59" x2="138" y2="59" marker-end="url(#arr)"/>
+                <rect class="dg-node-violet" x="140" y="30" width="100" height="58" rx="7"/>
+                <g style="color:var(--d-violet)"><use href="#i-network" x="150" y="38" width="16" height="16"/></g>
+                <text class="dg-tiny" x="190" y="63" text-anchor="middle">负载均衡</text>
+                <text class="dg-xs" x="190" y="80" text-anchor="middle">99.99%</text>
+                <line class="dg-line-blue" x1="240" y1="59" x2="270" y2="59" marker-end="url(#arr)"/>
+                <rect class="dg-node-cyan" x="272" y="30" width="100" height="58" rx="7"/>
+                <g style="color:var(--d-cyan)"><use href="#i-cloud" x="282" y="38" width="16" height="16"/></g>
+                <text class="dg-tiny" x="322" y="63" text-anchor="middle">网关</text>
+                <text class="dg-xs" x="322" y="80" text-anchor="middle">99.95%</text>
+                <line class="dg-line-blue" x1="372" y1="59" x2="402" y2="59" marker-end="url(#arr)"/>
+                <rect class="dg-node-amber" x="404" y="30" width="100" height="58" rx="7"/>
+                <g style="color:var(--d-amber)"><use href="#i-server" x="414" y="38" width="16" height="16"/></g>
+                <text class="dg-tiny" x="454" y="63" text-anchor="middle">应用</text>
+                <text class="dg-xs" x="454" y="80" text-anchor="middle">99.9%</text>
+                <line class="dg-line-blue" x1="504" y1="59" x2="534" y2="59" marker-end="url(#arr)"/>
+                <rect class="dg-node-green" x="536" y="30" width="100" height="58" rx="7"/>
+                <g style="color:var(--d-green)"><use href="#i-db" x="546" y="38" width="16" height="16"/></g>
+                <text class="dg-tiny" x="586" y="63" text-anchor="middle">数据库</text>
+                <text class="dg-xs" x="586" y="80" text-anchor="middle">99.99%</text>
+                <text class="dg-s" x="330" y="120" text-anchor="middle">整体可用性 ≈ 99.99% × 99.99% × 99.95% × 99.9% × 99.99% ≈ 99.8%</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="138" text-anchor="middle">串联环节越多，整体可用性越低；关键环节需要冗余</text>
+              </svg>
+              <figcaption>图示：把各环节的可用性相乘，得到整条链路的可用性；链路越长，整体越难达到高可用。</figcaption>
+            </figure>
+
+            <div class="prose">
+              <p>与串联相对的是并联冗余。两个独立节点并联时，只有两个同时故障才会整体不可用，因此可用性为 <span class="formula">1 − (1 − A)²</span>。两个 99% 的节点并联，理论上可以做到 99.99%；三个并联可以做到 99.9999%。</p>
+              <p>但这个结果依赖一个强假设：故障彼此独立。如果两个节点共享同一个机房、同一个电源、同一份配置或同一个发布流程，它们就会同时故障，并联公式立即失效。这类问题称为共因故障，也是“双机热备”在真实机房里经常一起挂掉的原因。</p>
+            </div>
+
+            <figure class="dg-wrap">
+              <svg class="dg" viewBox="0 0 640 190" role="img" aria-label="并联冗余的可用性计算与共因故障">
+                <rect class="dg-node-blue" x="10" y="72" width="88" height="44" rx="6"/>
+                <text class="dg-xs" x="54" y="99" text-anchor="middle">请求入口</text>
+                <line class="dg-line" x1="98" y1="82" x2="150" y2="52" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="98" y1="106" x2="150" y2="136" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="152" y="30" width="120" height="44" rx="6"/>
+                <text class="dg-xs" x="212" y="57" text-anchor="middle">节点 A · 99%</text>
+                <rect class="dg-node" x="152" y="114" width="120" height="44" rx="6"/>
+                <text class="dg-xs" x="212" y="141" text-anchor="middle">节点 B · 99%</text>
+                <line class="dg-line" x1="272" y1="52" x2="326" y2="82" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="272" y1="136" x2="326" y2="106" marker-end="url(#arr)"/>
+                <rect class="dg-node-green" x="328" y="72" width="112" height="44" rx="6"/>
+                <text class="dg-xs" x="384" y="99" text-anchor="middle">整体可用性</text>
+                <text class="dg-tiny" x="384" y="132" text-anchor="middle">1 − (1 − 99%)² = 99.99%</text>
+                <rect class="dg-node-bad" x="470" y="30" width="152" height="44" rx="6"/>
+                <text class="dg-xs dg-t-bad" x="546" y="49" text-anchor="middle">共因故障</text>
+                <text class="dg-tiny" x="546" y="65" text-anchor="middle">同机房 / 同电源 / 同配置</text>
+                <path class="dg-line-bad dg-dash" d="M494 78 V100 H436" marker-end="url(#arr-bad)"/>
+                <text class="dg-tiny dg-t-bad" x="470" y="114" text-anchor="middle">独立性被打破</text>
+                <text class="dg-tiny dg-t-muted" x="320" y="176" text-anchor="middle">并联公式成立的前提，是故障彼此独立；共享故障域会把两个 9 打回原形。</text>
+              </svg>
+              <figcaption>图示：并联冗余用“同时故障”的概率换可用性；共享机房、电源或配置会引入共因故障。</figcaption>
+            </figure>
+
+            <p class="key-point"><strong>重点</strong>可用性按整条链路计算，而不是按单台机器计算。并联冗余能提升可用性，但前提是故障彼此独立；共享故障域会让冗余失效。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="slo">
+            <h2 id="slo" data-toc>SLO、SLI 与 SLA：把目标写清楚</h2>
+            <div class="prose">
+              <p>“我们要做到高可用”无法执行，因为它没有说明度量什么、目标是多少、做不到会怎样。工程上通常用三个概念把目标拆开：SLI 是实际测量的指标，SLO 是内部目标，SLA 是对外承诺。</p>
+            </div>
+            <div class="slo-grid">
+              <article class="slo-card">
+                <span class="mono">SLI</span>
+                <h3>指标</h3>
+                <p>你实际测量的东西。例如“登录请求在 500ms 内成功的比例”，而不是“服务器是否在线”。</p>
+              </article>
+              <article class="slo-card">
+                <span class="mono">SLO</span>
+                <h3>目标</h3>
+                <p>内部约定的目标区间。例如“过去 28 天，登录成功率不低于 99.95%”。</p>
+              </article>
+              <article class="slo-card">
+                <span class="mono">SLA</span>
+                <h3>合同</h3>
+                <p>对外承诺，通常附带赔付条款。SLA 应低于 SLO，给自己留出缓冲。</p>
+              </article>
+            </div>
+            <div class="prose">
+              <p>SLO 一旦确定，就可以换算出错误预算：目标允许的失败时间或失败请求数。例如 99.95% 的月度可用性，一个月只允许约 21.6 分钟不可用；99.99% 则只有 4.32 分钟。错误预算不是“可以随便用掉的额度”，而是发布、变更和故障排查的共同约束。</p>
+              <p>实际运行中常用“燃烧率”描述预算消耗速度：燃烧率为 1，表示按当前速度刚好在周期结束时用完预算；燃烧率为 14.4，表示一小时就会烧掉一个月的预算。多窗口告警（例如 1 小时 + 6 小时）可以同时兼顾突发故障和慢性劣化。</p>
+            </div>
+
+            <figure class="dg-wrap">
+              <svg class="dg" viewBox="0 0 640 224" role="img" aria-label="错误预算随时间和故障燃烧的示意">
+                <text class="dg-s" x="24" y="24">错误预算余额</text>
+                <text class="dg-tiny dg-t-muted" x="616" y="24" text-anchor="end">一个 SLO 周期</text>
+                <line class="dg-line" x1="50" y1="42" x2="50" y2="180"/>
+                <line class="dg-line" x1="50" y1="180" x2="616" y2="180" marker-end="url(#arr)"/>
+                <line class="dg-line dg-dash" x1="50" y1="62" x2="616" y2="62"/>
+                <text class="dg-tiny dg-t-muted" x="58" y="56">100% 预算</text>
+                <path class="dg-line-blue" d="M50 62 H250 L300 96 H430 L470 132 H616"/>
+                <circle class="dg-dot dg-dot-bad" cx="300" cy="96" r="4"/>
+                <text class="dg-tiny dg-t-bad" x="308" y="90" text-anchor="start">一次故障 · 燃烧率升高</text>
+                <path class="dg-line-bad dg-dash" d="M470 132 L616 180"/>
+                <text class="dg-tiny dg-t-bad" x="548" y="150" text-anchor="middle">预算耗尽</text>
+                <text class="dg-tiny dg-t-muted" x="52" y="198">周期开始</text>
+                <text class="dg-tiny dg-t-muted" x="616" y="198" text-anchor="end">周期结束</text>
+                <rect class="dg-band" x="470" y="190" width="146" height="22" rx="5"/>
+                <text class="dg-tiny dg-t-ok" x="543" y="205" text-anchor="middle">冻结非必要变更</text>
+                <text class="dg-tiny dg-t-muted" x="300" y="218" text-anchor="middle">预算不是额度，而是变更节奏的约束：余额充足时可以快，余额见底时必须稳。</text>
+              </svg>
+              <figcaption>图示：错误预算随故障消耗；预算见底意味着应冻结非必要发布，优先恢复稳定性。</figcaption>
+            </figure>
+
+            <div class="table-wrap">
+              <table class="cmp">
+                <caption>不同 SLO 下的月度错误预算</caption>
+                <thead><tr><th scope="col">月度 SLO</th><th scope="col">允许不可用</th><th scope="col">适合的业务</th><th scope="col">常见做法</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">99.9%</th><td>约 43 分钟</td><td>内部系统、非核心工具</td><td>监控 + 人工恢复</td></tr>
+                  <tr><th scope="row">99.95%</th><td>约 21.6 分钟</td><td>大多数面向用户的业务</td><td>自动告警 + 主备切换</td></tr>
+                  <tr><th scope="row">99.99%</th><td>约 4.4 分钟</td><td>支付、登录、核心交易</td><td>多副本 + 自动转移 + 灰度</td></tr>
+                  <tr><th scope="row">99.999%</th><td>约 26 秒</td><td>基础设施、通信核心网</td><td>多活 + 冗余链路 + 自动化运维</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="key-point key-point--amber"><strong>重点</strong>SLI 要选用户能感知的指标，SLO 要留出比 SLA 更紧的余量。错误预算的作用不是纵容故障，而是给“发布速度”和“稳定性”提供一个可执行的平衡点。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="mttr">
+            <h2 id="mttr" data-toc>MTTR 与 MTBF：恢复速度也是可用性</h2>
+            <div class="prose">
+              <p>可用性还有另一种算法：<span class="formula">A = MTBF ÷ (MTBF + MTTR)</span>。MTBF 是平均无故障时间，MTTR 是平均恢复时间。两者共同决定可用性：故障间隔再长，如果每次恢复要几个小时，整体可用性也高不了。</p>
+              <p>这个公式解释了一个常见现象：成熟系统并不追求“永不出故障”，而是把故障当成常态，尽量缩短从故障发生到服务恢复的时间。自动检测、自动切换、预案和演练，都是在压缩 MTTR。</p>
+            </div>
+
+            <figure class="dg-wrap">
+              <svg class="dg" viewBox="0 0 660 178" role="img" aria-label="MTTR 的时间构成：检测、响应、修复、验证">
+                <line class="dg-line" x1="24" y1="74" x2="636" y2="74" marker-end="url(#arr)"/>
+                <circle class="dg-dot dg-dot-bad" cx="92" cy="74" r="5"/>
+                <text class="dg-xs dg-t-bad" x="92" y="54" text-anchor="middle">故障发生</text>
+                <circle class="dg-dot" cx="196" cy="74" r="4"/>
+                <text class="dg-xs" x="196" y="96" text-anchor="middle">发现</text>
+                <circle class="dg-dot" cx="304" cy="74" r="4"/>
+                <text class="dg-xs" x="304" y="96" text-anchor="middle">定位</text>
+                <circle class="dg-dot" cx="418" cy="74" r="4"/>
+                <text class="dg-xs" x="418" y="96" text-anchor="middle">恢复</text>
+                <circle class="dg-dot dg-dot-ok" cx="540" cy="74" r="5"/>
+                <text class="dg-xs dg-t-ok" x="540" y="54" text-anchor="middle">验证完成</text>
+                <rect class="dg-span" x="92" y="112" width="448" height="8" rx="4"/>
+                <text class="dg-xs" x="316" y="138" text-anchor="middle">MTTR：检测 + 定位 + 恢复 + 验证</text>
+                <path class="dg-line dg-dash" d="M92 40 H196"/>
+                <text class="dg-tiny dg-t-muted" x="144" y="32" text-anchor="middle">检测窗口</text>
+                <path class="dg-line dg-dash" d="M540 40 H636"/>
+                <text class="dg-tiny dg-t-muted" x="588" y="32" text-anchor="middle">下一次故障</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="166" text-anchor="middle">MTBF 是两次故障之间的间隔；缩短 MTTR，比单纯追求更长的 MTBF 更可控。</text>
+              </svg>
+              <figcaption>图示：MTTR 不只包含“修机器”，还包括发现、定位和验证；检测与判断往往占大头。</figcaption>
+            </figure>
+
+            <div class="prose">
+              <p>举例来说，MTBF 为 720 小时、MTTR 为 1 小时，可用性约为 99.86%；如果 MTTR 能从 1 小时降到 6 分钟，可用性会提升到 99.986%。把恢复时间压缩一个数量级，效果往往比把故障率降低一半更明显，也更便宜。</p>
+              <p>压缩 MTTR 的杠杆依次是：更快的检测（拨测、心跳、异常检测）、更明确的判定（避免误切和反复摇摆）、更自动的恢复（故障转移、重启、回滚）、更可靠的验证（确认数据追平、流量恢复）。只做“自动切换”而不做“自动验证”，故障可能变成反复切换。</p>
+            </div>
+            <p class="key-point"><strong>重点</strong>可用性既取决于“多久坏一次”，也取决于“坏了多久能好”。大多数团队更容易从缩短 MTTR 获得收益。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="measure">
+            <h2 id="measure" data-toc>怎么测量：拨测、指标与真实用户</h2>
+            <div class="prose">
+              <p>可用性必须可测量，否则无法判断改进是否有效。常见手段有三类：黑盒拨测从外部模拟用户请求，白盒指标从系统内部采集，真实用户监控（RUM）直接记录用户端的成功率和耗时。三者视角不同，应该配合使用。</p>
+            </div>
+            <div class="measure-grid">
+              <article class="measure-card">
+                <span class="mono">BLACK BOX</span>
+                <h3>外部拨测</h3>
+                <p>从多个地域定时发起登录、下单等关键请求。优点是接近用户视角，缺点是覆盖有限、可能被缓存或 CDN 误导。</p>
+              </article>
+              <article class="measure-card">
+                <span class="mono">WHITE BOX</span>
+                <h3>内部指标</h3>
+                <p>请求量、错误率、延迟分位、队列长度、复制延迟。用于定位原因，但不能直接代表用户体验。</p>
+              </article>
+              <article class="measure-card">
+                <span class="mono">RUM</span>
+                <h3>真实用户</h3>
+                <p>在客户端埋点，记录真实设备、网络和地域下的成功率。最接近业务结果，但受采样和隐私约束。</p>
+              </article>
+            </div>
+            <div class="prose">
+              <p>测量时有两个常见陷阱。第一，只看平均值：平均延迟 100ms 可能掩盖 1% 用户等待 10 秒的事实，可用性指标应关注错误率和尾部延迟（p95、p99）。第二，只看基础设施：机器全部在线、但数据库连接池耗尽，用户仍然不可用。SLI 应尽量从业务请求出发，而不是从 CPU、内存出发。</p>
+              <p>告警也应围绕 SLO 设计，而不是围绕每一台机器。单机 CPU 高不一定影响用户；错误预算燃烧过快才值得叫醒人。这样能减少告警噪音，把注意力放在真正影响可用性的事件上。</p>
+            </div>
+            <p class="key-point key-point--violet"><strong>重点</strong>基础设施指标用于定位，业务 SLI 用于判断。平均值会掩盖尾部问题，可用性应看错误率和 p95 / p99 延迟。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="budget">
+            <h2 id="budget" data-toc>停机预算怎么花</h2>
+            <div class="prose">
+              <p>把年度或月度允许停机时间视为预算，计划内发布、故障和演练都会消耗它。预算越紧，越需要自动化发布、灰度、回滚和故障演练；仅靠“机器不坏”无法达到高可用目标。</p>
+              <p>预算的使用应该有明确规则：发布、扩缩容、数据库变更等计划内操作提前预留额度；故障消耗不可预测，但可以通过燃烧率告警提前发现；演练本身也应计入预算，因为演练可能真的触发切换。预算耗尽后，团队应冻结非必要变更，优先修复稳定性问题，而不是继续加功能。</p>
+            </div>
+            <div class="table-wrap">
+              <table class="cmp">
+                <caption>停机预算的典型去向</caption>
+                <thead><tr><th scope="col">去向</th><th scope="col">是否可预测</th><th scope="col">控制手段</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">计划内发布</th><td>可预测</td><td>灰度、蓝绿、滚动发布，尽量做到无损</td></tr>
+                  <tr><th scope="row">数据库变更</th><td>可预测</td><td>在线 DDL、双写迁移、回滚预案</td></tr>
+                  <tr><th scope="row">突发故障</th><td>不可预测</td><td>自动转移、限流、降级、快速回滚</td></tr>
+                  <tr><th scope="row">故障演练</th><td>可计划</td><td>低峰期、小流量、明确中止条件</td></tr>
+                  <tr><th scope="row">依赖故障</th><td>部分可预测</td><td>超时、重试预算、熔断、缓存兜底</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="key-point key-point--amber"><strong>重点</strong>停机预算是发布节奏的约束，不是“可以随便停机”的许可。预算耗尽时应冻结非必要变更，把工程资源转向稳定性。</p>
+          </section>
+
+          <section class="post-section" aria-labelledby="summary">
+            <h2 id="summary" data-toc>本章小结</h2>
+            <div class="recap-grid">
+              <div class="recap-item"><span>01</span><p>可用性从用户旅程出发，按整条链路度量，而不是按单台机器度量。</p></div>
+              <div class="recap-item"><span>02</span><p>几个 9 对应明确的停机预算；每多一个 9，成本和复杂度都会显著上升。</p></div>
+              <div class="recap-item"><span>03</span><p>串联相乘、并联取“同时故障”的概率；冗余的有效性取决于故障独立性。</p></div>
+              <div class="recap-item"><span>04</span><p>SLO 定义目标，错误预算约束发布；MTTR 与 MTBF 共同决定最终可用性。</p></div>
+            </div>
+            <p class="key-point"><strong>下一章</strong>有了度量标准，接下来看最核心的手段：冗余。主备与多活的差别，不在机器数量，而在同一时刻有多少个写入者。</p>
+          </section>
+        </div>
+              <nav class="post-pager" aria-label="章节导航">
+        <a class="pager-link pager-home" href="index.html"><span>返回</span><strong>全书目录</strong></a>
+        <a class="pager-link pager-next" href="redundancy.html"><span>下一篇 · 02</span><strong>冗余</strong></a>
+      </nav>
+      </article>
+      <aside class="toc" aria-label="本页目录">
+        <p class="toc-label">本页目录</p>
+                <nav class="toc-nav" id="tocNav" aria-label="本页小节">
+          <a class="toc-link toc-level-2" href="#what">什么是高可用</a>
+          <a class="toc-link toc-level-2" href="#nines">几个 9：把停机时间变成预算</a>
+          <a class="toc-link toc-level-2" href="#chain">串联链路：为什么整体总比单机差</a>
+          <a class="toc-link toc-level-2" href="#slo">SLO、SLI 与 SLA：把目标写清楚</a>
+          <a class="toc-link toc-level-2" href="#mttr">MTTR 与 MTBF：恢复速度也是可用性</a>
+          <a class="toc-link toc-level-2" href="#measure">怎么测量：拨测、指标与真实用户</a>
+          <a class="toc-link toc-level-2" href="#budget">停机预算怎么花</a>
+          <a class="toc-link toc-level-2" href="#summary">本章小结</a>
+        </nav>
+        <a class="toc-top" href="#top">回到顶部 <span aria-hidden="true">↑</span></a>
+      </aside>
+    </div>
+
+
+  <footer class="site-foot">
+    <div class="foot-main">
+      <span class="brand-mark"><svg class="icon"><use href="#i-pulse"/></svg></span>
+      <div><strong>高可用架构 · 从指标到故障转移</strong><p>内容依据《四大原则 · 01-高可用架构》整理，并补充了公开资料中的通用工程实践；交互与视觉为学习用途重新制作。</p></div>
+    </div>
+    <div class="foot-meta">
+      <span class="mono">SYSTEM DESIGN NOTES / 01</span>
+      <span>部署于 GitHub Pages · 2026</span>
+      <a href="https://github.com/inezhi/high-availability-guide" target="_blank" rel="noreferrer">GitHub 仓库</a>
+    </div>
+  </footer>
+  </main>
+
+  <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js?v=20261022-4" defer></script>
+</body>
+</html>

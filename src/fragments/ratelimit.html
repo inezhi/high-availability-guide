@@ -1,0 +1,225 @@
+<div class="prose">
+          <p class="lede">大促期间流量激增，限流的目标不是让每个请求都成功，而是避免系统整体宕机，保障大多数核心功能可用。类似游戏在负载过高时降低画质以保证流畅度，限流通过降低部分请求的体验来维持整体可用性。</p>
+          <p>限流要发生在客户端、负载设备、网关、应用系统等多个节点；算法核心是漏桶和令牌桶。最终目的只有一个：减轻后端服务与数据库的压力。</p>
+        </div>
+
+        <div class="funnel-wrap">
+          <div class="funnel" aria-label="倒金字塔限流示意">
+            <div class="funnel-layer funnel-1"><svg class="spot-icon funnel-icon" aria-hidden="true"><use href="#i-user"/></svg><strong>客户端层</strong><span>验证码 · 禁用按钮 · 调用限制 · 假排队</span></div>
+            <div class="funnel-layer funnel-2"><svg class="spot-icon funnel-icon" aria-hidden="true"><use href="#i-cloud"/></svg><strong>负载层</strong><span>Nginx / LVS / HAProxy 限速与连接数</span></div>
+            <div class="funnel-layer funnel-3"><svg class="spot-icon funnel-icon" aria-hidden="true"><use href="#i-server"/></svg><strong>服务层</strong><span>网关按服务、接口、用户、IP 限流</span></div>
+            <div class="funnel-layer funnel-4"><svg class="spot-icon funnel-icon" aria-hidden="true"><use href="#i-db"/></svg><strong>数据层</strong><span>最后一道防线，绝不能被打垮</span></div>
+          </div>
+          <div class="funnel-copy">
+            <p class="chapter-kicker">倒金字塔限流</p>
+            <h3>越往上，越适合挡流量</h3>
+            <p>越靠近上层，事务处理压力越小，应对高并发的能力越强；越靠近底层，处理事务的能力越强，反而越怕被压垮。</p>
+            <p>因此流量应自上而下逐层递减：客户端先行拦截，负载层削峰，服务层按业务规则限制，数据层仅承接剩余流量。</p>
+          </div>
+        </div>
+
+        <div class="section-sub">
+          <p class="chapter-kicker">客户端限流</p>
+          <h3>成本最低的一层</h3>
+          <p class="sub-lede">大多数用户不会主动发起服务攻击。客户端限流主要针对高频操作与误触，投入低、见效快。</p>
+        </div>
+        <div class="client-grid">
+          <article class="client-card">
+            <figure class="client-fig">
+              <svg class="dg" viewBox="0 0 160 66" aria-hidden="true">
+                <rect class="dg-node" x="36" y="4" width="88" height="44" rx="4"/>
+                <path class="dg-grid" d="M58 4v44M80 4v44M102 4v44M36 19h88M36 34h88"/>
+                <text class="dg-tiny" x="47" y="16" text-anchor="middle">A</text>
+                <text class="dg-tiny" x="69" y="31" text-anchor="middle">7</text>
+                <text class="dg-tiny" x="91" y="16" text-anchor="middle">K</text>
+                <text class="dg-tiny" x="113" y="31" text-anchor="middle">9</text>
+                <path class="dg-scribble" d="M40 11 Q60 18 50 26 T70 41"/>
+                <path class="dg-cursor" d="M118 42l10 6-4 1-2 4z"/>
+                <text class="dg-tiny dg-t-muted" x="80" y="62" text-anchor="middle">验证码打断操作</text>
+              </svg>
+            </figure>
+            <h4>纯前端验证码</h4>
+            <p>请求过于频繁时弹出图片验证码，打断操作，区分人为还是机器。可由 JavaScript 前端生成，不需要考虑安全性。</p>
+          </article>
+          <article class="client-card">
+            <figure class="client-fig">
+              <svg class="dg" viewBox="0 0 160 66" aria-hidden="true">
+                <rect class="dg-node" x="38" y="12" width="80" height="30" rx="6"/>
+                <text class="dg-xs" x="78" y="31" text-anchor="middle">提交</text>
+                <path class="dg-cursor" d="M108 38l10 6-4 1-2 4z"/>
+                <rect class="dg-node-ghost" x="124" y="6" width="22" height="20" rx="4"/>
+                <path class="dg-line-ok" d="M131 11v10M139 11v10"/>
+                <text class="dg-tiny dg-t-muted" x="80" y="62" text-anchor="middle">点击后立即禁用</text>
+              </svg>
+            </figure>
+            <h4>禁用按钮</h4>
+            <p>点击后立即禁用，直到收到服务端应答，防止用户因急躁反复点击造成重复请求。</p>
+          </article>
+          <article class="client-card">
+            <figure class="client-fig">
+              <svg class="dg" viewBox="0 0 160 66" aria-hidden="true">
+                <circle class="dg-gauge" cx="56" cy="28" r="20"/>
+                <path class="dg-gauge-arc" d="M40 20 A20 20 0 0 1 69 12"/>
+                <path class="dg-line-ok" d="M56 28L70 15"/>
+                <circle class="dg-dot dg-dot-ok" cx="56" cy="28" r="2"/>
+                <text class="dg-tiny" x="56" y="42" text-anchor="middle">1s</text>
+                <text class="dg-xs" x="120" y="26" text-anchor="middle">≤ 3 次</text>
+                <text class="dg-tiny dg-t-muted" x="120" y="40" text-anchor="middle">每秒上限</text>
+                <text class="dg-tiny dg-t-muted" x="80" y="62" text-anchor="middle">超出则提示“操作过于频繁”</text>
+              </svg>
+            </figure>
+            <h4>调用限制</h4>
+            <p>限制用户 1 秒内可发起的请求次数，超出时提示“您的操作过于频繁，请少安毋躁”。</p>
+          </article>
+          <article class="client-card">
+            <figure class="client-fig">
+              <svg class="dg" viewBox="0 0 160 66" aria-hidden="true">
+                <line class="dg-line" x1="10" y1="40" x2="132" y2="40"/>
+                <circle class="dg-dot dg-dot-ok" cx="24" cy="26" r="5"/>
+                <circle class="dg-dot" cx="48" cy="26" r="5"/>
+                <circle class="dg-dot" cx="72" cy="26" r="5"/>
+                <circle class="dg-dot" cx="96" cy="26" r="5"/>
+                <circle class="dg-dot" cx="120" cy="26" r="5"/>
+                <text class="dg-tiny" x="72" y="55" text-anchor="middle">1 / 10 · 预计 5 秒</text>
+                <circle class="dg-gauge" cx="142" cy="14" r="7"/>
+                <path class="dg-line" d="M142 14v-4M142 14h3"/>
+              </svg>
+            </figure>
+            <h4>假排队</h4>
+            <p>提示“当前繁忙，正在排队 1/10 人”或“预计等待 5 秒”，人数和秒数随机，把请求摊开，减少同一时刻的并发。</p>
+          </article>
+        </div>
+
+        <p class="key-point"><strong>重点</strong>客户端限流成本最低，但只能挡住一部分请求；服务端必须在负载层、网关、服务层和数据层逐层限流，形成倒金字塔。</p>
+
+        <figure class="dg-wrap rate-fig">
+          <svg class="dg" viewBox="0 0 660 252" role="img" aria-label="漏桶把突发削平，令牌桶允许突发通过">
+            <text class="dg-s" x="24" y="22">漏桶：突发被排队，输出保持恒定</text>
+            <line class="dg-line" x1="30" y1="106" x2="640" y2="106"/>
+            <g fill="var(--d-amber)" opacity="0.62">
+              <rect x="60" y="88" width="20" height="18" rx="2"/><rect x="107" y="76" width="20" height="30" rx="2"/><rect x="154" y="58" width="20" height="48" rx="2"/><rect x="201" y="42" width="20" height="64" rx="2"/><rect x="248" y="34" width="20" height="72" rx="2"/><rect x="295" y="46" width="20" height="60" rx="2"/><rect x="342" y="66" width="20" height="40" rx="2"/><rect x="389" y="78" width="20" height="28" rx="2"/><rect x="436" y="86" width="20" height="20" rx="2"/><rect x="483" y="90" width="20" height="16" rx="2"/><rect x="530" y="94" width="20" height="12" rx="2"/><rect x="577" y="96" width="20" height="10" rx="2"/>
+            </g>
+            <line class="dg-line-blue" x1="30" y1="78" x2="640" y2="78" stroke-width="2.5"/>
+            <text class="dg-tiny dg-t-blue" x="560" y="70" text-anchor="middle">固定速率放行</text>
+            <text class="dg-tiny dg-t-muted" x="620" y="120" text-anchor="end">时间 →</text>
+            <text class="dg-tiny dg-t-muted" x="24" y="122" text-anchor="start">请求量</text>
+
+            <text class="dg-s" x="24" y="152">令牌桶：空闲积累令牌，可吸收一次突发</text>
+            <line class="dg-line" x1="30" y1="236" x2="640" y2="236"/>
+            <g fill="var(--d-amber)" opacity="0.62">
+              <rect x="60" y="218" width="20" height="18" rx="2"/><rect x="107" y="206" width="20" height="30" rx="2"/><rect x="154" y="188" width="20" height="48" rx="2"/><rect x="201" y="172" width="20" height="64" rx="2"/><rect x="248" y="164" width="20" height="72" rx="2"/><rect x="295" y="176" width="20" height="60" rx="2"/><rect x="342" y="196" width="20" height="40" rx="2"/><rect x="389" y="208" width="20" height="28" rx="2"/><rect x="436" y="216" width="20" height="20" rx="2"/><rect x="483" y="220" width="20" height="16" rx="2"/><rect x="530" y="224" width="20" height="12" rx="2"/><rect x="577" y="226" width="20" height="10" rx="2"/>
+            </g>
+            <path class="dg-line-cyan" d="M30 230 H120 L150 182 H300 L350 230 H640" fill="none" stroke-width="2.5"/>
+            <text class="dg-tiny dg-t-cyan" x="225" y="174" text-anchor="middle">突发先通过</text>
+            <text class="dg-tiny dg-t-cyan" x="520" y="222" text-anchor="middle">回到固定速率</text>
+            <line class="dg-line dg-dash" x1="130" y1="22" x2="130" y2="236"/>
+            <text class="dg-tiny dg-t-muted" x="136" y="20" text-anchor="start">突发开始</text>
+            <text class="dg-tiny dg-t-muted" x="330" y="250" text-anchor="middle">琥珀：输入请求 · 蓝：漏桶输出 · 青：令牌桶输出</text>
+          </svg>
+          <figcaption>图示：同一串突发流量，漏桶按固定速率放行；令牌桶先用积累的令牌吸收突发。</figcaption>
+        </figure>
+
+        <div class="instrument bucket-sim" id="bucketSim">
+          <div class="instrument-bar">
+            <span class="status-dot status-dot-good"></span>
+            <span class="instrument-title">漏桶 / 令牌桶模拟器</span>
+            <span class="instrument-meta mono">RATE LIMIT</span>
+          </div>
+          <div class="seg seg-small bucket-modes" role="group" aria-label="选择限流算法" id="bucketMode">
+            <button type="button" data-mode="leaky" class="is-active" aria-pressed="true">漏桶</button>
+            <button type="button" data-mode="token" aria-pressed="false">令牌桶</button>
+          </div>
+          <div class="bucket-layout">
+            <div class="bucket-controls">
+              <label class="range-row"><span>请求速率 <b id="bucketRateLabel" class="mono">6 /s</b></span><input id="bucketRate" type="range" min="1" max="10" value="6" step="1"></label>
+              <label class="range-row"><span>下游速率 <b id="bucketDrainLabel" class="mono">3 /s</b></span><input id="bucketDrain" type="range" min="1" max="6" value="3" step="1"></label>
+              <div class="bucket-actions">
+                <button class="btn btn-small btn-primary" id="bucketBurst" type="button">注入 12 个突发</button>
+                <button class="btn btn-small btn-ghost" id="bucketToggle" type="button" aria-pressed="false">开始持续流量</button>
+                <button class="btn btn-small btn-ghost" id="bucketReset" type="button">重置</button>
+              </div>
+              <div class="bucket-stats">
+                <div><span>通过</span><strong id="bucketAccepted">0</strong></div>
+                <div><span>排队中</span><strong id="bucketQueued">0</strong></div>
+                <div><span>拒绝</span><strong id="bucketRejected">0</strong></div>
+              </div>
+            </div>
+            <div class="bucket-stage">
+              <div class="bucket-jet" aria-hidden="true"></div>
+              <div class="bucket" id="bucket">
+                <div class="bucket-fill" id="bucketFill"></div>
+                <span class="bucket-label" id="bucketLabel">队列 0 / 10</span>
+              </div>
+              <div class="bucket-out" aria-hidden="true"><span></span><span></span><span></span></div>
+              <div class="bucket-downstream"><strong>下游服务</strong><small class="mono" id="bucketModeLabel">固定速率流出</small></div>
+              <div class="bucket-chips" id="bucketChips" aria-hidden="true"></div>
+            </div>
+          </div>
+          <p class="bucket-hint" id="bucketHint">漏桶算法：请求进入队列排队，桶满后拒绝；下游按固定速率取走请求。突发流量会被削平，代价是排队等待。</p>
+        </div>
+
+        <div class="two-col">
+          <article class="fact-card">
+            <h3><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-nginx"/></svg>服务端限流：Nginx 两个模块</h3>
+            <p><code>ngx_http_limit_req_module</code> 控制请求速率，<code>ngx_http_limit_conn_module</code> 控制连接数。负载设备是流量入口，最适合在这里先削一层。</p>
+            <figure class="dg-wrap dg-wrap-inline">
+              <svg class="dg" viewBox="0 0 320 100" role="img" aria-label="Nginx 限流像一道阀门：按速率放行，超出的请求被拒绝">
+                <rect class="dg-node" x="6" y="36" width="52" height="28" rx="5"/>
+                <text class="dg-tiny" x="32" y="53" text-anchor="middle">请求流</text>
+                <line class="dg-line" x1="58" y1="50" x2="96" y2="50" marker-end="url(#arr)"/>
+                <path class="dg-gate" d="M100 20 L158 20 L140 44 L118 44 Z"/>
+                <path class="dg-gate" d="M100 80 L158 80 L140 56 L118 56 Z"/>
+                <text class="dg-tiny dg-t-ok" x="129" y="98" text-anchor="middle">限速阀</text>
+                <circle class="dg-dot dg-dot-bad" cx="108" cy="10" r="3"/>
+                <circle class="dg-dot dg-dot-bad" cx="152" cy="10" r="3"/>
+                <path class="dg-line dg-line-bad" d="M104 16l-6-8M156 16l6-8"/>
+                <text class="dg-tiny dg-t-bad" x="129" y="8" text-anchor="middle">burst / 拒绝</text>
+                <line class="dg-line-ok" x1="140" y1="50" x2="238" y2="50" marker-end="url(#arr-ok)"/>
+                <text class="dg-tiny dg-t-muted" x="190" y="42" text-anchor="middle">rate=10r/s</text>
+                <rect class="dg-node dg-node-ok" x="240" y="36" width="72" height="28" rx="5"/>
+                <text class="dg-tiny" x="276" y="53" text-anchor="middle">后端服务</text>
+              </svg>
+            </figure>
+            <div class="code-block">
+              <button class="copy-btn" type="button" data-copy="nginx-snippet" aria-label="复制 Nginx 配置"><svg class="icon"><use href="#i-copy"/></svg><span>复制</span></button>
+              <pre id="nginx-snippet"><code>limit_req_zone $binary_remote_addr zone=req:10m rate=10r/s;
+limit_conn_zone $binary_remote_addr zone=conn:10m;
+
+server {
+    limit_req zone=req burst=20 nodelay;
+    limit_conn conn 20;
+}</code></pre>
+            </div>
+          </article>
+          <article class="fact-card">
+            <h3>网关限流：按业务维度细分</h3>
+            <p>用户、订单、库存微服务面临的压力不同，可以只针对订单服务限流，甚至只针对某个接口、某个用户、某个 IP、某个时间段限流。</p>
+            <p>灵活度高，是微服务架构里最常用的一层精细限流。配合客户端的粗粒度拦截和 Nginx 的入口限速，形成完整的倒金字塔。</p>
+            <figure class="dg-wrap dg-wrap-inline">
+              <svg class="dg" viewBox="0 0 320 112" role="img" aria-label="网关按服务、接口、用户、IP 分别限流">
+                <rect class="dg-node" x="6" y="42" width="52" height="28" rx="5"/>
+                <text class="dg-tiny" x="32" y="59" text-anchor="middle">请求</text>
+                <line class="dg-line" x1="58" y1="56" x2="88" y2="56" marker-end="url(#arr)"/>
+                <rect class="dg-node dg-node-ok" x="90" y="34" width="74" height="44" rx="6"/>
+                <text class="dg-xs" x="127" y="53" text-anchor="middle">网关</text>
+                <text class="dg-tiny" x="127" y="67" text-anchor="middle">按规则限流</text>
+                <path class="dg-line" d="M164 44 H198 V20 H214" marker-end="url(#arr)"/>
+                <path class="dg-line" d="M164 56 H198 V56 H214" marker-end="url(#arr)"/>
+                <path class="dg-line" d="M164 68 H198 V92 H214" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="216" y="8" width="94" height="24" rx="4"/>
+                <text class="dg-tiny" x="263" y="24" text-anchor="middle">用户服务 · 10/s</text>
+                <rect class="dg-node" x="216" y="44" width="94" height="24" rx="4"/>
+                <text class="dg-tiny" x="263" y="60" text-anchor="middle">订单服务 · 5/s</text>
+                <rect class="dg-node" x="216" y="80" width="94" height="24" rx="4"/>
+                <text class="dg-tiny" x="263" y="96" text-anchor="middle">库存服务 · 20/s</text>
+                <text class="dg-tiny dg-t-muted" x="160" y="110" text-anchor="middle">可以细到某个接口、用户、IP、时间段</text>
+              </svg>
+            </figure>
+            <aside class="note note-info note-inline">
+              <div class="note-head"><svg class="icon"><use href="#i-bolt"/></svg>分层顺序</div>
+              <p>客户端拦截 → 入口削峰 → 网关按业务限流 → 数据层承接剩余流量。</p>
+            </aside>
+          </article>
+        </div>
+
+        <p class="key-point key-point--amber"><strong>重点</strong>漏桶把突发削成平滑输出，代价是排队或拒绝；令牌桶允许突发通过，适合有明显峰谷的互联网流量。实际系统常把两者组合：入口用令牌桶吸收突发，下游用漏桶保护数据库。</p>

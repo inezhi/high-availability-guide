@@ -1,0 +1,610 @@
+<div class="prose">
+          <p class="lede">MongoDB、Redis、Kafka、MySQL 的高可用，底层都是冗余加故障转移，但副本粒度、选举方式和一致性取舍各不相同。理解其共性，比记忆各产品的配置项更重要。</p>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="中间件高可用">
+          <button class="tab is-active" id="tab-mongo" role="tab" aria-selected="true" aria-controls="panel-mongo" tabindex="0" type="button"><svg class="tech-logo" aria-hidden="true"><use href="#logo-mongo"/></svg>MongoDB</button>
+          <button class="tab" id="tab-redis" role="tab" aria-selected="false" aria-controls="panel-redis" tabindex="-1" type="button"><svg class="tech-logo" aria-hidden="true"><use href="#logo-redis"/></svg>Redis</button>
+          <button class="tab" id="tab-kafka" role="tab" aria-selected="false" aria-controls="panel-kafka" tabindex="-1" type="button"><svg class="tech-logo" aria-hidden="true"><use href="#logo-kafka"/></svg>Kafka</button>
+          <button class="tab" id="tab-mysql" role="tab" aria-selected="false" aria-controls="panel-mysql" tabindex="-1" type="button"><svg class="tech-logo" aria-hidden="true"><use href="#logo-mysql"/></svg>MySQL</button>
+        </div>
+
+        <div class="tab-panels">
+          <section class="tab-panel is-active" id="panel-mongo" role="tabpanel" aria-labelledby="tab-mongo">
+            <div class="panel-intro">
+              <div class="panel-heading"><svg class="tech-logo tech-logo-lg" aria-hidden="true"><use href="#logo-mongo"/></svg><h3>MongoDB：副本集与分片</h3></div>
+              <p>副本集解决单节点故障，分片解决单机容量。两者可以叠加：每个分片本身就是一个副本集。</p>
+            </div>
+            <div class="panel-prose">
+              <p>副本集解决的是节点级故障：多数节点存活，即可选举出新的主节点。分片解决的是单机容量：数据按分片键分布到多个 shard，每个 shard 本身又是一个副本集。两者叠加，才能同时获得故障转移和水平扩展能力。</p>
+              <p>下面先看整体结构，再看主从、副本集与分片三种部署形态。</p>
+            </div>
+            <div class="arch">
+              <div class="arch-box">
+                <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-user"/></svg>
+                <span class="mono">CLIENT</span><strong>应用</strong>
+              </div>
+              <div class="arch-link">→</div>
+              <div class="arch-box arch-box-accent">
+                <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-network"/></svg>
+                <span class="mono">ROUTER</span><strong>mongos</strong><small>请求转发到分片</small>
+              </div>
+              <div class="arch-link">→</div>
+              <div class="arch-group">
+                <div class="arch-box">
+                  <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-db"/></svg>
+                  <span class="mono">SHARD 1</span><strong>副本集</strong><small>一部分数据</small>
+                </div>
+                <div class="arch-box">
+                  <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-db"/></svg>
+                  <span class="mono">SHARD 2</span><strong>副本集</strong><small>另一部分数据</small>
+                </div>
+              </div>
+            </div>
+            <div class="arch-config"><span class="mono">CONFIG SERVERS · CSRS</span><p>存储分片元信息，本身用高可用方式部署；mongos 靠它知道数据在哪。</p></div>
+            <div class="mode-list">
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="14" y="26" width="76" height="30" rx="5"/>
+                    <text class="dg-tiny" x="52" y="44" text-anchor="middle">主 · 读写</text>
+                    <rect class="dg-node" x="130" y="26" width="76" height="30" rx="5"/>
+                    <text class="dg-tiny" x="168" y="44" text-anchor="middle">从 · 备份/只读</text>
+                    <line class="dg-line" x1="90" y1="41" x2="128" y2="41" marker-end="url(#arr)"/>
+                    <text class="dg-tiny dg-t-muted" x="109" y="33" text-anchor="middle">复制</text>
+                    <text class="dg-tiny dg-t-bad" x="110" y="78" text-anchor="middle">无自动故障转移</text>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>主从</h4><span class="tag tag-warn">已废弃 · 不推荐</span></div>
+                  <p>用法一：从库只做实时备份，不干活。用法二：读写分离，从库只读。没有故障转移，宕机必须手动切库，应用还得改连接信息。</p>
+                </div>
+              </article>
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="14" y="10" width="64" height="24" rx="5"/>
+                    <text class="dg-tiny" x="46" y="26" text-anchor="middle">A · 主</text>
+                    <rect class="dg-node" x="142" y="10" width="64" height="24" rx="5"/>
+                    <text class="dg-tiny" x="174" y="26" text-anchor="middle">B · 副本</text>
+                    <rect class="dg-node" x="78" y="54" width="64" height="24" rx="5"/>
+                    <text class="dg-tiny" x="110" y="70" text-anchor="middle">C · 副本</text>
+                    <path class="dg-line dg-dash" d="M46 34 L100 54 M174 34 L120 54 M78 22 H142"/>
+                    <text class="dg-tiny dg-t-muted" x="110" y="90" text-anchor="middle">心跳 · 选举 · 全量数据</text>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>副本集</h4><span class="tag tag-good">推荐</span></div>
+                  <p>选举出 master 负责读写，其他副本承担备份和读操作；节点间心跳判定可用；每个节点都保存全量数据。</p>
+                </div>
+              </article>
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node" x="8" y="32" width="58" height="24" rx="5"/>
+                    <text class="dg-tiny" x="37" y="47" text-anchor="middle">mongos</text>
+                    <rect class="dg-node" x="106" y="6" width="104" height="24" rx="5"/>
+                    <text class="dg-tiny" x="158" y="22" text-anchor="middle">Shard 1 · 副本集</text>
+                    <rect class="dg-node" x="106" y="54" width="104" height="24" rx="5"/>
+                    <text class="dg-tiny" x="158" y="70" text-anchor="middle">Shard 2 · 副本集</text>
+                    <path class="dg-line" d="M66 40 L104 22 M66 48 L104 62" marker-end="url(#arr)"/>
+                    <rect class="dg-node dg-node-ghost" x="8" y="70" width="58" height="18" rx="4"/>
+                    <text class="dg-tiny" x="37" y="82" text-anchor="middle">CSRS</text>
+                    <line class="dg-line dg-dash" x1="37" y1="70" x2="37" y2="56"/>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>分片</h4><span class="tag tag-info">水平扩展</span></div>
+                  <p>三个角色：shard、router、config servers。只对部分集合分片；未分片的集合必须放在主分片；分片键选中后不能改。</p>
+                </div>
+              </article>
+            </div>
+            <div class="split-visual">
+              <div class="split-head"><h4>分片算法</h4><span class="fineprint">选键之后不可改</span></div>
+              <div class="split-row"><span class="mono">HASH</span><div class="chunk-row chunk-hash"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>均匀，但不连续。</p></div>
+              <div class="split-row"><span class="mono">RANGE</span><div class="chunk-row chunk-range"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>连续区间，可能不均匀，末尾分片容易成热点。</p></div>
+            </div>
+
+            <p class="key-point"><strong>重点</strong>副本集解决节点故障，分片解决单机容量；分片键一旦选定不可修改。Hash 分片均匀但范围查询要扫多个分片，Range 分片利于范围查询但容易出现热点。</p>
+          </section>
+
+          <section class="tab-panel" id="panel-redis" role="tabpanel" aria-labelledby="tab-redis" hidden>
+            <div class="panel-intro">
+              <div class="panel-heading"><svg class="tech-logo tech-logo-lg" aria-hidden="true"><use href="#logo-redis"/></svg><h3>Redis：内存存储、持久化与缓存失效</h3></div>
+              <p>数据全在内存里，读写性能远超关系型数据库，通常作为缓存减少数据库访问和磁盘读写。高可用之外，先要照顾持久化和缓存失效。</p>
+            </div>
+            <div class="panel-prose">
+              <p>Redis 的高可用可以拆成两个问题：数据不能全丢（持久化），服务不能停（主从、哨兵、集群）。两者目标不同，配置也经常需要权衡。</p>
+            </div>
+            <div class="redis-grid">
+              <article class="fact-card persist-card">
+                <h3>持久化：RDB 与 AOF</h3>
+                <figure class="dg-wrap dg-wrap-inline">
+                  <svg class="dg" viewBox="0 0 440 152" role="img" aria-label="RDB 周期性快照会丢一个备份周期，AOF everysec 最多丢一秒">
+                    <text class="dg-m" x="8" y="38">RDB</text>
+                    <line class="dg-line" x1="44" y1="50" x2="432" y2="50" marker-end="url(#arr)"/>
+                    <circle class="dg-dot dg-dot-ok" cx="82" cy="50" r="3.5"/>
+                    <circle class="dg-dot dg-dot-ok" cx="162" cy="50" r="3.5"/>
+                    <circle class="dg-dot dg-dot-ok" cx="242" cy="50" r="3.5"/>
+                    <circle class="dg-dot dg-dot-ghost" cx="362" cy="50" r="3.5"/>
+                    <text class="dg-tiny dg-t-muted" x="82" y="36" text-anchor="middle">快照</text>
+                    <text class="dg-tiny dg-t-muted" x="242" y="36" text-anchor="middle">快照</text>
+                    <circle class="dg-dot dg-dot-bad" cx="302" cy="50" r="4"/>
+                    <text class="dg-tiny dg-t-bad" x="302" y="26" text-anchor="middle">故障</text>
+                    <rect class="dg-bar-bad" x="242" y="56" width="60" height="6" rx="3"/>
+                    <text class="dg-tiny dg-t-bad" x="272" y="76" text-anchor="middle">丢失一个备份周期</text>
+
+                    <text class="dg-m" x="8" y="112">AOF</text>
+                    <line class="dg-line" x1="44" y1="122" x2="432" y2="122" marker-end="url(#arr)"/>
+                    <path class="dg-ticks" d="M60 116v12 M78 116v12 M96 116v12 M114 116v12 M132 116v12 M150 116v12 M168 116v12 M186 116v12 M204 116v12 M222 116v12 M240 116v12 M258 116v12 M276 116v12"/>
+                    <circle class="dg-dot dg-dot-bad" cx="302" cy="122" r="4"/>
+                    <text class="dg-tiny dg-t-bad" x="318" y="112" text-anchor="middle">故障</text>
+                    <rect class="dg-bar-bad" x="276" y="128" width="26" height="5" rx="2.5"/>
+                    <text class="dg-tiny dg-t-bad" x="289" y="148" text-anchor="middle">≤ 1 秒</text>
+                    <text class="dg-tiny dg-t-muted" x="180" y="148" text-anchor="middle">每秒 fsync · everysec</text>
+                  </svg>
+                </figure>
+                <div class="persist-pair">
+                  <div><span class="mono">RDB</span><p>周期性快照。主进程 fork 子进程备份，对性能影响较低，恢复和重启更快。缺点是丢数据：5 分钟备份一次，宕机最多丢 5 分钟。</p></div>
+                  <div><span class="mono">AOF</span><p>每条命令记日志。回放恢复，文件会变大，需要重写合并重复命令；恢复速度不如 RDB。</p></div>
+                </div>
+                <div class="policy-list">
+                  <div><span class="mono">always</span><p>每次写完立即 fsync。最稳，一般不用。</p></div>
+                  <div><span class="mono">no</span><p>交给操作系统调度。性能最好，丢失风险最高且不可控。</p></div>
+                  <div><span class="mono">everysec</span><span class="tag tag-good">推荐</span><p>每秒 fsync，最多丢最近 1 秒。</p></div>
+                </div>
+              </article>
+              <article class="fact-card">
+                <h3>缓存失效的三种典型场景</h3>
+                <div class="cache-cards">
+                  <div class="cache-card">
+                    <figure class="cache-fig">
+                      <svg class="dg" viewBox="0 0 170 78" aria-hidden="true">
+                        <g class="dg-key-bad">
+                          <rect x="8" y="10" width="16" height="12" rx="2"/><rect x="28" y="10" width="16" height="12" rx="2"/><rect x="48" y="10" width="16" height="12" rx="2"/>
+                          <rect x="8" y="26" width="16" height="12" rx="2"/><rect x="28" y="26" width="16" height="12" rx="2"/><rect x="48" y="26" width="16" height="12" rx="2"/>
+                        </g>
+                        <text class="dg-tiny dg-t-bad" x="139" y="43" text-anchor="middle">DB</text>
+                      </svg>
+                    </figure>
+                    <div class="cache-copy"><h4>雪崩</h4><p>大规模缓存同时失效，大量请求直接打数据库。</p><small>延伸：过期时间打散、多级缓存</small></div>
+                  </div>
+                  <div class="cache-card">
+                    <figure class="cache-fig">
+                      <svg class="dg" viewBox="0 0 170 78" aria-hidden="true">
+                        <circle class="dg-dot" cx="8" cy="20" r="2.5"/><circle class="dg-dot" cx="8" cy="34" r="2.5"/><circle class="dg-dot" cx="8" cy="48" r="2.5"/>
+                        <path class="dg-line" d="M12 20 L34 28 M12 34 H34 M12 48 L34 40" marker-end="url(#arr)"/>
+                        <rect class="dg-node dg-node-bad" x="36" y="20" width="40" height="28" rx="4"/>
+                        <text class="dg-tiny dg-t-bad" x="56" y="38" text-anchor="middle">热点 KEY</text>
+                        <path class="dg-line dg-line-bad" d="M76 34 H114" marker-end="url(#arr-bad)"/>
+                        <rect class="dg-node dg-node-bad" x="116" y="20" width="46" height="28" rx="4"/>
+                        <text class="dg-tiny dg-t-bad" x="139" y="38" text-anchor="middle">DB</text>
+                      </svg>
+                    </figure>
+                    <div class="cache-copy"><h4>击穿</h4><p>某个热点缓存失效，大量请求全打数据库。</p><small>延伸：互斥锁、逻辑过期</small></div>
+                  </div>
+                  <div class="cache-card">
+                    <figure class="cache-fig">
+                      <svg class="dg" viewBox="0 0 170 78" aria-hidden="true">
+                        <rect class="dg-node" x="4" y="24" width="36" height="26" rx="4"/>
+                        <text class="dg-tiny" x="22" y="41" text-anchor="middle">请求</text>
+                        <line class="dg-line" x1="40" y1="37" x2="62" y2="37" marker-end="url(#arr)"/>
+                        <rect class="dg-node dg-node-bad" x="64" y="24" width="42" height="26" rx="4"/>
+                        <text class="dg-tiny dg-t-bad" x="85" y="41" text-anchor="middle">MISS</text>
+                        <path class="dg-line dg-line-bad dg-dash" d="M106 37 H126" marker-end="url(#arr-bad)"/>
+                        <rect class="dg-node dg-node-bad" x="128" y="24" width="38" height="26" rx="4"/>
+                        <text class="dg-tiny dg-t-bad" x="147" y="41" text-anchor="middle">DB</text>
+                      </svg>
+                    </figure>
+                    <div class="cache-copy"><h4>穿透</h4><p>请求查缓存里根本没有的数据，直接越过缓存打数据库。</p><small>延伸：布隆过滤器、缓存空值</small></div>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <div class="section-sub section-sub-tight">
+              <h3>Redis 的三种高可用架构</h3>
+            </div>
+            <div class="mode-list">
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="14" y="18" width="68" height="28" rx="5"/>
+                    <text class="dg-tiny" x="48" y="36" text-anchor="middle">M · 读写</text>
+                    <rect class="dg-node" x="138" y="6" width="66" height="24" rx="5"/>
+                    <text class="dg-tiny" x="171" y="22" text-anchor="middle">R1 · 只读</text>
+                    <rect class="dg-node" x="138" y="54" width="66" height="24" rx="5"/>
+                    <text class="dg-tiny" x="171" y="70" text-anchor="middle">R2 · 只读</text>
+                    <path class="dg-line" d="M82 28 L136 18 M82 36 L136 60" marker-end="url(#arr)"/>
+                    <text class="dg-tiny dg-t-bad" x="110" y="88" text-anchor="middle">不能自动切换，需手动提升</text>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>主从</h4><span class="tag">基础</span></div>
+                  <p>一主一从、一主多从、主从从。主库读写，从库备份或分担读。同步分三种：全量同步（SYNC → fork 生成 RDB → 缓存期间的写 → 发送 → 从库加载）、增量同步（把缓存的写指令发给从库）、部分同步（断联后 PSYNC 从上次位置续传）。<strong>不能自动故障切换，必须手动把从改为主。</strong></p>
+                </div>
+              </article>
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node" x="8" y="6" width="56" height="20" rx="4"/>
+                    <text class="dg-tiny" x="36" y="20" text-anchor="middle">哨兵 S1</text>
+                    <rect class="dg-node" x="82" y="6" width="56" height="20" rx="4"/>
+                    <text class="dg-tiny" x="110" y="20" text-anchor="middle">哨兵 S2</text>
+                    <rect class="dg-node" x="156" y="6" width="56" height="20" rx="4"/>
+                    <text class="dg-tiny" x="184" y="20" text-anchor="middle">哨兵 S3</text>
+                    <path class="dg-line dg-dash" d="M36 26 L80 54 M110 26 V54 M184 26 L140 54" marker-end="url(#arr)"/>
+                    <rect class="dg-node dg-node-ok" x="30" y="56" width="160" height="26" rx="5"/>
+                    <text class="dg-tiny" x="110" y="72" text-anchor="middle">主从组 · M / R1 / R2</text>
+                    <text class="dg-tiny dg-t-ok" x="110" y="44" text-anchor="middle">过半判定客观下线</text>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>哨兵</h4><span class="tag tag-good">自动转移</span></div>
+                  <p>在主从基础上增加哨兵节点，组成“仲裁委员会”。哨兵不存业务数据；每 10 秒向主节点发 info 获取拓扑，每秒 ping 主、从和其他哨兵。单个哨兵判断是主观下线；超过半数哨兵认为不可用，才是客观下线。随后选举领头哨兵，把一个从节点（ID 较小）升级为主，其他从节点指向新主，并通知客户端。原主恢复后自动变从。本质是高可用读写分离：只有主节点对外读写。</p>
+                </div>
+              </article>
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="8" y="10" width="60" height="22" rx="4"/>
+                    <text class="dg-tiny" x="38" y="25" text-anchor="middle">M1 · 槽 A</text>
+                    <rect class="dg-node dg-node-ok" x="80" y="10" width="60" height="22" rx="4"/>
+                    <text class="dg-tiny" x="110" y="25" text-anchor="middle">M2 · 槽 B</text>
+                    <rect class="dg-node dg-node-ok" x="152" y="10" width="60" height="22" rx="4"/>
+                    <text class="dg-tiny" x="182" y="25" text-anchor="middle">M3 · 槽 C</text>
+                    <line class="dg-line" x1="38" y1="32" x2="38" y2="52" marker-end="url(#arr)"/>
+                    <line class="dg-line" x1="110" y1="32" x2="110" y2="52" marker-end="url(#arr)"/>
+                    <line class="dg-line" x1="182" y1="32" x2="182" y2="52" marker-end="url(#arr)"/>
+                    <rect class="dg-node" x="8" y="54" width="60" height="20" rx="4"/>
+                    <text class="dg-tiny" x="38" y="68" text-anchor="middle">R1</text>
+                    <rect class="dg-node" x="80" y="54" width="60" height="20" rx="4"/>
+                    <text class="dg-tiny" x="110" y="68" text-anchor="middle">R2</text>
+                    <rect class="dg-node" x="152" y="54" width="60" height="20" rx="4"/>
+                    <text class="dg-tiny" x="182" y="68" text-anchor="middle">R3</text>
+                    <text class="dg-tiny dg-t-muted" x="110" y="88" text-anchor="middle">多主多从 · 每个主管理一部分哈希槽</text>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>集群</h4><span class="tag tag-info">海量数据</span></div>
+                  <p>分布式系统，每个节点存部分数据；多主多从，主故障时从节点被选举为主。固定 16384 个哈希槽，每个节点管理一部分。适合海量数据、高并发、高可用；数据量不大没必要上集群。</p>
+                </div>
+              </article>
+            </div>
+            <div class="dg-wide">
+              <svg class="dg" viewBox="0 0 620 200" role="img" aria-label="Redis 主从全量同步与增量同步时序">
+                <rect class="dg-node dg-node-ok" x="60" y="6" width="120" height="24" rx="5"/>
+                <text class="dg-xs" x="120" y="22" text-anchor="middle">主节点</text>
+                <rect class="dg-node" x="440" y="6" width="120" height="24" rx="5"/>
+                <text class="dg-xs" x="500" y="22" text-anchor="middle">从节点</text>
+                <line class="dg-life" x1="120" y1="30" x2="120" y2="190"/>
+                <line class="dg-life" x1="500" y1="30" x2="500" y2="190"/>
+
+                <text class="dg-tiny" x="310" y="42" text-anchor="middle">① SYNC / PSYNC</text>
+                <line class="dg-line" x1="500" y1="50" x2="120" y2="50" marker-end="url(#arr)"/>
+
+                <rect class="dg-node dg-node-ghost" x="136" y="60" width="128" height="20" rx="4"/>
+                <text class="dg-tiny" x="200" y="74" text-anchor="middle">② fork 生成 RDB</text>
+
+                <text class="dg-tiny" x="310" y="96" text-anchor="middle">③ 发送 RDB · 期间写指令先缓存</text>
+                <line class="dg-line" x1="120" y1="104" x2="500" y2="104" marker-end="url(#arr)"/>
+
+                <rect class="dg-node dg-node-ghost" x="366" y="114" width="120" height="20" rx="4"/>
+                <text class="dg-tiny" x="426" y="128" text-anchor="middle">④ 加载快照</text>
+
+                <text class="dg-tiny" x="310" y="150" text-anchor="middle">⑤ 发送缓存期间的写指令 · 增量</text>
+                <line class="dg-line" x1="120" y1="158" x2="500" y2="158" marker-end="url(#arr)"/>
+
+                <rect class="dg-node dg-node-ghost" x="366" y="166" width="120" height="20" rx="4"/>
+                <text class="dg-tiny" x="426" y="180" text-anchor="middle">执行并追平</text>
+              </svg>
+            </div>
+            <p class="fineprint">断联重连时用 PSYNC 从上次偏移量继续（部分同步），不必每次都全量复制。</p>
+            <div class="slot-bar" aria-label="Redis 16384 个哈希槽分配示意">
+              <div class="slot-head"><span class="mono">HASH SLOTS · 16384</span><span class="fineprint">每个主节点管理一部分槽位</span></div>
+              <div class="slot-track"><span class="slot-1">M1 · 0–5460</span><span class="slot-2">M2 · 5461–10922</span><span class="slot-3">M3 · 10923–16383</span></div>
+            </div>
+
+            <div class="instrument sentinel-demo" id="sentinelDemo">
+              <div class="instrument-bar">
+                <span class="status-dot status-dot-good"></span>
+                <span class="instrument-title">哨兵仲裁演练</span>
+                <span class="instrument-meta mono">QUORUM 2/3</span>
+              </div>
+              <div class="sentinel-stage">
+                <div class="sentinels" aria-label="三个哨兵节点">
+                  <div class="sentinel-node" data-sentinel="1"><span class="led"></span><strong>S1</strong><small>哨兵</small></div>
+                  <div class="sentinel-node" data-sentinel="2"><span class="led"></span><strong>S2</strong><small>哨兵</small></div>
+                  <div class="sentinel-node" data-sentinel="3"><span class="led"></span><strong>S3</strong><small>哨兵</small></div>
+                </div>
+                <div class="redis-cluster" aria-label="Redis 主从节点">
+                  <div class="redis-node is-master" id="sMaster"><span class="led"></span><svg class="spot-icon node-icon" aria-hidden="true"><use href="#i-db"/></svg><strong>M</strong><small>主 · 读写</small></div>
+                  <div class="redis-node is-replica" id="sR1"><span class="led"></span><svg class="spot-icon node-icon" aria-hidden="true"><use href="#i-db"/></svg><strong>R1</strong><small>从 · 只读</small></div>
+                  <div class="redis-node is-replica" id="sR2"><span class="led"></span><svg class="spot-icon node-icon" aria-hidden="true"><use href="#i-db"/></svg><strong>R2</strong><small>从 · 只读</small></div>
+                </div>
+              </div>
+              <div class="sentinel-controls">
+                <button class="btn btn-small btn-primary" id="sentinelFail" type="button">让主节点失联</button>
+                <button class="btn btn-small btn-ghost" id="sentinelReset" type="button">重置</button>
+                <span class="sentinel-status mono" id="sentinelStatus">3 个哨兵监控中</span>
+              </div>
+              <ol class="sentinel-log" id="sentinelLog" aria-live="polite">
+                <li class="log-idle">等待一次故障……</li>
+              </ol>
+            </div>
+
+            <p class="key-point key-point--amber"><strong>重点</strong>RDB 会丢一个备份周期，AOF everysec 最多丢约 1 秒；哨兵依靠多数判定完成客观下线与主从切换，集群依靠 16384 个哈希槽分片，数据量大时才需要上集群。</p>
+          </section>
+
+          <section class="tab-panel" id="panel-kafka" role="tabpanel" aria-labelledby="tab-kafka" hidden>
+            <div class="panel-intro">
+              <div class="panel-heading"><svg class="tech-logo tech-logo-lg" aria-hidden="true"><use href="#logo-kafka"/></svg><h3>Kafka：分区副本撑起高可用</h3></div>
+              <p>消息先进入分区，分区有 Leader 和 Follower 副本；Leader 故障，Follower 被选举上位。高可用发生在“分区”这一级，而不是整台 Broker。</p>
+            </div>
+            <div class="panel-prose">
+              <p>Kafka 的高可用单位是分区，而不是 Broker。每个分区有一个 Leader 和若干 Follower；生产者只写 Leader，Follower 持续拉取复制。Leader 故障后，集群从同步副本中选举新的 Leader，分区继续可写。</p>
+            </div>
+            <div class="mq-pair">
+              <div class="mq-card">
+                <span class="mono">POINT-TO-POINT</span><h4>点对点</h4>
+                <p>生产者把消息发到队列，多个消费者监听，但一条消息只有一个消费者能消费。</p>
+                <figure class="mq-fig">
+                  <svg class="dg" viewBox="0 0 320 80" aria-hidden="true">
+                    <rect class="dg-node" x="6" y="28" width="58" height="24" rx="4"/>
+                    <text class="dg-tiny" x="35" y="43" text-anchor="middle">生产者</text>
+                    <line class="dg-line" x1="64" y1="40" x2="98" y2="40" marker-end="url(#arr)"/>
+                    <rect class="dg-node" x="100" y="18" width="90" height="44" rx="5"/>
+                    <rect class="dg-key" x="110" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="135" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="160" y="28" width="20" height="9" rx="2"/>
+                    <text class="dg-tiny dg-t-muted" x="145" y="54" text-anchor="middle">队列</text>
+                    <line class="dg-line dg-line-ok" x1="190" y1="30" x2="248" y2="20" marker-end="url(#arr-ok)"/>
+                    <path class="dg-line dg-dash" d="M190 50 H246" marker-end="url(#arr)"/>
+                    <path class="dg-x" d="M236 44l8 8M244 44l-8 8"/>
+                    <rect class="dg-node dg-node-ok" x="250" y="8" width="62" height="24" rx="4"/>
+                    <text class="dg-tiny" x="281" y="24" text-anchor="middle">消费者 1</text>
+                    <rect class="dg-node dg-node-ghost" x="250" y="48" width="62" height="24" rx="4"/>
+                    <text class="dg-tiny" x="281" y="64" text-anchor="middle">消费者 2</text>
+                  </svg>
+                </figure>
+              </div>
+              <div class="mq-card">
+                <span class="mono">PUB / SUB</span><h4>订阅</h4>
+                <p>生产者把消息发到主题，订阅了这个主题的消费者都能收到。</p>
+                <figure class="mq-fig">
+                  <svg class="dg" viewBox="0 0 320 80" aria-hidden="true">
+                    <rect class="dg-node" x="6" y="28" width="58" height="24" rx="4"/>
+                    <text class="dg-tiny" x="35" y="43" text-anchor="middle">生产者</text>
+                    <line class="dg-line" x1="64" y1="40" x2="98" y2="40" marker-end="url(#arr)"/>
+                    <rect class="dg-node" x="100" y="18" width="90" height="44" rx="5"/>
+                    <rect class="dg-key" x="110" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="135" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="160" y="28" width="20" height="9" rx="2"/>
+                    <text class="dg-tiny dg-t-muted" x="145" y="54" text-anchor="middle">主题</text>
+                    <line class="dg-line dg-line-ok" x1="190" y1="30" x2="248" y2="20" marker-end="url(#arr-ok)"/>
+                    <line class="dg-line dg-line-ok" x1="190" y1="50" x2="248" y2="60" marker-end="url(#arr-ok)"/>
+                    <rect class="dg-node dg-node-ok" x="250" y="8" width="62" height="24" rx="4"/>
+                    <text class="dg-tiny" x="281" y="24" text-anchor="middle">消费者 1</text>
+                    <rect class="dg-node dg-node-ok" x="250" y="48" width="62" height="24" rx="4"/>
+                    <text class="dg-tiny" x="281" y="64" text-anchor="middle">消费者 2</text>
+                  </svg>
+                </figure>
+              </div>
+            </div>
+            <div class="adv-row">
+              <span class="tag">高吞吐 · 低延迟</span><span class="tag">可用 · 可扩展</span><span class="tag">持久 · 可靠</span><span class="tag">容错</span><span class="tag">高并发</span>
+            </div>
+            <div class="kafka-arch">
+              <div class="kafka-producer"><svg class="spot-icon kafka-icon" aria-hidden="true"><use href="#i-user"/></svg><span class="mono">PRODUCER</span><strong>生产者</strong><small>写入 Leader</small></div>
+              <div class="kafka-parts">
+                <div class="kpart"><div class="kpart-head"><span class="mono">P0</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B1</span><span class="knode">B2</span></div><small>Leader → Follower 同步</small></div>
+                <div class="kpart"><div class="kpart-head"><span class="mono">P1</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B2</span><span class="knode">B3</span></div><small>副本保证分区可用</small></div>
+                <div class="kpart"><div class="kpart-head"><span class="mono">P2</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B3</span><span class="knode">B1</span></div><small>Leader 故障则选举</small></div>
+              </div>
+              <div class="kafka-consumer"><svg class="spot-icon kafka-icon" aria-hidden="true"><use href="#i-mail"/></svg><span class="mono">CONSUMER</span><strong>消费者</strong><small>按分区消费</small></div>
+            </div>
+            <figure class="dg-wrap">
+              <svg class="dg" viewBox="0 0 380 132" role="img" aria-label="Kafka 分区 Leader 故障后，Follower 被选举为新 Leader">
+                <text class="dg-tiny dg-t-muted" x="8" y="16">故障前 · P0</text>
+                <rect class="dg-node dg-node-ok" x="34" y="24" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="78" y="40" text-anchor="middle">B1 · Leader</text>
+                <rect class="dg-node" x="146" y="24" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="190" y="40" text-anchor="middle">B2 · Follower</text>
+                <rect class="dg-node" x="258" y="24" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="302" y="40" text-anchor="middle">B3 · Follower</text>
+                <line class="dg-line dg-line-bad" x1="190" y1="52" x2="190" y2="74" marker-end="url(#arr-bad)"/>
+                <text class="dg-tiny dg-t-bad" x="196" y="68" text-anchor="start">Leader 故障 · 选举</text>
+                <text class="dg-tiny dg-t-muted" x="8" y="94">故障后 · P0</text>
+                <rect class="dg-node dg-node-bad" x="34" y="102" width="88" height="24" rx="4"/>
+                <text class="dg-tiny dg-t-bad" x="78" y="118" text-anchor="middle">B1 · 离线</text>
+                <rect class="dg-node dg-node-ok" x="146" y="102" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="190" y="118" text-anchor="middle">B2 · 新 Leader</text>
+                <rect class="dg-node" x="258" y="102" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="302" y="118" text-anchor="middle">B3 · Follower</text>
+              </svg>
+            </figure>
+            <ul class="tight-list kafka-list">
+              <li>集群借助 ZooKeeper 存节点元数据，实现 Broker 高可用；新版 Kafka 也支持不依赖 ZooKeeper 的 KRaft 模式。</li>
+              <li>每个主题划分多个分区，消息按算法分配到不同分区；分区不可用会丢数据，所以用分区副本兜底。</li>
+              <li>生产者写 Leader 副本，Leader 同步给 Follower；Leader 故障，选举一个 Follower 升为 Leader。</li>
+            </ul>
+
+            <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区：Leader 故障后由同步副本接替，分区继续可写。Broker 数量并不等于副本数量，扩分区时还要考虑副本分布。</p>
+          </section>
+
+          <section class="tab-panel" id="panel-mysql" role="tabpanel" aria-labelledby="tab-mysql" hidden>
+            <div class="panel-intro">
+              <div class="panel-heading"><svg class="tech-logo tech-logo-lg" aria-hidden="true"><use href="#logo-mysql"/></svg><h3>MySQL：主从复制与一致性取舍</h3></div>
+              <p>主备、主从、互为主从解决读扩展和备份，真正的取舍在复制策略：等不等从库，等几个从库。</p>
+            </div>
+            <div class="panel-prose">
+              <p>MySQL 的高可用主要围绕复制展开：主库把变更写入 binlog，从库拉取并回放。主备、主从、互为主从的区别，是复制拓扑和读写入口不同；异步、半同步、全同步的区别，是主库何时向客户端确认。</p>
+            </div>
+            <figure class="dg-wrap dg-wrap-inline binlog-fig">
+              <svg class="dg" viewBox="0 0 620 172" role="img" aria-label="MySQL 主库写 binlog，从库通过 relay log 回放">
+                <rect class="dg-node-green" x="8" y="34" width="120" height="56" rx="8"/>
+                <g style="color:var(--d-green)"><use href="#i-server" x="22" y="44" width="18" height="18"/></g>
+                <text class="dg-xs" x="48" y="58" text-anchor="start">主库</text>
+                <text class="dg-tiny" x="22" y="78">接收写入</text>
+                <line class="dg-line-blue" x1="128" y1="62" x2="184" y2="62" marker-end="url(#arr)"/>
+                <text class="dg-tiny" x="156" y="54" text-anchor="middle">写 binlog</text>
+                <rect class="dg-node-violet" x="186" y="34" width="126" height="56" rx="8"/>
+                <g style="color:var(--d-violet)"><use href="#i-layers" x="200" y="44" width="18" height="18"/></g>
+                <text class="dg-xs" x="226" y="58" text-anchor="start">binlog</text>
+                <text class="dg-tiny" x="200" y="78">变更日志</text>
+                <line class="dg-line-blue" x1="312" y1="62" x2="368" y2="62" marker-end="url(#arr)"/>
+                <text class="dg-tiny" x="340" y="54" text-anchor="middle">拉取</text>
+                <rect class="dg-node-amber" x="370" y="34" width="126" height="56" rx="8"/>
+                <g style="color:var(--d-amber)"><use href="#i-layers" x="384" y="44" width="18" height="18"/></g>
+                <text class="dg-xs" x="410" y="58" text-anchor="start">relay log</text>
+                <text class="dg-tiny" x="384" y="78">中继日志</text>
+                <line class="dg-line-blue" x1="496" y1="62" x2="544" y2="62" marker-end="url(#arr)"/>
+                <text class="dg-tiny" x="520" y="54" text-anchor="middle">回放</text>
+                <rect class="dg-node-blue" x="546" y="34" width="66" height="56" rx="8"/>
+                <g style="color:var(--d-blue)"><use href="#i-db" x="558" y="44" width="18" height="18"/></g>
+                <text class="dg-xs" x="576" y="58" text-anchor="middle">从库</text>
+                <text class="dg-tiny" x="576" y="78" text-anchor="middle">执行</text>
+                <path class="dg-line-ok dg-dash" d="M546 112 Q330 140 128 112" marker-end="url(#arr-ok)"/>
+                <text class="dg-tiny dg-t-ok" x="336" y="142" text-anchor="middle">半同步：至少一个从库确认接收；异步：主库立即返回</text>
+                <text class="dg-tiny dg-t-muted" x="336" y="158" text-anchor="middle">全同步：等待所有从库执行完成</text>
+              </svg>
+              <figcaption>图示：主库写 binlog，从库拉取到 relay log 后回放；客户端何时收到响应，由复制策略决定。</figcaption>
+            </figure>
+            <div class="mode-list">
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="14" y="16" width="76" height="28" rx="5"/>
+                    <text class="dg-tiny" x="52" y="34" text-anchor="middle">主 · 读写</text>
+                    <rect class="dg-node dg-node-ghost" x="130" y="52" width="76" height="28" rx="5"/>
+                    <text class="dg-tiny" x="168" y="70" text-anchor="middle">备 · 闲置</text>
+                    <path class="dg-line dg-dash" d="M90 36 Q120 44 128 58" marker-end="url(#arr)"/>
+                    <text class="dg-tiny dg-t-muted" x="112" y="42" text-anchor="middle">实时同步</text>
+                    <text class="dg-tiny dg-t-bad" x="110" y="89" text-anchor="middle">故障需 DBA 手动切换</text>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>主备</h4><span class="tag">备份</span></div>
+                  <p>一个主库一个备库，主库实时同步到备库。备库不提供任何服务，长期闲置；主库故障不能自动转移，必须由 DBA 手动切换。</p>
+                </div>
+              </article>
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="8" y="32" width="64" height="28" rx="5"/>
+                    <text class="dg-tiny" x="40" y="50" text-anchor="middle">主 · 读写</text>
+                    <rect class="dg-node" x="142" y="6" width="68" height="24" rx="5"/>
+                    <text class="dg-tiny" x="176" y="22" text-anchor="middle">从 · 只读</text>
+                    <rect class="dg-node" x="142" y="60" width="68" height="24" rx="5"/>
+                    <text class="dg-tiny" x="176" y="76" text-anchor="middle">从 · 只读</text>
+                    <path class="dg-line" d="M72 40 L140 22 M72 52 L140 70" marker-end="url(#arr)"/>
+                    <text class="dg-tiny dg-t-muted" x="106" y="88" text-anchor="middle">读扩展，写压力不变</text>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>主从</h4><span class="tag tag-info">读扩展</span></div>
+                  <p>一主一从、一主多从、主从从。从库分担读压力，但主库的写压力并没有减轻。</p>
+                </div>
+              </article>
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="14" y="8" width="82" height="28" rx="5"/>
+                    <text class="dg-tiny" x="55" y="26" text-anchor="middle">A · 读写</text>
+                    <rect class="dg-node dg-node-ok" x="124" y="56" width="82" height="28" rx="5"/>
+                    <text class="dg-tiny" x="165" y="74" text-anchor="middle">B · 读写</text>
+                    <path class="dg-line" d="M70 36 Q98 46 120 58" marker-start="url(#arr)" marker-end="url(#arr)"/>
+                    <path class="dg-line" d="M118 66 Q88 58 72 40" marker-start="url(#arr)" marker-end="url(#arr)"/>
+                    <rect class="dg-node dg-node-bad" x="76" y="38" width="58" height="18" rx="4"/>
+                    <text class="dg-tiny dg-t-bad" x="105" y="51" text-anchor="middle">主键冲突</text>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>互为主从</h4><span class="tag tag-warn">写扩展 · 复杂度高</span></div>
+                  <p>两个节点都支持读写，数据相互同步，读写能力同时提高。难点是主键不能冲突，一旦数据不一致将很难恢复。</p>
+                </div>
+              </article>
+            </div>
+            <div class="sync-modes">
+              <figure class="sync-mode">
+                <div class="sync-head"><span class="tag">异步复制 · 默认</span><span class="mono">0 ACK</span></div>
+                <svg class="dg" viewBox="0 0 240 118" role="img" aria-label="异步复制：主库立即返回，不等从库确认">
+                  <rect class="dg-node" x="8" y="8" width="60" height="22" rx="4"/>
+                  <text class="dg-tiny" x="38" y="23" text-anchor="middle">客户端</text>
+                  <line class="dg-line" x1="20" y1="30" x2="20" y2="46" marker-end="url(#arr)"/>
+                  <rect class="dg-node dg-node-ok" x="8" y="48" width="60" height="24" rx="4"/>
+                  <text class="dg-tiny" x="38" y="64" text-anchor="middle">主库</text>
+                  <line class="dg-line-ok" x1="52" y1="48" x2="52" y2="32" marker-end="url(#arr-ok)"/>
+                  <text class="dg-tiny dg-t-ok" x="72" y="42" text-anchor="start">立即返回</text>
+                  <rect class="dg-node" x="150" y="16" width="82" height="22" rx="4"/>
+                  <text class="dg-tiny" x="191" y="31" text-anchor="middle">从库 1</text>
+                  <rect class="dg-node" x="150" y="68" width="82" height="22" rx="4"/>
+                  <text class="dg-tiny" x="191" y="83" text-anchor="middle">从库 2</text>
+                  <path class="dg-line dg-dash" d="M68 54 L148 27" marker-end="url(#arr)"/>
+                  <path class="dg-line dg-dash" d="M68 66 L148 79" marker-end="url(#arr)"/>
+                  <text class="dg-tiny dg-t-bad" x="120" y="108" text-anchor="middle">不等从库确认 · 可能丢数据</text>
+                </svg>
+              </figure>
+              <figure class="sync-mode">
+                <div class="sync-head"><span class="tag tag-good">半同步复制</span><span class="mono">≥ 1 ACK</span></div>
+                <svg class="dg" viewBox="0 0 240 118" role="img" aria-label="半同步复制：至少一个从库确认后返回">
+                  <rect class="dg-node" x="8" y="8" width="60" height="22" rx="4"/>
+                  <text class="dg-tiny" x="38" y="23" text-anchor="middle">客户端</text>
+                  <line class="dg-line" x1="20" y1="30" x2="20" y2="46" marker-end="url(#arr)"/>
+                  <rect class="dg-node dg-node-ok" x="8" y="48" width="60" height="24" rx="4"/>
+                  <text class="dg-tiny" x="38" y="64" text-anchor="middle">主库</text>
+                  <line class="dg-line-ok" x1="52" y1="48" x2="52" y2="32" marker-end="url(#arr-ok)"/>
+                  <text class="dg-tiny dg-t-ok" x="72" y="42" text-anchor="start">等待 1 个</text>
+                  <rect class="dg-node" x="150" y="16" width="82" height="22" rx="4"/>
+                  <text class="dg-tiny" x="191" y="31" text-anchor="middle">从库 1</text>
+                  <rect class="dg-node" x="150" y="68" width="82" height="22" rx="4"/>
+                  <text class="dg-tiny" x="191" y="83" text-anchor="middle">从库 2</text>
+                  <path class="dg-line dg-dash" d="M68 54 L148 27" marker-end="url(#arr)"/>
+                  <path class="dg-line dg-dash" d="M68 66 L148 79" marker-end="url(#arr)"/>
+                  <path class="dg-line-ok dg-dash" d="M150 36 L70 58" marker-end="url(#arr-ok)"/>
+                  <text class="dg-tiny dg-t-ok" x="120" y="108" text-anchor="middle">至少 1 个从库确认接收</text>
+                </svg>
+              </figure>
+              <figure class="sync-mode">
+                <div class="sync-head"><span class="tag tag-warn">全同步复制</span><span class="mono">ALL ACK</span></div>
+                <svg class="dg" viewBox="0 0 240 118" role="img" aria-label="全同步复制：所有从库确认后返回">
+                  <rect class="dg-node" x="8" y="8" width="60" height="22" rx="4"/>
+                  <text class="dg-tiny" x="38" y="23" text-anchor="middle">客户端</text>
+                  <line class="dg-line" x1="20" y1="30" x2="20" y2="46" marker-end="url(#arr)"/>
+                  <rect class="dg-node dg-node-ok" x="8" y="48" width="60" height="24" rx="4"/>
+                  <text class="dg-tiny" x="38" y="64" text-anchor="middle">主库</text>
+                  <line class="dg-line-ok" x1="52" y1="48" x2="52" y2="32" marker-end="url(#arr-ok)"/>
+                  <text class="dg-tiny dg-t-ok" x="72" y="42" text-anchor="start">等待全部</text>
+                  <rect class="dg-node" x="150" y="16" width="82" height="22" rx="4"/>
+                  <text class="dg-tiny" x="191" y="31" text-anchor="middle">从库 1</text>
+                  <rect class="dg-node" x="150" y="68" width="82" height="22" rx="4"/>
+                  <text class="dg-tiny" x="191" y="83" text-anchor="middle">从库 2</text>
+                  <path class="dg-line dg-dash" d="M68 54 L148 27" marker-end="url(#arr)"/>
+                  <path class="dg-line dg-dash" d="M68 66 L148 79" marker-end="url(#arr)"/>
+                  <path class="dg-line-ok dg-dash" d="M150 36 L70 58" marker-end="url(#arr-ok)"/>
+                  <path class="dg-line-ok dg-dash" d="M150 91 L70 72" marker-end="url(#arr-ok)"/>
+                  <text class="dg-tiny dg-t-ok" x="120" y="108" text-anchor="middle">所有从库执行完才返回</text>
+                </svg>
+              </figure>
+            </div>
+            <div class="repl-table">
+              <div class="repl-head"><span>策略</span><span>客户端何时收到响应</span><span>一致性</span><span>风险 / 代价</span></div>
+              <div class="repl-row">
+                <div class="repl-name"><strong>异步复制</strong><span class="tag">MySQL 默认</span></div>
+                <div>主库提交事务后立即返回</div>
+                <div><span class="ack ack-0">0 个从库确认</span></div>
+                <div>响应最快；主库宕机时，未同步的数据会丢</div>
+              </div>
+              <div class="repl-row">
+                <div class="repl-name"><strong>全同步复制</strong><span class="tag tag-warn">强一致</span></div>
+                <div>所有从库都执行完事务才返回</div>
+                <div><span class="ack ack-all">全部从库确认</span></div>
+                <div>严格一致；等待最久，从库越多越慢</div>
+              </div>
+              <div class="repl-row">
+                <div class="repl-name"><strong>半同步复制</strong><span class="tag tag-good">平衡</span></div>
+                <div>至少一个从库确认接收就返回</div>
+                <div><span class="ack ack-one">≥ 1 个从库确认</span></div>
+                <div>响应与一致性的中间态，不需要等所有从库</div>
+              </div>
+            </div>
+            <p class="fineprint">异步复制下，如果主库在数据到达从库前宕机，切到从库就会缺一段数据；这是拿一致性换响应速度的典型交易。</p>
+
+            <p class="key-point key-point--violet"><strong>重点</strong>异步复制快，但主库故障时可能丢数据；全同步一致性强，但等待所有从库、延迟最高；半同步只等至少一个从库确认，是两者的折中。复制策略不等于自动故障转移。</p>
+          </section>
+        </div>

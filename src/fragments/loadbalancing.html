@@ -1,0 +1,478 @@
+<div class="prose">
+          <p class="lede">负载均衡同时承担高可用与水平扩展：单节点故障时由其他节点接管；负载上升时通过增加节点分担。作为所有流量的入口，负载均衡层自身也必须具备高可用能力。</p>
+        </div>
+
+        <div class="kind-pair">
+          <div class="kind">
+            <span class="mono">HARDWARE</span>
+            <h3>硬负载</h3>
+            <figure class="kind-fig">
+              <svg class="dg" viewBox="0 0 260 90" role="img" aria-label="硬负载：请求经过 F5 专用设备转发到服务器">
+                <rect class="dg-node" x="8" y="32" width="48" height="26" rx="5"/>
+                <text class="dg-xs" x="32" y="49" text-anchor="middle">客户端</text>
+                <line class="dg-line" x1="56" y1="45" x2="94" y2="45" marker-end="url(#arr)"/>
+                <rect class="dg-node dg-node-ok" x="96" y="18" width="76" height="54" rx="6"/>
+                <text class="dg-m" x="134" y="40" text-anchor="middle">F5</text>
+                <text class="dg-xs" x="134" y="57" text-anchor="middle">专用设备</text>
+                <line class="dg-line" x1="172" y1="45" x2="202" y2="45" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="204" y="32" width="48" height="26" rx="5"/>
+                <text class="dg-xs" x="228" y="49" text-anchor="middle">服务器</text>
+              </svg>
+              <figcaption class="fig-cap">图示：请求经过专用负载设备转发到后端。</figcaption>
+            </figure>
+            <p>F5、Radware 等专用设备。性能强、稳定性高，但成本高、扩展灵活性有限。</p>
+          </div>
+          <div class="kind">
+            <span class="mono">SOFTWARE</span>
+            <h3>软负载</h3>
+            <figure class="kind-fig">
+              <svg class="dg" viewBox="0 0 260 90" role="img" aria-label="软负载：LVS、HAProxy、Nginx 等软件层叠部署在普通服务器上">
+                <rect class="dg-node" x="8" y="32" width="48" height="26" rx="5"/>
+                <text class="dg-xs" x="32" y="49" text-anchor="middle">客户端</text>
+                <line class="dg-line" x1="56" y1="45" x2="90" y2="45" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="92" y="10" width="86" height="16" rx="3"/>
+                <text class="dg-tiny" x="135" y="21" text-anchor="middle">LVS / HAProxy</text>
+                <rect class="dg-node" x="92" y="30" width="86" height="16" rx="3"/>
+                <text class="dg-tiny" x="135" y="41" text-anchor="middle">Nginx</text>
+                <rect class="dg-node dg-node-ghost" x="92" y="50" width="86" height="16" rx="3"/>
+                <text class="dg-tiny" x="135" y="61" text-anchor="middle">Linux / 普通服务器</text>
+                <line class="dg-line" x1="178" y1="45" x2="202" y2="45" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="204" y="32" width="48" height="26" rx="5"/>
+                <text class="dg-xs" x="228" y="49" text-anchor="middle">应用</text>
+              </svg>
+              <figcaption class="fig-cap">图示：负载软件运行在普通服务器上，逐层转发。</figcaption>
+            </figure>
+            <p>Nginx、LVS、HAProxy 等软件。成本低、部署灵活，是大多数系统的默认选择。</p>
+          </div>
+        </div>
+
+        <div class="kind-logos" aria-label="常见负载均衡产品">
+          <span><svg class="tech-logo" aria-hidden="true"><use href="#logo-f5"/></svg>F5</span>
+          <span><svg class="tech-logo" aria-hidden="true"><use href="#logo-nginx"/></svg>Nginx</span>
+          <span><svg class="tech-logo" aria-hidden="true"><use href="#logo-haproxy"/></svg>HAProxy</span>
+          <span><svg class="tech-logo" aria-hidden="true"><use href="#logo-lvs"/></svg>LVS</span>
+        </div>
+
+        <div class="prose">
+          <p>负载均衡位于客户端与后端服务之间，一方面把请求分摊到多个节点，另一方面通过健康检查把故障节点从转发列表中移除。它同时解决“单节点容量有限”和“单节点故障”两个问题，但自身也成为新的单点，因此需要双机主备或多级冗余。</p>
+          <p>按工作层次，负载均衡分为四层和七层：四层只看 IP 与端口，转发开销小；七层能解析 HTTP，按 URL、Header 路由，适合灰度、改写和细粒度限流。层次越高，能力越强，性能开销也越大。</p>
+          <p>下面的模拟器使用三个权重与处理速度不同的节点。切换策略可以观察请求分布如何变化；将某个节点下线，可以观察负载均衡器如何避开故障节点。</p>
+        </div>
+
+        <p class="key-point"><strong>重点</strong>负载均衡同时解决“容量不足”和“单节点故障”，但它自身也是新的单点；入口层必须做双机主备或多级冗余。</p>
+
+        <figure class="dg-wrap health-fig">
+          <svg class="dg" viewBox="0 0 660 200" role="img" aria-label="负载均衡器通过健康检查只把流量分给健康节点">
+            <rect class="dg-node-blue" x="8" y="70" width="66" height="52" rx="7"/>
+            <g style="color:var(--d-blue)"><use href="#i-user" x="18" y="80" width="16" height="16"/></g>
+            <text class="dg-tiny" x="41" y="110" text-anchor="middle">客户端</text>
+            <line class="dg-line-blue" x1="74" y1="96" x2="94" y2="96" marker-end="url(#arr)"/>
+            <rect class="dg-node-violet" x="96" y="66" width="104" height="60" rx="9"/>
+            <g style="color:var(--d-violet)"><use href="#i-network" x="110" y="76" width="18" height="18"/></g>
+            <text class="dg-xs" x="148" y="100" text-anchor="middle">负载均衡</text>
+            <text class="dg-tiny" x="148" y="116" text-anchor="middle">健康检查</text>
+
+            <rect class="dg-node-green" x="470" y="12" width="160" height="48" rx="7"/>
+            <g style="color:var(--d-green)"><use href="#i-server" x="482" y="22" width="18" height="18"/></g>
+            <text class="dg-xs" x="512" y="32" text-anchor="start">S1</text>
+            <text class="dg-tiny dg-t-green" x="512" y="48" text-anchor="start">健康 · 接收流量</text>
+            <rect class="dg-node-blue" x="470" y="74" width="160" height="48" rx="7"/>
+            <g style="color:var(--d-blue)"><use href="#i-server" x="482" y="84" width="18" height="18"/></g>
+            <text class="dg-xs" x="512" y="94" text-anchor="start">S2</text>
+            <text class="dg-tiny dg-t-blue" x="512" y="110" text-anchor="start">健康 · 接收流量</text>
+            <rect class="dg-node-bad" x="470" y="136" width="160" height="48" rx="7"/>
+            <g style="color:var(--d-red)"><use href="#i-server" x="482" y="146" width="18" height="18"/></g>
+            <text class="dg-xs dg-t-bad" x="512" y="156" text-anchor="start">S3</text>
+            <text class="dg-tiny dg-t-bad" x="512" y="172" text-anchor="start">健康检查失败 · 摘除</text>
+
+            <line class="dg-line-cyan dg-dash" x1="200" y1="78" x2="468" y2="34" marker-end="url(#arr-info)"/>
+            <line class="dg-line-cyan dg-dash" x1="200" y1="90" x2="468" y2="96" marker-end="url(#arr-info)"/>
+            <line class="dg-line-cyan dg-dash" x1="200" y1="102" x2="430" y2="158" marker-end="url(#arr-info)"/>
+            <line class="dg-line-ok" x1="200" y1="108" x2="468" y2="44" marker-end="url(#arr-ok)"/>
+            <line class="dg-line-ok" x1="200" y1="116" x2="468" y2="106" marker-end="url(#arr-ok)"/>
+            <path class="dg-x" d="M420 176l12 12M432 176l-12 12"/>
+            <text class="dg-tiny dg-t-muted" x="330" y="196" text-anchor="middle">实线：业务流量 · 虚线：健康检查</text>
+          </svg>
+          <figcaption>图示：负载均衡器持续探测节点；健康节点参与转发，失败节点被移出列表。</figcaption>
+        </figure>
+
+        <div class="instrument lb-sim" id="lbSim">
+          <div class="instrument-bar">
+            <span class="status-dot status-dot-good"></span>
+            <span class="instrument-title">流量调度模拟器</span>
+            <span class="instrument-meta mono">3 NODES / LIVE</span>
+          </div>
+          <div class="lb-toolbar">
+            <div class="seg seg-small seg-wrap" role="group" aria-label="选择负载均衡策略" id="lbStrategies">
+              <button type="button" data-strategy="round-robin" class="is-active" aria-pressed="true">轮询</button>
+              <button type="button" data-strategy="weighted" aria-pressed="false">加权轮询</button>
+              <button type="button" data-strategy="least-conn" aria-pressed="false">最少连接</button>
+              <button type="button" data-strategy="random" aria-pressed="false">随机</button>
+              <button type="button" data-strategy="ip-hash" aria-pressed="false">IP 哈希</button>
+            </div>
+            <div class="lb-actions">
+              <button class="btn btn-small btn-ghost" id="lbToggle" type="button" aria-pressed="false">暂停</button>
+              <button class="btn btn-small btn-ghost" id="lbReset" type="button">重置</button>
+            </div>
+          </div>
+          <div class="lb-stage" id="lbStage">
+            <div class="lb-ingress" id="lbIngress">
+              <span class="ingress-label">请求入口</span>
+              <span class="ingress-pulse" aria-hidden="true"></span>
+              <span class="mono">in</span>
+            </div>
+            <div class="lb-core" id="lbCore">
+              <svg class="icon"><use href="#i-network"/></svg>
+              <strong>LB</strong>
+              <small>流量分发</small>
+            </div>
+            <div class="lb-servers" id="lbServers">
+              <article class="srv-card" data-server="0" style="--srv: var(--series-1)">
+                <div class="srv-head"><span class="led"></span><strong>S1</strong><span class="srv-weight mono">w=3</span></div>
+                <div class="srv-metrics"><span class="mono"><b data-active>0</b> 连接</span><span class="mono"><b data-served>0</b> 已处理</span></div>
+                <div class="mini-load"><span data-load style="width: 0%"></span></div>
+                <div class="srv-foot"><span class="srv-state">在线</span><button class="srv-kill" type="button" aria-pressed="false">下线</button></div>
+              </article>
+              <article class="srv-card" data-server="1" style="--srv: var(--series-2)">
+                <div class="srv-head"><span class="led"></span><strong>S2</strong><span class="srv-weight mono">w=2</span></div>
+                <div class="srv-metrics"><span class="mono"><b data-active>0</b> 连接</span><span class="mono"><b data-served>0</b> 已处理</span></div>
+                <div class="mini-load"><span data-load style="width: 0%"></span></div>
+                <div class="srv-foot"><span class="srv-state">在线</span><button class="srv-kill" type="button" aria-pressed="false">下线</button></div>
+              </article>
+              <article class="srv-card" data-server="2" style="--srv: var(--series-3)">
+                <div class="srv-head"><span class="led"></span><strong>S3</strong><span class="srv-weight mono">w=1</span></div>
+                <div class="srv-metrics"><span class="mono"><b data-active>0</b> 连接</span><span class="mono"><b data-served>0</b> 已处理</span></div>
+                <div class="mini-load"><span data-load style="width: 0%"></span></div>
+                <div class="srv-foot"><span class="srv-state">在线</span><button class="srv-kill" type="button" aria-pressed="false">下线</button></div>
+              </article>
+            </div>
+            <div class="lb-packets" id="lbPackets" aria-hidden="true"></div>
+          </div>
+          <div class="lb-foot">
+            <p class="lb-note" id="lbStrategyNote">轮询：按顺序轮流分配，简单均匀，但不关心节点忙闲。</p>
+            <div class="lb-stats">
+              <span>已处理 <b id="lbServed">0</b></span>
+              <span>进行中 <b id="lbActive">0</b></span>
+              <span>失败 <b id="lbFailed">0</b></span>
+            </div>
+          </div>
+          <div class="lb-log-wrap">
+            <span class="mono lb-log-label">ROUTING LOG</span>
+            <ol class="lb-log" id="lbLog" aria-live="off"></ol>
+          </div>
+          <p class="fineprint">可将任意节点下线，观察负载均衡器如何重新分配新请求。节点处理速度不同时，最少连接策略会自动向较慢节点倾斜。</p>
+        </div>
+
+        <div class="prose">
+          <p>策略没有绝对优劣，取决于服务形态与节点差异。无状态且节点同构时，轮询或随机即可；节点能力不同时，用加权轮询或最少连接；需要会话保持时用 IP 哈希；流量有明显趋势时，可用趋势分析提前调度。任何策略都必须配合健康检查，否则只会把请求分给已经故障的节点。</p>
+          <p>会话保持还有一个副作用：节点扩缩容时哈希映射会变化，部分用户会被重新分配到其他节点，原有会话可能失效。因此现代系统更倾向于把会话状态外置到 Redis 等共享存储，而不是依赖 IP 哈希。</p>
+        </div>
+
+        <div class="section-sub">
+          <p class="chapter-kicker">负载均衡层自身的高可用</p>
+          <h3>双机主备与多级冗余</h3>
+        </div>
+        <div class="prose">
+          <p>负载均衡器自身是流量入口，一旦不可用，后端再健康也无法访问。常见的做法是双机主备：两台 Nginx 通过 Keepalived 绑定同一个 VIP，由 VRRP 决定谁持有 VIP；主节点故障时，备节点在数秒内接管 VIP。需要注意，VIP 漂移只解决入口故障，不能提升单机 Nginx 的连接数上限，因此高并发场景还需要多级负载。</p>
+          <p>多级负载把不同层次的设备串联起来：硬负载负责最外层的高吞吐，LVS/HAProxy 做四层转发，Nginx 做七层路由与应用层能力。每一层都可以用 Keepalived 做成主备，从而避免任何单台设备成为整条链路的单点。</p>
+        </div>
+        <div class="deep-grid">
+          <article class="deep-card">
+            <h3><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-nginx"/></svg>Nginx + Keepalived 双机主备</h3>
+            <figure class="dg-wrap dg-wrap-inline">
+              <svg class="dg" viewBox="0 0 320 132" role="img" aria-label="Nginx 双机主备：VIP 在主节点上，主节点故障后漂移到备节点">
+                <rect class="dg-node dg-node-ok" x="20" y="52" width="112" height="44" rx="6"/>
+                <text class="dg-xs" x="76" y="72" text-anchor="middle">Nginx 主</text>
+                <text class="dg-tiny" x="76" y="86" text-anchor="middle">持有 VIP</text>
+                <rect class="dg-node dg-node-ghost" x="188" y="52" width="112" height="44" rx="6"/>
+                <text class="dg-xs" x="244" y="72" text-anchor="middle">Nginx 备</text>
+                <text class="dg-tiny" x="244" y="86" text-anchor="middle">等待接管</text>
+                <rect class="dg-chip" x="51" y="24" width="50" height="20" rx="10"/>
+                <text class="dg-tiny dg-t-ok" x="76" y="38" text-anchor="middle">VIP</text>
+                <path class="dg-line dg-dash" d="M101 34 H244 V52" marker-end="url(#arr)"/>
+                <text class="dg-tiny dg-t-muted" x="172" y="28" text-anchor="middle">主宕机后漂移</text>
+                <line class="dg-line" x1="6" y1="74" x2="18" y2="74" marker-end="url(#arr)"/>
+                <text class="dg-tiny dg-t-muted" x="10" y="112" text-anchor="middle">流量</text>
+                <text class="dg-tiny dg-t-muted" x="160" y="118" text-anchor="middle">两台 Nginx 的配置必须完全一致</text>
+              </svg>
+              <figcaption>图示：主节点持有 VIP；故障后 VIP 漂移到备节点，原主恢复后成为备机。</figcaption>
+            </figure>
+            <ul class="tight-list">
+              <li>两台 Nginx 各自独立 IP，都装 Keepalived，并绑定同一个虚拟 IP。</li>
+              <li>主节点存活时流量走主；主宕机后 VIP 自动漂移到备节点，完成故障转移。</li>
+              <li>原主恢复后自动变成备机。两台 Nginx 的配置必须时刻完全一致。</li>
+              <li><strong>缺点：</strong>同一时间只有一台对外服务，单机连接数有限，Nginx 本身无法水平扩展。</li>
+            </ul>
+          </article>
+          <article class="deep-card">
+            <h3>多级负载：逐层水平扩展</h3>
+            <div class="layer-diagram" aria-hidden="true">
+              <div class="layer-row"><span><svg class="tech-logo" aria-hidden="true"><use href="#logo-f5"/></svg>F5 / 硬负载</span><em>可选</em></div>
+              <div class="layer-arrow">↓</div>
+              <div class="layer-row"><span><svg class="tech-logo" aria-hidden="true"><use href="#logo-haproxy"/></svg>LVS / HAProxy</span><em>四层 · 可 Keepalived 双机</em></div>
+              <div class="layer-arrow">↓</div>
+              <div class="layer-row"><span><svg class="tech-logo" aria-hidden="true"><use href="#logo-nginx"/></svg>Nginx</span><em>七层 · 可水平扩展</em></div>
+              <div class="layer-arrow">↓</div>
+              <div class="layer-row layer-row-app"><span><svg class="spot-icon" aria-hidden="true"><use href="#i-server"/></svg>应用服务</span><em>业务处理</em></div>
+            </div>
+            <p class="fineprint">LVS / HAProxy 专注四层转发，性能比 Nginx 强很多；多级结构让 Nginx 也能水平扩展，支撑超高并发。</p>
+          </article>
+        </div>
+
+        <div class="two-col">
+          <div class="mini-cmp">
+            <h3>四层负载</h3>
+            <span class="tag tag-info">传输层 · TCP / UDP</span>
+            <figure class="kind-fig">
+              <svg class="dg" viewBox="0 0 280 100" role="img" aria-label="四层负载只看 IP 和端口，直接转发 TCP 或 UDP 流量">
+                <rect class="dg-node" x="8" y="38" width="50" height="26" rx="5"/>
+                <text class="dg-xs" x="33" y="55" text-anchor="middle">客户端</text>
+                <line class="dg-line" x1="58" y1="51" x2="96" y2="51" marker-end="url(#arr)"/>
+                <text class="dg-tiny dg-t-muted" x="78" y="44" text-anchor="middle">TCP</text>
+                <rect class="dg-node dg-node-ok" x="98" y="28" width="84" height="46" rx="6"/>
+                <text class="dg-m" x="140" y="48" text-anchor="middle">L4</text>
+                <text class="dg-tiny" x="140" y="63" text-anchor="middle">IP + 端口</text>
+                <line class="dg-line" x1="182" y1="51" x2="222" y2="51" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="224" y="38" width="48" height="26" rx="5"/>
+                <text class="dg-xs" x="248" y="55" text-anchor="middle">服务器</text>
+                <text class="dg-tiny dg-t-muted" x="140" y="90" text-anchor="middle">不拆包，转发快</text>
+              </svg>
+              <figcaption class="fig-cap">图示：四层只读取 IP 与端口，直接转发 TCP/UDP 流量。</figcaption>
+            </figure>
+            <p>只看 IP 和端口，转发快、开销小。代表：LVS、HAProxy、F5。</p>
+          </div>
+          <div class="mini-cmp">
+            <h3>七层负载</h3>
+            <span class="tag tag-info">应用层 · HTTP / HTTPS</span>
+            <figure class="kind-fig">
+              <svg class="dg" viewBox="0 0 280 100" role="img" aria-label="七层负载读取 URL 和 Header，按内容把请求路由到不同服务器">
+                <rect class="dg-node" x="8" y="38" width="50" height="26" rx="5"/>
+                <text class="dg-xs" x="33" y="55" text-anchor="middle">客户端</text>
+                <line class="dg-line" x1="58" y1="51" x2="94" y2="51" marker-end="url(#arr)"/>
+                <rect class="dg-node dg-node-ok" x="96" y="26" width="88" height="50" rx="6"/>
+                <text class="dg-m" x="140" y="46" text-anchor="middle">L7</text>
+                <text class="dg-tiny" x="140" y="60" text-anchor="middle">URL / Header</text>
+                <text class="dg-tiny dg-t-muted" x="140" y="71" text-anchor="middle">GET /order</text>
+                <path class="dg-line" d="M184 42 H218 V20 H246" marker-end="url(#arr)"/>
+                <path class="dg-line" d="M184 62 H218 V80 H246" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="246" y="8" width="28" height="22" rx="4"/>
+                <text class="dg-tiny" x="260" y="22" text-anchor="middle">订单</text>
+                <rect class="dg-node" x="246" y="70" width="28" height="22" rx="4"/>
+                <text class="dg-tiny" x="260" y="84" text-anchor="middle">用户</text>
+              </svg>
+              <figcaption class="fig-cap">图示：七层解析 HTTP，可按 URL 将请求路由到不同服务。</figcaption>
+            </figure>
+            <p>能读 URL、Header，做路由、改写、限流。代表：Nginx。新版 Nginx 也可用 stream 模块做四层。</p>
+          </div>
+        </div>
+
+        <p class="key-point key-point--violet"><strong>重点</strong>四层只读取 IP 与端口，转发快；七层能解析 HTTP，能力灵活但开销更大。多级负载把两者叠加，才能同时获得高吞吐与水平扩展。</p>
+
+        <div class="section-sub">
+          <p class="chapter-kicker">负载策略</p>
+          <h3>常见负载策略及其适用假设</h3>
+        </div>
+        <div class="strategy-grid">
+          <div class="strategy">
+            <h4>轮询</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <circle class="dg-chip-circle" cx="31" cy="13" r="6"/><text class="dg-tiny" x="31" y="16" text-anchor="middle">1</text>
+                <circle class="dg-chip-circle" cx="80" cy="13" r="6"/><text class="dg-tiny" x="80" y="16" text-anchor="middle">2</text>
+                <circle class="dg-chip-circle" cx="129" cy="13" r="6"/><text class="dg-tiny" x="129" y="16" text-anchor="middle">3</text>
+                <path class="dg-line dg-dash" d="M37 13 H74 M86 13 H123" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="31" y1="19" x2="31" y2="33" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="80" y1="19" x2="80" y2="33" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="129" y1="19" x2="129" y2="33" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>按顺序轮流分配，简单均匀。</p>
+          </div>
+          <div class="strategy">
+            <h4>权重轮询</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <rect class="dg-bar-ok" x="12" y="10" width="38" height="7" rx="3"/><text class="dg-tiny" x="31" y="7" text-anchor="middle">3</text>
+                <rect class="dg-bar-ok" x="61" y="16" width="26" height="7" rx="3"/><text class="dg-tiny" x="74" y="13" text-anchor="middle">2</text>
+                <rect class="dg-bar-ok" x="110" y="22" width="14" height="7" rx="3"/><text class="dg-tiny" x="117" y="19" text-anchor="middle">1</text>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>能力强的节点多接，按权重比例分配。</p>
+          </div>
+          <div class="strategy">
+            <h4>动态权重轮询</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <circle class="dg-gauge" cx="16" cy="14" r="9"/>
+                <path class="dg-line dg-line-ok" d="M16 14 l6 -5"/>
+                <rect class="dg-bar-ok" x="42" y="9" width="20" height="6" rx="3"/>
+                <rect class="dg-bar-ok" x="86" y="13" width="30" height="6" rx="3"/>
+                <rect class="dg-bar-ok" x="126" y="17" width="14" height="6" rx="3"/>
+                <text class="dg-tiny dg-t-muted" x="114" y="30" text-anchor="middle">按 CPU / IO 调整</text>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node dg-node-ok" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>根据 CPU、内存、IO 算权重，让空闲的节点多接。</p>
+          </div>
+          <div class="strategy">
+            <h4>最小连接数</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <text class="dg-tiny" x="31" y="16" text-anchor="middle">2</text>
+                <text class="dg-tiny" x="80" y="16" text-anchor="middle">5</text>
+                <text class="dg-tiny dg-t-ok" x="129" y="16" text-anchor="middle">1</text>
+                <path class="dg-line dg-line-ok" d="M100 12 Q118 14 125 24" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node dg-node-ok" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>每次给当前连接数最少的机器。</p>
+          </div>
+          <div class="strategy">
+            <h4>最短响应</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <text class="dg-tiny dg-t-ok" x="31" y="16" text-anchor="middle">40ms</text>
+                <text class="dg-tiny" x="80" y="16" text-anchor="middle">120ms</text>
+                <text class="dg-tiny" x="129" y="16" text-anchor="middle">80ms</text>
+                <path class="dg-line dg-line-ok" d="M80 22 Q60 24 42 31" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node dg-node-ok" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>发给响应时间最快的服务器。</p>
+          </div>
+          <div class="strategy">
+            <h4>IP 哈希</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <rect class="dg-chip" x="10" y="6" width="38" height="16" rx="8"/><text class="dg-tiny" x="29" y="17" text-anchor="middle">10.0.0.7</text>
+                <rect class="dg-chip" x="66" y="6" width="18" height="16" rx="4"/><text class="dg-tiny dg-t-ok" x="75" y="17" text-anchor="middle">#</text>
+                <path class="dg-line dg-dash" d="M84 14 H105 V32" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node dg-node-ok" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>同一来源固定落到同一节点，用来保 session。</p>
+          </div>
+          <div class="strategy">
+            <h4>URL 哈希</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <rect class="dg-chip" x="8" y="6" width="42" height="16" rx="8"/><text class="dg-tiny" x="29" y="17" text-anchor="middle">/cart</text>
+                <rect class="dg-chip" x="64" y="6" width="18" height="16" rx="4"/><text class="dg-tiny dg-t-ok" x="73" y="17" text-anchor="middle">#</text>
+                <path class="dg-line dg-dash" d="M82 14 H135 V32" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node dg-node-ok" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>同一类 URL 固定落到同一节点，便于缓存。</p>
+          </div>
+          <div class="strategy">
+            <h4>最小会话</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <text class="dg-tiny" x="31" y="16" text-anchor="middle">3</text>
+                <text class="dg-tiny dg-t-ok" x="80" y="16" text-anchor="middle">1</text>
+                <text class="dg-tiny" x="129" y="16" text-anchor="middle">4</text>
+                <path class="dg-line dg-line-ok" d="M52 14 H72" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node dg-node-ok" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>优先选择当前会话数最少的节点。</p>
+          </div>
+          <div class="strategy">
+            <h4>趋势分析</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <polyline class="dg-line dg-line-ok" points="10,24 38,20 66,22 94,14 122,10 148,6"/>
+                <path class="dg-line dg-dash" d="M148 6 Q150 20 132 31" marker-end="url(#arr)"/>
+                <text class="dg-tiny dg-t-muted" x="60" y="8" text-anchor="middle">按趋势提前调度</text>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node dg-node-ok" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>按请求变化趋势提前调度，适合可预测的流量。</p>
+          </div>
+          <div class="strategy">
+            <h4>随机</h4>
+            <figure class="strat-fig" aria-hidden="true">
+              <svg class="dg" viewBox="0 0 160 54">
+                <rect class="dg-chip" x="70" y="4" width="20" height="20" rx="4"/>
+                <circle class="dg-die-dot" cx="76" cy="10" r="1.6"/><circle class="dg-die-dot" cx="84" cy="10" r="1.6"/>
+                <circle class="dg-die-dot" cx="80" cy="14" r="1.6"/>
+                <circle class="dg-die-dot" cx="76" cy="18" r="1.6"/><circle class="dg-die-dot" cx="84" cy="18" r="1.6"/>
+                <path class="dg-line dg-dash" d="M70 16 Q44 22 31 31" marker-end="url(#arr)"/>
+                <path class="dg-line dg-dash" d="M80 24 V31" marker-end="url(#arr)"/>
+                <path class="dg-line dg-dash" d="M90 16 Q116 22 129 31" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="61" y="34" width="38" height="15" rx="3"/>
+                <rect class="dg-node" x="110" y="34" width="38" height="15" rx="3"/>
+              </svg>
+            </figure>
+            <p>随机挑一台；量大时趋近均匀，短窗口会抖动。</p>
+          </div>
+        </div>
+
+        <div class="prose">
+          <p>选择策略时先回答三个问题：服务是否有状态、节点能力是否一致、流量是否可预测。无状态且节点同构，轮询或随机即可；节点异构，用加权或最少连接；需要会话保持，用 IP 哈希；流量有明显趋势，可用趋势分析。会话保持会带来一个副作用：节点扩缩容时映射变化，部分会话会失效，因此更稳妥的做法是把会话状态外置到共享存储。</p>
+        </div>
+
+        <div class="dns-block">
+          <div class="dns-copy">
+            <p class="chapter-kicker">DNS 轮询</p>
+            <h3>DNS 轮询：最外层的负载分担</h3>
+            <p>域名绑定多个 IP，DNS 按顺序依次返回，用户请求被分配到不同地址，服务因此可以水平扩展。</p>
+            <p>但它有两个明显限制：服务器直接暴露在互联网上；吞吐依然不足。更常见的是 <strong>DNS + 多级负载</strong>——域名解析到 LVS 的 VIP，再由 LVS 和 Nginx 分发，后端不暴露。</p>
+            <aside class="note note-warn">
+              <div class="note-head"><svg class="icon"><use href="#i-alert"/></svg>没有健康检查</div>
+              <p>DNS 没有主动探测机制。某个节点宕机，DNS 不会自动把它的 IP 从列表里摘掉，用户仍会被解析到坏节点。DNS 轮询做不到自动故障转移。</p>
+            </aside>
+          </div>
+          <div class="dns-diagram" aria-hidden="true">
+            <svg class="dg" viewBox="0 0 320 208">
+              <rect class="dg-node" x="12" y="20" width="54" height="26" rx="5"/>
+              <text class="dg-xs" x="39" y="37" text-anchor="middle">用户</text>
+              <line class="dg-line" x1="66" y1="33" x2="98" y2="33" marker-end="url(#arr)"/>
+              <text class="dg-tiny dg-t-muted" x="82" y="26" text-anchor="middle">查询</text>
+              <rect class="dg-node dg-node-ok" x="100" y="12" width="88" height="42" rx="6"/>
+              <text class="dg-s" x="144" y="31" text-anchor="middle">DNS 轮询</text>
+              <text class="dg-tiny" x="144" y="45" text-anchor="middle">按顺序返回 IP</text>
+              <line class="dg-line" x1="188" y1="26" x2="226" y2="22" marker-end="url(#arr)"/>
+              <line class="dg-line" x1="188" y1="36" x2="226" y2="80" marker-end="url(#arr)"/>
+              <line class="dg-line dg-line-bad" x1="188" y1="46" x2="226" y2="140" marker-end="url(#arr-bad)"/>
+              <text class="dg-tiny dg-t-muted" x="206" y="20" text-anchor="middle">①</text>
+              <text class="dg-tiny dg-t-muted" x="204" y="72" text-anchor="middle">②</text>
+              <text class="dg-tiny dg-t-bad" x="204" y="132" text-anchor="middle">③</text>
+              <rect class="dg-node dg-node-ok" x="228" y="8" width="82" height="28" rx="5"/>
+              <circle class="dg-dot dg-dot-ok" cx="242" cy="22" r="3"/>
+              <text class="dg-xs" x="282" y="26" text-anchor="middle">IP 1 · 健康</text>
+              <rect class="dg-node" x="228" y="68" width="82" height="28" rx="5"/>
+              <circle class="dg-dot dg-dot-ok" cx="242" cy="82" r="3"/>
+              <text class="dg-xs" x="282" y="86" text-anchor="middle">IP 2 · 健康</text>
+              <rect class="dg-node dg-node-bad" x="228" y="128" width="82" height="28" rx="5"/>
+              <circle class="dg-dot dg-dot-bad" cx="242" cy="142" r="3"/>
+              <text class="dg-xs dg-t-bad" x="282" y="146" text-anchor="middle">IP 3 · 已宕机</text>
+              <path class="dg-x" d="M256 170l14 14M270 170l-14 14"/>
+              <text class="dg-xs dg-t-bad" x="160" y="194" text-anchor="middle">DNS 没有健康探测，坏 IP 不会自动摘除</text>
+            </svg>
+            <p class="fig-cap">图示：DNS 按顺序返回三个 IP，其中 IP 3 已宕机但仍会被返回。</p>
+          </div>
+        </div>
+
+        <p class="key-point key-point--amber"><strong>重点</strong>DNS 轮询没有健康检查，节点宕机后坏 IP 不会被自动摘除，因此 DNS 轮询不能独立完成故障转移。</p>
