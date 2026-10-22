@@ -7088,8 +7088,12 @@ svg use[href^="#i-"] {
   }
 
   .storyline ol {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+  }
+
+  .storyline small {
+    display: none;
   }
 }
 
