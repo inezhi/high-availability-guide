@@ -1,0 +1,4 @@
+# 本地预览配置与系统文件
+.claude/
+.DS_Store
+*.log
