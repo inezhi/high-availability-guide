@@ -219,7 +219,6 @@ code {
   height: 100%;
   width: 0;
   background: var(--signal);
-  transition: width 0.1s linear;
 }
 
 .svg-sprite {
@@ -250,10 +249,8 @@ code {
   display: flex;
   flex-direction: column;
   padding: 26px 18px 18px;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: var(--bg);
   border-right: 1px solid var(--line);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
 }
 
 .rail-brand {
@@ -358,7 +355,6 @@ code {
   width: 0;
   height: 100%;
   background: var(--signal);
-  transition: width 0.12s linear;
 }
 
 .rail-actions {
@@ -1121,7 +1117,6 @@ main {
 .status-dot-good {
   background: var(--signal);
   box-shadow: 0 0 8px var(--signal);
-  animation: breathe 3.2s ease-in-out infinite;
 }
 
 .led {
@@ -4393,9 +4388,8 @@ input[type="range"] {
   place-items: center;
   border: 1px solid var(--line-strong);
   border-radius: 10px;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  background: var(--bg);
   color: var(--muted);
-  backdrop-filter: blur(10px);
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
@@ -5140,10 +5134,8 @@ input[type="range"] {
     align-items: center;
     justify-content: space-between;
     padding: 0 18px;
-    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    background: var(--bg);
     border-bottom: 1px solid var(--line);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
   }
 
   .mobile-brand {
@@ -5185,10 +5177,8 @@ input[type="range"] {
     flex-direction: column;
     gap: 2px;
     padding: 10px 18px 18px;
-    background: color-mix(in srgb, var(--bg) 96%, transparent);
+    background: var(--bg);
     border-bottom: 1px solid var(--line);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
     opacity: 0;
     pointer-events: none;
     transform: translateY(-8px);
