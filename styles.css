@@ -6842,3 +6842,137 @@ input[type="range"] {
 .post-body .dg .dg-tiny {
   font-size: 9.5px;
 }
+
+/* Line icons inside inline SVG must be stroked, never default-filled */
+svg use[href^="#i-"] {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Blog-like editorial rail: no rounded active pills */
+.rail {
+  padding: 28px 24px 20px;
+}
+
+.rail-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 22px;
+  border-bottom: 1px solid var(--line-strong);
+  text-decoration: none;
+}
+
+.rail-brand:hover .brand-text strong {
+  color: var(--signal);
+}
+
+.brand-mark {
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--signal);
+}
+
+.brand-mark .icon {
+  width: 21px;
+  height: 21px;
+}
+
+.brand-text strong {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.brand-text small {
+  margin-top: 2px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.rail-nav {
+  gap: 0;
+  padding-top: 6px;
+  border-top: 0;
+}
+
+.rail-nav a {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 0 9px 17px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  transition: color 0.16s;
+}
+
+.rail-nav a::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--signal);
+  transition: width 0.18s;
+}
+
+.rail-nav a:hover {
+  color: var(--ink);
+  background: none;
+}
+
+.rail-nav a.is-active {
+  color: var(--ink);
+  background: none;
+  border: 0;
+  font-weight: 500;
+}
+
+.rail-nav a.is-active::before {
+  width: 9px;
+}
+
+.nav-num {
+  width: 18px;
+  font-size: 9.5px;
+}
+
+.rail-foot {
+  padding-top: 14px;
+}
+
+.rail-meter {
+  margin-bottom: 12px;
+}
+
+.rail-actions {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.rail-actions .icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.rail-label {
+  margin: 18px 0 2px;
+  padding-left: 17px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--faint);
+}
