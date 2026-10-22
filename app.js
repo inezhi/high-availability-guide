@@ -1712,7 +1712,11 @@
   const lightboxCaption = $("#lightboxCaption");
   const lightboxZoom = $("#lightboxZoom");
   const lightboxClose = $("#lightboxClose");
+  const motionQuery = window.matchMedia
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : null;
   let lightboxReturnFocus = null;
+  let lightboxCloseTimer = null;
 
   function setLightboxZoomed(zoomed) {
     if (!lightboxStage) return;
@@ -1721,21 +1725,43 @@
   }
 
   function closeLightbox() {
-    if (!lightbox || lightbox.hidden) return;
-    lightbox.hidden = true;
-    document.body.classList.remove("lightbox-open");
-    if (lightboxStage) {
-      lightboxStage.innerHTML = "";
-      lightboxStage.classList.remove("is-zoomed");
+    if (!lightbox || lightbox.hidden || lightbox.classList.contains("is-closing")) return;
+
+    const finish = function () {
+      if (lightboxCloseTimer) {
+        window.clearTimeout(lightboxCloseTimer);
+        lightboxCloseTimer = null;
+      }
+      lightbox.hidden = true;
+      lightbox.classList.remove("is-closing", "is-opening");
+      document.body.classList.remove("lightbox-open");
+      if (lightboxStage) {
+        lightboxStage.innerHTML = "";
+        lightboxStage.classList.remove("is-zoomed");
+      }
+      if (lightboxReturnFocus && typeof lightboxReturnFocus.focus === "function") {
+        lightboxReturnFocus.focus();
+      }
+      lightboxReturnFocus = null;
+    };
+
+    if (motionQuery && motionQuery.matches) {
+      finish();
+      return;
     }
-    if (lightboxReturnFocus && typeof lightboxReturnFocus.focus === "function") {
-      lightboxReturnFocus.focus();
-    }
-    lightboxReturnFocus = null;
+
+    lightbox.classList.remove("is-opening");
+    lightbox.classList.add("is-closing");
+    lightboxCloseTimer = window.setTimeout(finish, 300);
   }
 
   function openLightbox(svg) {
     if (!lightbox || !lightboxStage) return;
+    if (lightboxCloseTimer) {
+      window.clearTimeout(lightboxCloseTimer);
+      lightboxCloseTimer = null;
+    }
+
     const clone = svg.cloneNode(true);
     clone.classList.add("lightbox-svg");
     clone.removeAttribute("width");
@@ -1755,8 +1781,27 @@
 
     lightboxStage.innerHTML = "";
     lightboxStage.appendChild(clone);
+    lightboxStage.classList.remove("is-zoomed");
+    lightbox.classList.remove("is-closing", "is-opening");
+    lightbox.classList.add("is-opening");
     lightbox.hidden = false;
     document.body.classList.add("lightbox-open");
+
+    const panel = lightbox.querySelector(".lightbox-panel");
+    if (panel) {
+      const panelRect = panel.getBoundingClientRect();
+      const sourceRect = svg.getBoundingClientRect();
+      if (panelRect.width && panelRect.height) {
+        const originX = ((sourceRect.left + sourceRect.width / 2 - panelRect.left) / panelRect.width) * 100;
+        const originY = ((sourceRect.top + sourceRect.height / 2 - panelRect.top) / panelRect.height) * 100;
+        panel.style.setProperty(
+          "--lb-origin",
+          Math.min(82, Math.max(18, originX)).toFixed(1) + "% " +
+            Math.min(82, Math.max(18, originY)).toFixed(1) + "%"
+        );
+      }
+    }
+
     lightboxReturnFocus = svg;
     setLightboxZoomed(false);
     if (lightboxClose) lightboxClose.focus();

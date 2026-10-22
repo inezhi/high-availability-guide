@@ -7192,6 +7192,15 @@ body.lightbox-open {
   justify-content: center;
   padding: 2vh 2vw;
   background: rgba(4, 12, 18, 0.84);
+  opacity: 1;
+}
+
+.lightbox.is-opening {
+  animation: lightbox-fade-in 0.3s ease both;
+}
+
+.lightbox.is-closing {
+  animation: lightbox-fade-out 0.26s ease both;
 }
 
 .lightbox[hidden] {
@@ -7209,6 +7218,47 @@ body.lightbox-open {
   background: var(--bg);
   color: var(--ink);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  transform-origin: var(--lb-origin, 50% 50%);
+}
+
+.lightbox.is-opening .lightbox-panel {
+  animation: lightbox-panel-in 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lightbox.is-closing .lightbox-panel {
+  animation: lightbox-panel-out 0.26s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+@keyframes lightbox-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lightbox-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes lightbox-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lightbox-panel-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
 }
 
 .lightbox-bar {
@@ -7252,6 +7302,18 @@ body.lightbox-open {
   cursor: pointer;
   border-radius: 8px;
   box-shadow: 0 0 0 1px var(--line-strong);
+  animation: lightbox-svg-in 0.46s cubic-bezier(0.16, 1, 0.3, 1) 0.04s both;
+}
+
+@keyframes lightbox-svg-in {
+  from {
+    opacity: 0;
+    transform: scale(0.975) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .lightbox-stage.is-zoomed {
