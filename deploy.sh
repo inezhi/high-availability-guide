@@ -14,6 +14,8 @@ if ! gh auth status >/dev/null 2>&1; then
   exit 1
 fi
 
+gh auth setup-git
+
 OWNER="$(gh api user --jq .login)"
 NAME="$(gh api user --jq '.name // .login')"
 EMAIL="$(gh api user --jq '.email // (.login + "@users.noreply.github.com")')"
