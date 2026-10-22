@@ -158,8 +158,6 @@
      Reading progress and section tracking
      ------------------------------------------------------------------ */
 
-  const progressBar = $("#progressBar");
-  const railProgress = $("#railProgress");
   const toTop = $("#toTop");
   const tocLinks = $$(".toc-link, .toc-mobile a");
   const tocTargets = [];
@@ -185,12 +183,6 @@
   let scrollQueued = false;
 
   function updateScrollState() {
-    const max = docEl.scrollHeight - window.innerHeight;
-    const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-    const percent = (ratio * 100).toFixed(2) + "%";
-
-    if (progressBar) progressBar.style.width = percent;
-    if (railProgress) railProgress.style.width = percent;
     if (toTop) toTop.classList.toggle("is-visible", window.scrollY > 700);
 
     if (tocTargets.length) {

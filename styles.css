@@ -205,22 +205,6 @@ code {
   top: 12px;
 }
 
-.scroll-progress {
-  position: fixed;
-  inset: 0 0 auto 0;
-  height: 2px;
-  z-index: 120;
-  background: transparent;
-  pointer-events: none;
-}
-
-.scroll-progress span {
-  display: block;
-  height: 100%;
-  width: 0;
-  background: var(--signal);
-}
-
 .svg-sprite {
   position: absolute;
   width: 0;
@@ -5815,7 +5799,6 @@ input[type="range"] {
   .rail,
   .mobile-bar,
   .mobile-index,
-  .scroll-progress,
   .to-top,
   .toast,
   .hero-viz,

@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
-VERSION = "20261022-18"
+VERSION = "20261022-19"
 YEAR = "2026"
 
 PAGES = [
