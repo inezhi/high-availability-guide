@@ -7307,3 +7307,72 @@ body.lightbox-open {
   outline: 1px solid var(--line);
   outline-offset: 8px;
 }
+
+/* Editorial key-point block: label and copy share one left edge */
+.post-body .key-point {
+  display: block;
+  padding: 15px 20px 15px 18px;
+  border-left: 2px solid var(--signal);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--signal) 4%, transparent);
+  font-size: 14.5px;
+  line-height: 1.85;
+}
+
+.post-body .key-point strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  margin: 0 0 5px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--signal);
+}
+
+.post-body .key-point strong::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.post-body .key-point--amber {
+  border-left-color: var(--d-amber);
+  background: color-mix(in srgb, var(--d-amber) 5%, transparent);
+}
+
+.post-body .key-point--amber strong {
+  color: var(--d-amber-ink);
+}
+
+.post-body .key-point--violet {
+  border-left-color: var(--d-violet);
+  background: color-mix(in srgb, var(--d-violet) 4%, transparent);
+}
+
+.post-body .key-point--violet strong {
+  color: var(--d-violet-ink);
+}
+
+.post-body .key-point--red {
+  border-left-color: var(--d-red);
+  background: color-mix(in srgb, var(--d-red) 4%, transparent);
+}
+
+.post-body .key-point--red strong {
+  color: var(--d-red-ink);
+}
+
+/* Frame the HTML-built diagrams too */
+.post-body .funnel,
+.post-body .multi-dc,
+.post-body .kafka-arch {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+}
