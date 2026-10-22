@@ -16,8 +16,9 @@
 
 ## 本地预览
 
+在 `website` 目录执行：
+
 ```bash
-cd website
 python3 -m http.server 4173
 ```
 

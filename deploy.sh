@@ -33,7 +33,9 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 fi
 
 if gh repo view "$OWNER/$REPO_NAME" >/dev/null 2>&1; then
-  if ! git remote get-url origin >/dev/null 2>&1; then
+  if git remote get-url origin >/dev/null 2>&1; then
+    git remote set-url origin "https://github.com/$OWNER/$REPO_NAME.git"
+  else
     git remote add origin "https://github.com/$OWNER/$REPO_NAME.git"
   fi
   git push -u origin main
@@ -43,8 +45,12 @@ else
 fi
 
 if ! gh api "repos/$OWNER/$REPO_NAME/pages" >/dev/null 2>&1; then
-  gh api --method POST "repos/$OWNER/$REPO_NAME/pages" \
-    -f "source[branch]=main" -f "source[path]=/"
+  if ! gh api --method POST "repos/$OWNER/$REPO_NAME/pages" \
+    -f "source[branch]=main" -f "source[path]=/"; then
+    gh api --method POST "repos/$OWNER/$REPO_NAME/pages" --input - <<'JSON'
+{"source":{"branch":"main","path":"/"}}
+JSON
+  fi
 fi
 
 echo ""
