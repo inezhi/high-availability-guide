@@ -7,7 +7,7 @@
           </nav>
           <p class="chapter-kicker">第 01 章 · 度量</p>
           <h1>可用性指标：从几个 9 到停机预算</h1>
-          <p class="post-lede">高可用不是一句口号，而是一笔可以计算的账：一年允许多少分钟不可用，一次故障允许多长时间恢复，哪些环节会把整条链路拖下水。先把这笔账算清楚，后面的冗余、切换和容灾才有判断标准。</p>
+          <p class="post-lede">季度目标评审会上，团队承诺 99.99%。散会后，工程师在白板上写下一个问题：一年 52.6 分钟的停机预算，准备花在哪？本章从这个具体问题出发，把目标拆成指标、链路、SLO 和恢复时间。</p>
           <div class="post-meta">
             <span>阅读约 12 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -15,20 +15,24 @@
           </div>
         </header>
 
-        <aside class="post-takeaways" aria-label="本章要点">
-          <span class="takeaways-label">本章要点</span>
-          <ul>
-            <li>可用性 = 正常服务时间 ÷ 总时间；4 个 9 约等于全年 52.6 分钟停机。</li>
-            <li>串联链路的可用性是各环节的乘积，链路越长，整体越脆弱。</li>
-            <li>SLO 定义目标，错误预算决定发布节奏；预算耗尽时应冻结变更。</li>
-            <li>缩短 MTTR 往往比降低故障率更划算，而 MTTR 主要耗在检测和判断上。</li>
-          </ul>
-        </aside>
+        <nav class="storyline" aria-label="本章故事线">
+          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">从案例出发，沿着这条线读完本章</span></div>
+          <ol>
+            <li><a href="#what"><span class="storyline-index">01</span><span><strong>定义“不可用”</strong><small>从用户能不能完成任务开始</small></span></a></li>
+            <li><a href="#nines"><span class="storyline-index">02</span><span><strong>换算停机预算</strong><small>把 99.99% 变成 52.6 分钟</small></span></a></li>
+            <li><a href="#chain"><span class="storyline-index">03</span><span><strong>拆开整条链路</strong><small>串联相乘，找到最弱一环</small></span></a></li>
+            <li><a href="#slo"><span class="storyline-index">04</span><span><strong>写下 SLO</strong><small>用错误预算约束发布</small></span></a></li>
+            <li><a href="#mttr"><span class="storyline-index">05</span><span><strong>缩短恢复时间</strong><small>一次故障会花掉多少预算</small></span></a></li>
+            <li><a href="#measure"><span class="storyline-index">06</span><span><strong>验证真实体验</strong><small>拨测、指标与真实用户</small></span></a></li>
+            <li><a href="#budget"><span class="storyline-index">07</span><span><strong>花掉预算</strong><small>决定什么时候该停</small></span></a></li>
+          </ol>
+        </nav>
 
         <div class="post-body chapter-body" id="postBody">
           <section class="post-section" aria-labelledby="what">
             <h2 id="what" data-toc>什么是高可用</h2>
             <div class="prose">
+              <p>先回答一个基础问题：对用户来说，哪些时刻算“不可用”？</p>
               <p>高可用（High Availability）指的是系统在一段时间内持续提供服务的能力。它衡量的不是“机器有没有坏”，而是“用户能不能完成想做的事”。一个页面能打开、但支付接口超时，对正在付款的用户来说，系统依然是不可用的。</p>
               <p>因此，可用性通常从用户旅程出发定义：登录、浏览、下单、支付这些关键路径的成功率与耗时，比某台服务器的 CPU 使用率更接近真实的可用性。基础设施指标用于定位原因，业务指标用于判断结果，两者不能互相替代。</p>
             </div>
@@ -43,9 +47,9 @@
               </div>
             </div>
             <p class="key-point"><strong>重点</strong>可用性是用户视角的结果指标。讨论高可用时，先问“哪条用户路径不可用了”，再问“哪台机器出了问题”。</p>
+                      <p class="story-bridge"><span>接下来</span>定义完“不可用”，团队需要一个可计算的刻度。<a href="#nines">把 99.99% 换算成一年 52.6 分钟</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="nines">
+<section class="post-section" aria-labelledby="nines">
             <h2 id="nines" data-toc>几个 9：把停机时间变成预算</h2>
             <div class="prose">
               <p class="lede">高可用常用“几个 9”来度量。99.9% 是一年约 8.8 小时停机，99.99% 约 53 分钟，99.999% 只剩约 5 分钟。每多一个 9，允许的停机时间缩小十倍，工程成本通常涨得更多。</p>
@@ -101,9 +105,9 @@
               </table>
             </div>
             <p class="key-point"><strong>重点</strong>每增加一个 9，停机时间缩小十倍，工程成本通常远不止十倍。目标应从业务能承受的损失反推，而不是直接照搬“五个 9”。</p>
+                      <p class="story-bridge"><span>接着</span>单机达标，不等于整条链路达标。<a href="#chain">把请求经过的每个环节乘起来</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="chain">
+<section class="post-section" aria-labelledby="chain">
             <h2 id="chain" data-toc>串联链路：为什么整体总比单机差</h2>
             <div class="prose">
               <p>一个请求往往依次经过客户端、负载均衡、网关、应用和数据库。串联环节的可用性近似为各环节可用性的乘积，环节越多，整体可用性越低。五个 99.9% 的环节串起来，整体只剩约 99.5%；如果其中一个是 99%，整条链路就会被拉到 98.5% 左右。</p>
@@ -173,9 +177,9 @@
             </figure>
 
             <p class="key-point"><strong>重点</strong>可用性按整条链路计算，而不是按单台机器计算。并联冗余能提升可用性，但前提是故障彼此独立；共享故障域会让冗余失效。</p>
+                      <p class="story-bridge"><span>然后</span>算完整条链路，团队需要一个能写进日常发布的目标。<a href="#slo">用 SLO 和错误预算约束发布</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="slo">
+<section class="post-section" aria-labelledby="slo">
             <h2 id="slo" data-toc>SLO、SLI 与 SLA：把目标写清楚</h2>
             <div class="prose">
               <p>“我们要做到高可用”无法执行，因为它没有说明度量什么、目标是多少、做不到会怎样。工程上通常用三个概念把目标拆开：SLI 是实际测量的指标，SLO 是内部目标，SLA 是对外承诺。</p>
@@ -236,9 +240,9 @@
               </table>
             </div>
             <p class="key-point key-point--amber"><strong>重点</strong>SLI 要选用户能感知的指标，SLO 要留出比 SLA 更紧的余量。错误预算的作用不是纵容故障，而是给“发布速度”和“稳定性”提供一个可执行的平衡点。</p>
+                      <p class="story-bridge"><span>但</span>SLO 说明一年允许坏多久；MTTR 决定一次故障会花掉多少预算。<a href="#mttr">缩短从故障到恢复的时间</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="mttr">
+<section class="post-section" aria-labelledby="mttr">
             <h2 id="mttr" data-toc>MTTR 与 MTBF：恢复速度也是可用性</h2>
             <div class="prose">
               <p>可用性还有另一种算法：<span class="formula">A = MTBF ÷ (MTBF + MTTR)</span>。MTBF 是平均无故障时间，MTTR 是平均恢复时间。两者共同决定可用性：故障间隔再长，如果每次恢复要几个小时，整体可用性也高不了。</p>
@@ -274,9 +278,9 @@
               <p>压缩 MTTR 的杠杆依次是：更快的检测（拨测、心跳、异常检测）、更明确的判定（避免误切和反复摇摆）、更自动的恢复（故障转移、重启、回滚）、更可靠的验证（确认数据追平、流量恢复）。只做“自动切换”而不做“自动验证”，故障可能变成反复切换。</p>
             </div>
             <p class="key-point"><strong>重点</strong>可用性既取决于“多久坏一次”，也取决于“坏了多久能好”。大多数团队更容易从缩短 MTTR 获得收益。</p>
+                      <p class="story-bridge"><span>而要</span>缩短 MTTR，先得知道故障何时发生、用户是否感知。<a href="#measure">用拨测和真实用户验证</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="measure">
+<section class="post-section" aria-labelledby="measure">
             <h2 id="measure" data-toc>怎么测量：拨测、指标与真实用户</h2>
             <div class="prose">
               <p>可用性必须可测量，否则无法判断改进是否有效。常见手段有三类：黑盒拨测从外部模拟用户请求，白盒指标从系统内部采集，真实用户监控（RUM）直接记录用户端的成功率和耗时。三者视角不同，应该配合使用。</p>
@@ -303,9 +307,9 @@
               <p>告警也应围绕 SLO 设计，而不是围绕每一台机器。单机 CPU 高不一定影响用户；错误预算燃烧过快才值得叫醒人。这样能减少告警噪音，把注意力放在真正影响可用性的事件上。</p>
             </div>
             <p class="key-point key-point--violet"><strong>重点</strong>基础设施指标用于定位，业务 SLI 用于判断。平均值会掩盖尾部问题，可用性应看错误率和 p95 / p99 延迟。</p>
+                      <p class="story-bridge"><span>最后</span>测量结果要回到预算，决定发布、变更和演练的节奏。<a href="#budget">把停机预算花在明处</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="budget">
+<section class="post-section" aria-labelledby="budget">
             <h2 id="budget" data-toc>停机预算怎么花</h2>
             <div class="prose">
               <p>把年度或月度允许停机时间视为预算，计划内发布、故障和演练都会消耗它。预算越紧，越需要自动化发布、灰度、回滚和故障演练；仅靠“机器不坏”无法达到高可用目标。</p>
@@ -325,9 +329,9 @@
               </table>
             </div>
             <p class="key-point key-point--amber"><strong>重点</strong>停机预算是发布节奏的约束，不是“可以随便停机”的许可。预算耗尽时应冻结非必要变更，把工程资源转向稳定性。</p>
+          <p class="story-bridge"><span>收束</span>把以上换算放在一起，就是本章的四条结论。<a href="#summary">回到本章小结</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="summary">
+<section class="post-section" aria-labelledby="summary">
             <h2 id="summary" data-toc>本章小结</h2>
             <div class="recap-grid">
               <div class="recap-item"><span>01</span><p>可用性从用户旅程出发，按整条链路度量，而不是按单台机器度量。</p></div>

@@ -6976,3 +6976,141 @@ svg use[href^="#i-"] {
   letter-spacing: 0.12em;
   color: var(--faint);
 }
+
+/* Chapter storyline and section bridges */
+.storyline {
+  margin-top: 24px;
+  padding: 0 0 2px;
+  border-bottom: 1px solid var(--line);
+}
+
+.storyline-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.storyline-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--signal);
+}
+
+.storyline-hint {
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+.storyline ol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 30px;
+  margin: 18px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.storyline li a {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 8px;
+  text-decoration: none;
+}
+
+.storyline-index {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  line-height: 1.75;
+  color: var(--signal);
+}
+
+.storyline strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.storyline small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.storyline a:hover strong {
+  color: var(--signal);
+}
+
+.story-bridge {
+  margin-top: 26px;
+  padding-left: 14px;
+  border-left: 1px solid var(--line-strong);
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.story-bridge span {
+  margin-right: 7px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.story-bridge a {
+  margin-left: 4px;
+  color: var(--signal);
+  text-decoration: none;
+}
+
+.story-bridge a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .storyline {
+    padding-top: 18px;
+  }
+
+  .storyline-head {
+    display: block;
+  }
+
+  .storyline-hint {
+    display: block;
+    margin-top: 4px;
+  }
+
+  .storyline ol {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 720px) {
+  .post-body .dg-wrap:not(.dg-wrap-inline) {
+    overflow-x: auto;
+  }
+
+  .post-body .dg-wrap:not(.dg-wrap-inline) > .dg {
+    min-width: 620px;
+  }
+
+  .post-body .deep-card,
+  .post-body .fact-card,
+  .post-body .two-col > *,
+  .post-body .deep-grid > * {
+    min-width: 0;
+  }
+
+  .post-body .code-block {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}

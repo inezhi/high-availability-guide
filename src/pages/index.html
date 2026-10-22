@@ -166,7 +166,7 @@
         <a class="chapter-card" href="middleware.html">
           <div class="chapter-card-top"><span class="chapter-card-num">05</span><span class="chapter-card-tag">系统</span></div>
           <h3>中间件高可用</h3>
-          <p>MongoDB、Redis、Kafka、MySQL 的副本、选举与复制策略；同一道题，四种不同解法。</p>
+          <p>Redis、MongoDB、MySQL、Kafka 的副本、选举与复制策略；跟着一笔订单，看四种不同解法。</p>
           <div class="chapter-card-art" aria-hidden="true">
             <svg viewBox="0 0 200 88">
               <rect class="dg-node-blue" x="10" y="16" width="42" height="56" rx="6"/>
@@ -218,7 +218,7 @@
         <p class="chapter-kicker">阅读路径</p>
         <h2>先度量，再冗余，最后才是切换</h2>
         <p>高可用不是“多买一台机器”。它是一条从目标到手段的链路：先确定业务能接受的停机时间，再决定冗余方式和切换机制，最后用演练验证假设。</p>
-        <p>如果顺序反过来，很容易出现“做了主备，却不知道能恢复多快”；或者“上了多活，却没人能说清数据冲突怎么处理”。</p>
+        <p>如果顺序反过来，很容易出现“做了主备，却不知道能恢复多快”；或者“上了多活，却没人能说清数据冲突怎么处理”。这六章其实是一条事故响应链：算目标、备冗余、守入口、扩机房、落中间件、限流保命。</p>
       </div>
       <figure class="dg-wrap home-path-fig">
         <svg class="dg" viewBox="0 0 640 150" role="img" aria-label="高可用的阅读路径：度量、冗余、转移、验证">

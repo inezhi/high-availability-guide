@@ -15,9 +15,11 @@
 | `redundancy.html` | 冗余层次、主备切换、RTO / RPO、脑裂与 fencing、多活 |
 | `load-balancing.html` | 健康检查、调度算法、四层 / 七层、GSLB、一致性哈希 |
 | `disaster-recovery.html` | 两地三中心、容灾等级、异地多活、切换与回切、演练 |
-| `middleware.html` | MongoDB、Redis、Kafka、MySQL 的副本、选举与复制 |
+| `middleware.html` | 跟随一笔订单：Redis、MongoDB、MySQL、Kafka 的副本、选举与复制 |
 | `rate-limiting.html` | 分层限流、漏桶 / 令牌桶、分布式限流、过载保护 |
 | `quiz.html` | 十二道选择题与逐题解释 |
+
+每章以一个具体案例开场，并在正文上方给出一条“本章故事线”：从问题出发，按“现象 → 机制 → 代价 → 验证”的顺序推进。小节之间用承接句相连；中间件一章则跟随一笔订单，依次经过 Redis、MongoDB、MySQL 和 Kafka。
 
 原始文档提供了概念骨架与关键结论；页面在此基础上补充了公开资料中较通用的工程实践，例如错误预算、fencing、ISR、GTID、滑动窗口和过载保护组合。
 

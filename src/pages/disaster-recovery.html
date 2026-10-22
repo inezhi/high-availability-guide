@@ -7,7 +7,7 @@
           </nav>
           <p class="chapter-kicker">第 04 章 · 机房</p>
           <h1>容灾：从同城热备到异地多活</h1>
-          <p class="post-lede">容灾把故障域从一台机器扩展到一座机房、一座城市甚至一个区域。两地三中心追求“灾难时能接管”，异地多活追求“灾难时用户几乎无感”。两者的差别不只是多建几个机房，而是数据复制、流量调度和组织协作方式的整体变化。</p>
+          <p class="post-lede">暴雨导致同城机房断电。团队切到备用中心，才发现证书过期、依赖缺失，备用中心根本跑不起来。本章从这次失败的切换出发，先定义容灾等级，再讨论两地三中心、异地多活和演练。</p>
           <div class="post-meta">
             <span>阅读约 17 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -15,20 +15,24 @@
           </div>
         </header>
 
-        <aside class="post-takeaways" aria-label="本章要点">
-          <span class="takeaways-label">本章要点</span>
-          <ul>
-            <li>容灾先定义故障域和 RTO / RPO，再选择备份、冷备、温备或双活。</li>
-            <li>两地三中心是“单活 + 热备”，切换依赖数据同步、环境一致性和演练。</li>
-            <li>异地多活的核心是单元化：交易在单元内闭环，跨单元异步复制。</li>
-            <li>切换不是改一条 DNS；回切、数据追平和组织决策同样是容灾的一部分。</li>
-          </ul>
-        </aside>
+        <nav class="storyline" aria-label="本章故事线">
+          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">从案例出发，沿着这条线读完本章</span></div>
+          <ol>
+            <li><a href="#scope"><span class="storyline-index">01</span><span><strong>定义故障域</strong><small>先看要防什么、能丢多少</small></span></a></li>
+            <li><a href="#dr-tiers"><span class="storyline-index">02</span><span><strong>选择容灾等级</strong><small>备份、冷备、温备还是双活</small></span></a></li>
+            <li><a href="#two-three"><span class="storyline-index">03</span><span><strong>两地三中心</strong><small>单活热备的折中方案</small></span></a></li>
+            <li><a href="#multi-active"><span class="storyline-index">04</span><span><strong>异地多活</strong><small>让多个中心同时服务</small></span></a></li>
+            <li><a href="#switch"><span class="storyline-index">05</span><span><strong>切换与回切</strong><small>一场有脚本的协同</small></span></a></li>
+            <li><a href="#data"><span class="storyline-index">06</span><span><strong>数据复制</strong><small>容灾真正的地基</small></span></a></li>
+            <li><a href="#drill"><span class="storyline-index">07</span><span><strong>演练与组织</strong><small>备用中心必须真的能跑</small></span></a></li>
+          </ol>
+        </nav>
 
         <div class="post-body chapter-body" id="postBody">
           <section class="post-section" aria-labelledby="scope">
             <h2 id="scope" data-toc>容灾的范围：先定义故障域</h2>
             <div class="prose">
+              <p>先问一个更基本的问题：这次暴雨，备用机房到底能防住哪一种故障？</p>
               <p>做容灾设计，第一步不是选机房，而是定义要防什么：单机故障、机架掉电、机房断电、城市灾害，还是区域级网络中断？不同故障域对应不同的隔离距离和成本。防单机故障用多副本即可；防城市灾害必须把副本放到足够远的位置，而这又会带来复制延迟。</p>
               <p>第二步是定义恢复目标：RTO 决定“多久恢复”，RPO 决定“能丢多少数据”。目标不同，方案可能相差一个数量级。一个能接受小时级恢复、分钟级数据丢失的业务，用备份加冷备就够了；一个要求秒级恢复、零数据丢失的核心交易，才需要双活和多副本同步。</p>
             </div>
@@ -56,10 +60,34 @@
               <figcaption>图示：容灾等级越高，RTO 越短，成本和日常复杂度也越高；目标应由业务损失反推。</figcaption>
             </figure>
             <p class="key-point"><strong>重点</strong>容灾先定义故障域与 RTO / RPO，再选方案。防城市灾害的副本必须放得足够远，而距离会直接转化为复制延迟和成本。</p>
+                      <p class="story-bridge"><span>定义了故障域和恢复目标，</span>接下来要把容灾分成可选择的几档。<a href="#dr-tiers">比较容灾等级</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="two-three">
+<section class="post-section" aria-labelledby="dr-tiers">
+            <h2 id="dr-tiers" data-toc>容灾的四个等级：从备份到双活</h2>
+            <div class="prose">
+              <p>“做了容灾”可以指很多种不同的东西。按恢复方式和成本，通常分为四档：备份与恢复、冷备、温备、双活或多活。它们不是互斥的，核心系统可能用双活，周边系统只用备份恢复。</p>
+            </div>
+            <div class="table-wrap">
+              <table class="cmp">
+                <caption>容灾等级与适用场景</caption>
+                <thead><tr><th scope="col">等级</th><th scope="col">备用环境</th><th scope="col">典型 RTO</th><th scope="col">典型 RPO</th><th scope="col">适合业务</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">备份 / 恢复</th><td>只有离线备份，需要时重建</td><td>小时到天</td><td>上次备份点</td><td>内部工具、归档数据、非核心系统</td></tr>
+                  <tr><th scope="row">冷备</th><td>机器和网络就绪，应用和数据需恢复</td><td>小时级</td><td>备份频率决定</td><td>可接受较长停机的业务</td></tr>
+                  <tr><th scope="row">温备</th><td>环境运行，数据持续复制，不接流量</td><td>分钟级</td><td>复制延迟</td><td>大多数核心业务的灾备</td></tr>
+                  <tr><th scope="row">双活 / 多活</th><td>多个中心同时服务，流量可切换</td><td>秒级或接近 0</td><td>异步复制窗口</td><td>支付、登录、全国性业务</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="prose">
+              <p>等级越高，日常成本越高，但“RTO 更短”并不意味着“更可靠”。双活需要解决数据冲突、流量调度和容量冗余；温备如果长期不演练，切换时同样可能失败。选择时应把“恢复目标”和“验证能力”一起考虑，而不是只买更贵的设备。</p>
+            </div>
+            <p class="key-point key-point--amber"><strong>重点</strong>容灾等级不是越高越好，而是要与业务损失匹配。核心系统可以双活，非核心系统用备份恢复更经济；每一档都必须有演练和回切预案。</p>
+                      <p class="story-bridge"><span>对多数企业，</span>温备加两地三中心是成本与恢复速度的折中。<a href="#two-three">看两地三中心怎么运行</a></p>
+          </section>
+<section class="post-section" aria-labelledby="two-three">
             <h2 id="two-three" data-toc>两地三中心：单活 + 热备</h2>
+            <div class="prose"><p>对这家公司来说，完全双活太贵，只做备份又太慢。他们最终选择了同城双中心加异地备份——也就是常说的两地三中心。</p></div>
 
         <div class="instrument dr-demo" id="drDemo">
           <div class="instrument-bar">
@@ -146,32 +174,9 @@
         </div>
 
         
+                      <p class="story-bridge"><span>但业务走向全国后，</span>单活热备的延迟和闲置成本开始显现。<a href="#multi-active">走向异地多活</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="dr-tiers">
-            <h2 id="dr-tiers" data-toc>容灾的四个等级：从备份到双活</h2>
-            <div class="prose">
-              <p>“做了容灾”可以指很多种不同的东西。按恢复方式和成本，通常分为四档：备份与恢复、冷备、温备、双活或多活。它们不是互斥的，核心系统可能用双活，周边系统只用备份恢复。</p>
-            </div>
-            <div class="table-wrap">
-              <table class="cmp">
-                <caption>容灾等级与适用场景</caption>
-                <thead><tr><th scope="col">等级</th><th scope="col">备用环境</th><th scope="col">典型 RTO</th><th scope="col">典型 RPO</th><th scope="col">适合业务</th></tr></thead>
-                <tbody>
-                  <tr><th scope="row">备份 / 恢复</th><td>只有离线备份，需要时重建</td><td>小时到天</td><td>上次备份点</td><td>内部工具、归档数据、非核心系统</td></tr>
-                  <tr><th scope="row">冷备</th><td>机器和网络就绪，应用和数据需恢复</td><td>小时级</td><td>备份频率决定</td><td>可接受较长停机的业务</td></tr>
-                  <tr><th scope="row">温备</th><td>环境运行，数据持续复制，不接流量</td><td>分钟级</td><td>复制延迟</td><td>大多数核心业务的灾备</td></tr>
-                  <tr><th scope="row">双活 / 多活</th><td>多个中心同时服务，流量可切换</td><td>秒级或接近 0</td><td>异步复制窗口</td><td>支付、登录、全国性业务</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="prose">
-              <p>等级越高，日常成本越高，但“RTO 更短”并不意味着“更可靠”。双活需要解决数据冲突、流量调度和容量冗余；温备如果长期不演练，切换时同样可能失败。选择时应把“恢复目标”和“验证能力”一起考虑，而不是只买更贵的设备。</p>
-            </div>
-            <p class="key-point key-point--amber"><strong>重点</strong>容灾等级不是越高越好，而是要与业务损失匹配。核心系统可以双活，非核心系统用备份恢复更经济；每一档都必须有演练和回切预案。</p>
-          </section>
-
-          <section class="post-section" aria-labelledby="multi-active">
+<section class="post-section" aria-labelledby="multi-active">
             <h2 id="multi-active" data-toc>异地多活：多个数据中心同时服务</h2>
 <div class="prose">
           <p>全国乃至全球部署，让用户访问最近的数据中心。部署成本极高，技术复杂，资金和人员投入巨大。</p>
@@ -304,9 +309,9 @@
             </tbody>
           </table>
         </div>
+                      <p class="story-bridge"><span>多活不是目的，</span>故障时还要能切、能验证、能回切。<a href="#switch">把切换写成脚本</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="switch">
+<section class="post-section" aria-labelledby="switch">
             <h2 id="switch" data-toc>切换与回切：一场有脚本的协同</h2>
             <div class="prose">
               <p>灾备切换不是“把 DNS 指过去”这么简单。它至少包括：确认灾难范围和影响、冻结写入或停止旧中心、确认数据复制位点、提升备用中心、验证核心链路、切换流量入口、观察错误率和延迟，最后才逐步放开全部流量。每一步都需要明确的负责人和中止条件。</p>
@@ -342,9 +347,9 @@
               <p>组织层面要提前明确“谁有权宣布灾难”。如果没有授权，技术人员会在故障初期反复确认，错过最佳切换窗口；如果授权过于随意，又可能因为一次网络抖动误切，造成更大范围的中断。通常需要“技术负责人 + 业务负责人”共同确认，并把判定条件写进运行手册。</p>
             </div>
             <p class="key-point key-point--red"><strong>重点</strong>灾备切换是一次有脚本的协同，不是一条命令。切换前要能冻结旧中心，切换后要能验证数据；回切要先追平，再受控切回。</p>
+                      <p class="story-bridge"><span>切换能否成立，</span>最终取决于数据复制到了哪里。<a href="#data">看复制方式与丢失窗口</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="data">
+<section class="post-section" aria-labelledby="data">
             <h2 id="data" data-toc>数据复制：容灾的地基</h2>
             <div class="prose">
               <p>容灾方案的上限由数据复制决定。同城两中心距离近，可以使用同步复制获得 RPO = 0；跨地域距离远，同步复制会让每次写入都等待一次广域网往返，吞吐显著下降，因此通常采用异步复制，并接受一个有限的丢失窗口。</p>
@@ -363,9 +368,9 @@
               </table>
             </div>
             <p class="key-point key-point--violet"><strong>重点</strong>RPO 不是配置出来的，而是复制链路、距离和业务写入模式共同决定的。跨地域强同步会牺牲吞吐，异步复制则必须接受一个丢失窗口。</p>
+                      <p class="story-bridge"><span>复制配置好了，</span>也不代表备用中心真的能跑。<a href="#drill">用演练验证一切</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="drill">
+<section class="post-section" aria-labelledby="drill">
             <h2 id="drill" data-toc>演练与组织：备用中心必须“真的能跑”</h2>
             <div class="prose">
               <p>容灾最常见的失败不是技术方案不对，而是备用中心长期不运行：配置漂移、证书过期、依赖缺失、容量不足、联系人变更。真正切换时，问题会集中爆发。解决方式只有一个：定期演练，并把演练发现的问题纳入日常发布流程。</p>
@@ -403,9 +408,9 @@
               <div class="checklist-item"><span>06</span><p>回切条件、数据追平方式和验证步骤是否写进了运行手册？</p></div>
             </div>
             <p class="key-point"><strong>重点</strong>备用中心必须真的能跑。容灾能力不是购买来的，而是通过反复演练、修复和自动化逐步建立的。</p>
+          <p class="story-bridge"><span>收束</span>容灾的终点不是架构图，而是演练记录。<a href="#summary">回到本章小结</a></p>
           </section>
-
-          <section class="post-section" aria-labelledby="summary">
+<section class="post-section" aria-labelledby="summary">
             <h2 id="summary" data-toc>本章小结</h2>
             <div class="recap-grid">
               <div class="recap-item"><span>01</span><p>先定义故障域与 RTO / RPO，再选择备份、冷备、温备或双活。</p></div>

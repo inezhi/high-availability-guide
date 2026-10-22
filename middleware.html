@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/middleware.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/middleware.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-6">
+  <link rel="stylesheet" href="styles.css?v=20261022-7">
 </head>
 <body class="article-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -149,10 +149,10 @@
           <summary>本页目录</summary>
           <nav aria-label="本页小节">
             <a class="toc-level-2" href="#common">共同框架：复制、检测、选举、重定向</a>
-            <a class="toc-level-2" href="#mongodb">MongoDB：副本集与分片</a>
             <a class="toc-level-2" href="#redis">Redis：内存存储、持久化与缓存失效</a>
-            <a class="toc-level-2" href="#kafka">Kafka：分区副本撑起高可用</a>
+            <a class="toc-level-2" href="#mongodb">MongoDB：副本集与分片</a>
             <a class="toc-level-2" href="#mysql">MySQL：主从复制与一致性取舍</a>
+            <a class="toc-level-2" href="#kafka">Kafka：分区副本撑起高可用</a>
             <a class="toc-level-2" href="#selection">选型：先看数据模型，再看高可用</a>
           </nav>
         </details>
@@ -163,7 +163,7 @@
           </nav>
           <p class="chapter-kicker">第 05 章 · 系统</p>
           <h1>中间件高可用：四种系统的同一道题</h1>
-          <p class="post-lede">MongoDB、Redis、Kafka、MySQL 的高可用，底层都是冗余加故障转移，但副本粒度、选举方式和一致性取舍各不相同。把它们放在一起看，会发现同一道题的四种解法：谁复制数据、谁负责选举、客户端如何找到新的主节点，以及故障时到底会不会丢数据。</p>
+          <p class="post-lede">把一笔订单拆开看：用户打开商品页，会话和热点数据在 Redis；商品详情来自 MongoDB；下单后订单写入 MySQL；支付成功，消息进入 Kafka。本章跟着这笔订单走一遍，看四种系统各自如何复制、选举和故障转移。</p>
           <div class="post-meta">
             <span>阅读约 24 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -171,20 +171,23 @@
           </div>
         </header>
 
-        <aside class="post-takeaways" aria-label="本章要点">
-          <span class="takeaways-label">本章要点</span>
-          <ul>
-            <li>所有中间件高可用都可以拆成四件事：复制、检测、选举、客户端重定向。</li>
-            <li>副本越多、同步越强，一致性越好，但写入延迟和运维成本越高。</li>
-            <li>MongoDB 用副本集和分片，Redis 用哨兵和集群，Kafka 用分区副本，MySQL 用主从与复制策略。</li>
-            <li>自动故障转移不等于零丢失；复制方式决定了故障瞬间可能丢多少数据。</li>
-          </ul>
-        </aside>
+        <nav class="storyline" aria-label="本章故事线">
+          <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">从案例出发，沿着这条线读完本章</span></div>
+          <ol>
+            <li><a href="#common"><span class="storyline-index">01</span><span><strong>共同框架</strong><small>复制、检测、选举、重定向</small></span></a></li>
+            <li><a href="#redis"><span class="storyline-index">02</span><span><strong>商品页第一站</strong><small>缓存、持久化与哨兵</small></span></a></li>
+            <li><a href="#mongodb"><span class="storyline-index">03</span><span><strong>商品详情落库</strong><small>副本集与分片</small></span></a></li>
+            <li><a href="#mysql"><span class="storyline-index">04</span><span><strong>订单落库</strong><small>主从与复制策略</small></span></a></li>
+            <li><a href="#kafka"><span class="storyline-index">05</span><span><strong>下单后的消息</strong><small>分区副本与 ISR</small></span></a></li>
+            <li><a href="#selection"><span class="storyline-index">06</span><span><strong>回到选型</strong><small>先看数据模型，再看高可用</small></span></a></li>
+          </ol>
+        </nav>
 
         <div class="post-body chapter-body" id="postBody">
           <section class="post-section" aria-labelledby="common">
             <h2 id="common" data-toc>共同框架：复制、检测、选举、重定向</h2>
             <div class="prose">
+              <p>在跟着订单走之前，先把四种系统的共同骨架抽出来。</p>
               <p>几乎所有高可用中间件都可以拆成四个动作：把数据复制到多个节点；持续检测节点是否存活；在旧主失效后选出一个新主；让客户端把请求发到新主。不同产品的差异，主要在于复制单位有多大、选举由谁主持、客户端如何感知拓扑变化。</p>
             </div>
 
@@ -220,160 +223,17 @@
                 <caption>四种中间件的高可用对照</caption>
                 <thead><tr><th scope="col">系统</th><th scope="col">复制单位</th><th scope="col">故障转移</th><th scope="col">一致性旋钮</th><th scope="col">主要风险</th></tr></thead>
                 <tbody>
-                  <tr><th scope="row">MongoDB</th><td>副本集 / 分片</td><td>副本集自动选举</td><td>write concern / read concern</td><td>选举期间短暂不可写；分片键选错</td></tr>
                   <tr><th scope="row">Redis</th><td>主从节点 / 哈希槽</td><td>哨兵或集群自动切换</td><td>复制是异步的；WAIT / min-replicas</td><td>故障时丢最后一段写；脑裂</td></tr>
-                  <tr><th scope="row">Kafka</th><td>分区副本</td><td>Leader 重新选举</td><td>acks / min.insync.replicas</td><td>ISR 不足时写入阻塞或丢数据</td></tr>
+                  <tr><th scope="row">MongoDB</th><td>副本集 / 分片</td><td>副本集自动选举</td><td>write concern / read concern</td><td>选举期间短暂不可写；分片键选错</td></tr>
                   <tr><th scope="row">MySQL</th><td>binlog / 事务</td><td>外部工具或组复制</td><td>异步 / 半同步 / 全同步</td><td>复制延迟；切换工具与数据一致性</td></tr>
+                  <tr><th scope="row">Kafka</th><td>分区副本</td><td>Leader 重新选举</td><td>acks / min.insync.replicas</td><td>ISR 不足时写入阻塞或丢数据</td></tr>
                 </tbody>
               </table>
             </div>
             <p class="key-point"><strong>重点</strong>看任何中间件的高可用，先问四个问题：复制单位是什么、谁负责选主、客户端如何找到新主、故障瞬间会丢多少数据。</p>
+                      <p class="story-bridge"><span>先从</span>用户打开商品页开始——请求最先到达的是缓存。<a href="#redis">看 Redis 的高可用</a></p>
           </section>
-
-          <section class="post-section product-section" aria-labelledby="mongodb">
-            <h2 id="mongodb" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-mongo"/></svg>MongoDB：副本集与分片</h2>
-            <div class="prose">
-              <p>副本集解决单节点故障：多数节点存活，即可选举出新的主节点。分片解决单机容量：数据按分片键分布到多个 shard，每个 shard 本身又是一个副本集。两者叠加，才能同时获得故障转移和水平扩展能力。</p>
-              <p>下面先看整体结构，再看主从、副本集与分片三种部署形态。</p>
-            </div>
-            
-            <div class="arch">
-              <div class="arch-box">
-                <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-user"/></svg>
-                <span class="mono">CLIENT</span><strong>应用</strong>
-              </div>
-              <div class="arch-link">→</div>
-              <div class="arch-box arch-box-accent">
-                <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-network"/></svg>
-                <span class="mono">ROUTER</span><strong>mongos</strong><small>请求转发到分片</small>
-              </div>
-              <div class="arch-link">→</div>
-              <div class="arch-group">
-                <div class="arch-box">
-                  <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-db"/></svg>
-                  <span class="mono">SHARD 1</span><strong>副本集</strong><small>一部分数据</small>
-                </div>
-                <div class="arch-box">
-                  <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-db"/></svg>
-                  <span class="mono">SHARD 2</span><strong>副本集</strong><small>另一部分数据</small>
-                </div>
-              </div>
-            </div>
-            <div class="arch-config"><span class="mono">CONFIG SERVERS · CSRS</span><p>存储分片元信息，本身用高可用方式部署；mongos 靠它知道数据在哪。</p></div>
-            <div class="mode-list">
-              <article class="mode-row">
-                <div class="mode-figure">
-                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
-                    <rect class="dg-node dg-node-ok" x="14" y="26" width="76" height="30" rx="5"/>
-                    <text class="dg-tiny" x="52" y="44" text-anchor="middle">主 · 读写</text>
-                    <rect class="dg-node" x="130" y="26" width="76" height="30" rx="5"/>
-                    <text class="dg-tiny" x="168" y="44" text-anchor="middle">从 · 备份/只读</text>
-                    <line class="dg-line" x1="90" y1="41" x2="128" y2="41" marker-end="url(#arr)"/>
-                    <text class="dg-tiny dg-t-muted" x="109" y="33" text-anchor="middle">复制</text>
-                    <text class="dg-tiny dg-t-bad" x="110" y="78" text-anchor="middle">无自动故障转移</text>
-                  </svg>
-                </div>
-                <div class="mode-content">
-                  <div class="mode-title"><h4>主从</h4><span class="tag tag-warn">已废弃 · 不推荐</span></div>
-                  <p>用法一：从库只做实时备份，不干活。用法二：读写分离，从库只读。没有故障转移，宕机必须手动切库，应用还得改连接信息。</p>
-                </div>
-              </article>
-              <article class="mode-row">
-                <div class="mode-figure">
-                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
-                    <rect class="dg-node dg-node-ok" x="14" y="10" width="64" height="24" rx="5"/>
-                    <text class="dg-tiny" x="46" y="26" text-anchor="middle">A · 主</text>
-                    <rect class="dg-node" x="142" y="10" width="64" height="24" rx="5"/>
-                    <text class="dg-tiny" x="174" y="26" text-anchor="middle">B · 副本</text>
-                    <rect class="dg-node" x="78" y="54" width="64" height="24" rx="5"/>
-                    <text class="dg-tiny" x="110" y="70" text-anchor="middle">C · 副本</text>
-                    <path class="dg-line dg-dash" d="M46 34 L100 54 M174 34 L120 54 M78 22 H142"/>
-                    <text class="dg-tiny dg-t-muted" x="110" y="90" text-anchor="middle">心跳 · 选举 · 全量数据</text>
-                  </svg>
-                </div>
-                <div class="mode-content">
-                  <div class="mode-title"><h4>副本集</h4><span class="tag tag-good">推荐</span></div>
-                  <p>选举出 master 负责读写，其他副本承担备份和读操作；节点间心跳判定可用；每个节点都保存全量数据。</p>
-                </div>
-              </article>
-              <article class="mode-row">
-                <div class="mode-figure">
-                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
-                    <rect class="dg-node" x="8" y="32" width="58" height="24" rx="5"/>
-                    <text class="dg-tiny" x="37" y="47" text-anchor="middle">mongos</text>
-                    <rect class="dg-node" x="106" y="6" width="104" height="24" rx="5"/>
-                    <text class="dg-tiny" x="158" y="22" text-anchor="middle">Shard 1 · 副本集</text>
-                    <rect class="dg-node" x="106" y="54" width="104" height="24" rx="5"/>
-                    <text class="dg-tiny" x="158" y="70" text-anchor="middle">Shard 2 · 副本集</text>
-                    <path class="dg-line" d="M66 40 L104 22 M66 48 L104 62" marker-end="url(#arr)"/>
-                    <rect class="dg-node dg-node-ghost" x="8" y="70" width="58" height="18" rx="4"/>
-                    <text class="dg-tiny" x="37" y="82" text-anchor="middle">CSRS</text>
-                    <line class="dg-line dg-dash" x1="37" y1="70" x2="37" y2="56"/>
-                  </svg>
-                </div>
-                <div class="mode-content">
-                  <div class="mode-title"><h4>分片</h4><span class="tag tag-info">水平扩展</span></div>
-                  <p>三个角色：shard、router、config servers。只对部分集合分片；未分片的集合必须放在主分片；分片键选中后不能改。</p>
-                </div>
-              </article>
-            </div>
-            <div class="split-visual">
-              <div class="split-head"><h4>分片算法</h4><span class="fineprint">选键之后不可改</span></div>
-              <div class="split-row"><span class="mono">HASH</span><div class="chunk-row chunk-hash"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>均匀，但不连续。</p></div>
-              <div class="split-row"><span class="mono">RANGE</span><div class="chunk-row chunk-range"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>连续区间，可能不均匀，末尾分片容易成热点。</p></div>
-            </div>
-
-            <p class="key-point"><strong>重点</strong>副本集解决节点故障，分片解决单机容量；分片键一旦选定不可修改。Hash 分片均匀但范围查询要扫多个分片，Range 分片利于范围查询但容易出现热点。</p>
-
-
-            <div class="section-sub section-sub-tight">
-              <h3>写关注与读偏好：一致性由客户端选择</h3>
-            </div>
-            <div class="prose">
-              <p>MongoDB 把一致性的一部分控制权交给了客户端。写关注（write concern）决定一次写入需要多少个节点确认才返回；读偏好（read preference）决定查询发给主节点、从节点还是最近节点。两者组合，可以在延迟与一致性之间做细粒度权衡。</p>
-              <p><code>w:1</code> 只等主节点确认，写入最快，但主节点故障时可能丢失尚未复制到从节点的数据；<code>w:majority</code> 等待多数节点确认，故障时更安全，但写入延迟更高。读偏好设为从节点可以分担读压力，却可能读到旧数据，适合对实时性要求不高的查询。</p>
-            </div>
-            <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 640 190" role="img" aria-label="MongoDB 写关注 w:1 与 w:majority 的确认路径">
-                <rect class="dg-node-blue" x="10" y="70" width="78" height="44" rx="6"/>
-                <text class="dg-xs" x="49" y="97" text-anchor="middle">客户端</text>
-                <line class="dg-line" x1="88" y1="84" x2="150" y2="84" marker-end="url(#arr)"/>
-                <rect class="dg-node-green" x="152" y="60" width="110" height="50" rx="6"/>
-                <text class="dg-xs" x="207" y="82" text-anchor="middle">主节点</text>
-                <text class="dg-tiny" x="207" y="99" text-anchor="middle">接收写入</text>
-                <line class="dg-line-ok" x1="152" y1="94" x2="92" y2="100" marker-end="url(#arr-ok)"/>
-                <text class="dg-tiny dg-t-ok" x="122" y="116" text-anchor="middle">w:1 立即确认</text>
-                <line class="dg-line" x1="262" y1="74" x2="330" y2="44" marker-end="url(#arr)"/>
-                <line class="dg-line" x1="262" y1="96" x2="330" y2="126" marker-end="url(#arr)"/>
-                <rect class="dg-node" x="332" y="20" width="100" height="40" rx="5"/>
-                <text class="dg-xs" x="382" y="45" text-anchor="middle">副本 1</text>
-                <rect class="dg-node" x="332" y="110" width="100" height="40" rx="5"/>
-                <text class="dg-xs" x="382" y="135" text-anchor="middle">副本 2</text>
-                <path class="dg-line-ok dg-dash" d="M432 40 H486 V82 H520" marker-end="url(#arr-ok)"/>
-                <path class="dg-line-ok dg-dash" d="M432 130 H486 V94 H520" marker-end="url(#arr-ok)"/>
-                <rect class="dg-node-ok" x="522" y="62" width="108" height="52" rx="6"/>
-                <text class="dg-xs dg-t-ok" x="576" y="83" text-anchor="middle">w:majority</text>
-                <text class="dg-tiny" x="576" y="100" text-anchor="middle">多数确认后才返回</text>
-                <text class="dg-tiny dg-t-muted" x="320" y="178" text-anchor="middle">w:1 快但可能丢最后一段写；w:majority 更安全，但每次写入多等一次副本确认。</text>
-              </svg>
-              <figcaption>图示：写关注决定客户端何时收到确认；确认节点越多，故障时越安全，延迟也越高。</figcaption>
-            </figure>
-
-            <div class="table-wrap">
-              <table class="cmp">
-                <caption>分片键的选择</caption>
-                <thead><tr><th scope="col">类型</th><th scope="col">优点</th><th scope="col">风险</th><th scope="col">适合</th></tr></thead>
-                <tbody>
-                  <tr><th scope="row">Hash 分片</th><td>分布均匀，写入分散</td><td>范围查询要扫多个分片</td><td>按用户 ID 随机读写</td></tr>
-                  <tr><th scope="row">Range 分片</th><td>范围查询高效</td><td>末尾分片容易成为热点</td><td>时间序列、按区间查询</td></tr>
-                  <tr><th scope="row">复合分片键</th><td>兼顾分布与查询</td><td>设计复杂，选定后难改</td><td>多租户、地域 + 用户</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="key-point"><strong>重点</strong>MongoDB 的一致性由客户端选择：w:1 快但可能丢数据，w:majority 更安全但更慢。分片键一旦选定不可修改，选键时要同时考虑分布均匀和查询模式。</p>
-          </section>
-
-          <section class="post-section product-section" aria-labelledby="redis">
+<section class="post-section product-section" aria-labelledby="redis">
             <h2 id="redis" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-redis"/></svg>Redis：内存存储、持久化与缓存失效</h2>
             <div class="prose">
               <p>数据全在内存里，读写性能远超关系型数据库，通常作为缓存减少数据库访问和磁盘读写。高可用之外，先要照顾持久化和缓存失效。</p>
@@ -618,143 +478,152 @@
               <p>缓存侧还要区分三类问题：雪崩是大面积失效，击穿是单个热点失效，穿透是查询根本不存在的数据。它们对应的治理手段不同：雪崩用过期时间打散和多级缓存，击穿用互斥锁或逻辑过期，穿透用布隆过滤器和空值缓存。</p>
             </div>
             <p class="key-point key-point--amber"><strong>重点</strong>RDB 会丢一个备份周期，AOF everysec 最多丢约 1 秒；哨兵依靠多数判定完成客观下线与主从切换，集群依靠 16384 个哈希槽分片。自动切换不等于零丢失。</p>
+                      <p class="story-bridge"><span>缓存没命中，</span>请求落到商品库。<a href="#mongodb">看 MongoDB 的副本集与分片</a></p>
           </section>
-
-          <section class="post-section product-section" aria-labelledby="kafka">
-            <h2 id="kafka" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-kafka"/></svg>Kafka：分区副本撑起高可用</h2>
+<section class="post-section product-section" aria-labelledby="mongodb">
+            <h2 id="mongodb" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-mongo"/></svg>MongoDB：副本集与分片</h2>
             <div class="prose">
-              <p>消息先进入分区，分区有 Leader 和 Follower 副本；Leader 故障，Follower 被选举上位。高可用发生在“分区”这一级，而不是整台 Broker。</p>
-              <p>Kafka 的高可用单位是分区，而不是 Broker。每个分区有一个 Leader 和若干 Follower；生产者只写 Leader，Follower 持续拉取复制。Leader 故障后，集群从同步副本中选举新的 Leader，分区继续可写。</p>
+              <p>副本集解决单节点故障：多数节点存活，即可选举出新的主节点。分片解决单机容量：数据按分片键分布到多个 shard，每个 shard 本身又是一个副本集。两者叠加，才能同时获得故障转移和水平扩展能力。</p>
+              <p>下面先看整体结构，再看主从、副本集与分片三种部署形态。</p>
             </div>
             
-            <div class="mq-pair">
-              <div class="mq-card">
-                <span class="mono">POINT-TO-POINT</span><h4>点对点</h4>
-                <p>生产者把消息发到队列，多个消费者监听，但一条消息只有一个消费者能消费。</p>
-                <figure class="mq-fig">
-                  <svg class="dg" viewBox="0 0 320 80" aria-hidden="true">
-                    <rect class="dg-node" x="6" y="28" width="58" height="24" rx="4"/>
-                    <text class="dg-tiny" x="35" y="43" text-anchor="middle">生产者</text>
-                    <line class="dg-line" x1="64" y1="40" x2="98" y2="40" marker-end="url(#arr)"/>
-                    <rect class="dg-node" x="100" y="18" width="90" height="44" rx="5"/>
-                    <rect class="dg-key" x="110" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="135" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="160" y="28" width="20" height="9" rx="2"/>
-                    <text class="dg-tiny dg-t-muted" x="145" y="54" text-anchor="middle">队列</text>
-                    <line class="dg-line dg-line-ok" x1="190" y1="30" x2="248" y2="20" marker-end="url(#arr-ok)"/>
-                    <path class="dg-line dg-dash" d="M190 50 H246" marker-end="url(#arr)"/>
-                    <path class="dg-x" d="M236 44l8 8M244 44l-8 8"/>
-                    <rect class="dg-node dg-node-ok" x="250" y="8" width="62" height="24" rx="4"/>
-                    <text class="dg-tiny" x="281" y="24" text-anchor="middle">消费者 1</text>
-                    <rect class="dg-node dg-node-ghost" x="250" y="48" width="62" height="24" rx="4"/>
-                    <text class="dg-tiny" x="281" y="64" text-anchor="middle">消费者 2</text>
+            <div class="arch">
+              <div class="arch-box">
+                <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-user"/></svg>
+                <span class="mono">CLIENT</span><strong>应用</strong>
+              </div>
+              <div class="arch-link">→</div>
+              <div class="arch-box arch-box-accent">
+                <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-network"/></svg>
+                <span class="mono">ROUTER</span><strong>mongos</strong><small>请求转发到分片</small>
+              </div>
+              <div class="arch-link">→</div>
+              <div class="arch-group">
+                <div class="arch-box">
+                  <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-db"/></svg>
+                  <span class="mono">SHARD 1</span><strong>副本集</strong><small>一部分数据</small>
+                </div>
+                <div class="arch-box">
+                  <svg class="spot-icon arch-icon" aria-hidden="true"><use href="#i-db"/></svg>
+                  <span class="mono">SHARD 2</span><strong>副本集</strong><small>另一部分数据</small>
+                </div>
+              </div>
+            </div>
+            <div class="arch-config"><span class="mono">CONFIG SERVERS · CSRS</span><p>存储分片元信息，本身用高可用方式部署；mongos 靠它知道数据在哪。</p></div>
+            <div class="mode-list">
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="14" y="26" width="76" height="30" rx="5"/>
+                    <text class="dg-tiny" x="52" y="44" text-anchor="middle">主 · 读写</text>
+                    <rect class="dg-node" x="130" y="26" width="76" height="30" rx="5"/>
+                    <text class="dg-tiny" x="168" y="44" text-anchor="middle">从 · 备份/只读</text>
+                    <line class="dg-line" x1="90" y1="41" x2="128" y2="41" marker-end="url(#arr)"/>
+                    <text class="dg-tiny dg-t-muted" x="109" y="33" text-anchor="middle">复制</text>
+                    <text class="dg-tiny dg-t-bad" x="110" y="78" text-anchor="middle">无自动故障转移</text>
                   </svg>
-                </figure>
-              </div>
-              <div class="mq-card">
-                <span class="mono">PUB / SUB</span><h4>订阅</h4>
-                <p>生产者把消息发到主题，订阅了这个主题的消费者都能收到。</p>
-                <figure class="mq-fig">
-                  <svg class="dg" viewBox="0 0 320 80" aria-hidden="true">
-                    <rect class="dg-node" x="6" y="28" width="58" height="24" rx="4"/>
-                    <text class="dg-tiny" x="35" y="43" text-anchor="middle">生产者</text>
-                    <line class="dg-line" x1="64" y1="40" x2="98" y2="40" marker-end="url(#arr)"/>
-                    <rect class="dg-node" x="100" y="18" width="90" height="44" rx="5"/>
-                    <rect class="dg-key" x="110" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="135" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="160" y="28" width="20" height="9" rx="2"/>
-                    <text class="dg-tiny dg-t-muted" x="145" y="54" text-anchor="middle">主题</text>
-                    <line class="dg-line dg-line-ok" x1="190" y1="30" x2="248" y2="20" marker-end="url(#arr-ok)"/>
-                    <line class="dg-line dg-line-ok" x1="190" y1="50" x2="248" y2="60" marker-end="url(#arr-ok)"/>
-                    <rect class="dg-node dg-node-ok" x="250" y="8" width="62" height="24" rx="4"/>
-                    <text class="dg-tiny" x="281" y="24" text-anchor="middle">消费者 1</text>
-                    <rect class="dg-node dg-node-ok" x="250" y="48" width="62" height="24" rx="4"/>
-                    <text class="dg-tiny" x="281" y="64" text-anchor="middle">消费者 2</text>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>主从</h4><span class="tag tag-warn">已废弃 · 不推荐</span></div>
+                  <p>用法一：从库只做实时备份，不干活。用法二：读写分离，从库只读。没有故障转移，宕机必须手动切库，应用还得改连接信息。</p>
+                </div>
+              </article>
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node dg-node-ok" x="14" y="10" width="64" height="24" rx="5"/>
+                    <text class="dg-tiny" x="46" y="26" text-anchor="middle">A · 主</text>
+                    <rect class="dg-node" x="142" y="10" width="64" height="24" rx="5"/>
+                    <text class="dg-tiny" x="174" y="26" text-anchor="middle">B · 副本</text>
+                    <rect class="dg-node" x="78" y="54" width="64" height="24" rx="5"/>
+                    <text class="dg-tiny" x="110" y="70" text-anchor="middle">C · 副本</text>
+                    <path class="dg-line dg-dash" d="M46 34 L100 54 M174 34 L120 54 M78 22 H142"/>
+                    <text class="dg-tiny dg-t-muted" x="110" y="90" text-anchor="middle">心跳 · 选举 · 全量数据</text>
                   </svg>
-                </figure>
-              </div>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>副本集</h4><span class="tag tag-good">推荐</span></div>
+                  <p>选举出 master 负责读写，其他副本承担备份和读操作；节点间心跳判定可用；每个节点都保存全量数据。</p>
+                </div>
+              </article>
+              <article class="mode-row">
+                <div class="mode-figure">
+                  <svg class="dg" viewBox="0 0 220 92" aria-hidden="true">
+                    <rect class="dg-node" x="8" y="32" width="58" height="24" rx="5"/>
+                    <text class="dg-tiny" x="37" y="47" text-anchor="middle">mongos</text>
+                    <rect class="dg-node" x="106" y="6" width="104" height="24" rx="5"/>
+                    <text class="dg-tiny" x="158" y="22" text-anchor="middle">Shard 1 · 副本集</text>
+                    <rect class="dg-node" x="106" y="54" width="104" height="24" rx="5"/>
+                    <text class="dg-tiny" x="158" y="70" text-anchor="middle">Shard 2 · 副本集</text>
+                    <path class="dg-line" d="M66 40 L104 22 M66 48 L104 62" marker-end="url(#arr)"/>
+                    <rect class="dg-node dg-node-ghost" x="8" y="70" width="58" height="18" rx="4"/>
+                    <text class="dg-tiny" x="37" y="82" text-anchor="middle">CSRS</text>
+                    <line class="dg-line dg-dash" x1="37" y1="70" x2="37" y2="56"/>
+                  </svg>
+                </div>
+                <div class="mode-content">
+                  <div class="mode-title"><h4>分片</h4><span class="tag tag-info">水平扩展</span></div>
+                  <p>三个角色：shard、router、config servers。只对部分集合分片；未分片的集合必须放在主分片；分片键选中后不能改。</p>
+                </div>
+              </article>
             </div>
-            <div class="adv-row">
-              <span class="tag">高吞吐 · 低延迟</span><span class="tag">可用 · 可扩展</span><span class="tag">持久 · 可靠</span><span class="tag">容错</span><span class="tag">高并发</span>
+            <div class="split-visual">
+              <div class="split-head"><h4>分片算法</h4><span class="fineprint">选键之后不可改</span></div>
+              <div class="split-row"><span class="mono">HASH</span><div class="chunk-row chunk-hash"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>均匀，但不连续。</p></div>
+              <div class="split-row"><span class="mono">RANGE</span><div class="chunk-row chunk-range"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>连续区间，可能不均匀，末尾分片容易成热点。</p></div>
             </div>
-            <div class="kafka-arch">
-              <div class="kafka-producer"><svg class="spot-icon kafka-icon" aria-hidden="true"><use href="#i-user"/></svg><span class="mono">PRODUCER</span><strong>生产者</strong><small>写入 Leader</small></div>
-              <div class="kafka-parts">
-                <div class="kpart"><div class="kpart-head"><span class="mono">P0</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B1</span><span class="knode">B2</span></div><small>Leader → Follower 同步</small></div>
-                <div class="kpart"><div class="kpart-head"><span class="mono">P1</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B2</span><span class="knode">B3</span></div><small>副本保证分区可用</small></div>
-                <div class="kpart"><div class="kpart-head"><span class="mono">P2</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B3</span><span class="knode">B1</span></div><small>Leader 故障则选举</small></div>
-              </div>
-              <div class="kafka-consumer"><svg class="spot-icon kafka-icon" aria-hidden="true"><use href="#i-mail"/></svg><span class="mono">CONSUMER</span><strong>消费者</strong><small>按分区消费</small></div>
-            </div>
-            <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 380 132" role="img" aria-label="Kafka 分区 Leader 故障后，Follower 被选举为新 Leader">
-                <text class="dg-tiny dg-t-muted" x="8" y="16">故障前 · P0</text>
-                <rect class="dg-node dg-node-ok" x="34" y="24" width="88" height="24" rx="4"/>
-                <text class="dg-tiny" x="78" y="40" text-anchor="middle">B1 · Leader</text>
-                <rect class="dg-node" x="146" y="24" width="88" height="24" rx="4"/>
-                <text class="dg-tiny" x="190" y="40" text-anchor="middle">B2 · Follower</text>
-                <rect class="dg-node" x="258" y="24" width="88" height="24" rx="4"/>
-                <text class="dg-tiny" x="302" y="40" text-anchor="middle">B3 · Follower</text>
-                <line class="dg-line dg-line-bad" x1="190" y1="52" x2="190" y2="74" marker-end="url(#arr-bad)"/>
-                <text class="dg-tiny dg-t-bad" x="196" y="68" text-anchor="start">Leader 故障 · 选举</text>
-                <text class="dg-tiny dg-t-muted" x="8" y="94">故障后 · P0</text>
-                <rect class="dg-node dg-node-bad" x="34" y="102" width="88" height="24" rx="4"/>
-                <text class="dg-tiny dg-t-bad" x="78" y="118" text-anchor="middle">B1 · 离线</text>
-                <rect class="dg-node dg-node-ok" x="146" y="102" width="88" height="24" rx="4"/>
-                <text class="dg-tiny" x="190" y="118" text-anchor="middle">B2 · 新 Leader</text>
-                <rect class="dg-node" x="258" y="102" width="88" height="24" rx="4"/>
-                <text class="dg-tiny" x="302" y="118" text-anchor="middle">B3 · Follower</text>
-              </svg>
-            </figure>
-            <ul class="tight-list kafka-list">
-              <li>集群借助 ZooKeeper 存节点元数据，实现 Broker 高可用；新版 Kafka 也支持不依赖 ZooKeeper 的 KRaft 模式。</li>
-              <li>每个主题划分多个分区，消息按算法分配到不同分区；分区不可用会丢数据，所以用分区副本兜底。</li>
-              <li>生产者写 Leader 副本，Leader 同步给 Follower；Leader 故障，选举一个 Follower 升为 Leader。</li>
-            </ul>
 
-            <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区：Leader 故障后由同步副本接替，分区继续可写。Broker 数量并不等于副本数量，扩分区时还要考虑副本分布。</p>
+            <p class="key-point"><strong>重点</strong>副本集解决节点故障，分片解决单机容量；分片键一旦选定不可修改。Hash 分片均匀但范围查询要扫多个分片，Range 分片利于范围查询但容易出现热点。</p>
 
 
             <div class="section-sub section-sub-tight">
-              <h3>ISR 与 acks：可靠性由生产者与主题共同决定</h3>
+              <h3>写关注与读偏好：一致性由客户端选择</h3>
             </div>
             <div class="prose">
-              <p>Kafka 把“追得上 Leader 的副本”称为 ISR（In-Sync Replicas）。生产者设置 <code>acks=all</code> 时，Leader 会等待 ISR 中的副本确认；主题设置 <code>min.insync.replicas</code> 时，只有 ISR 数量达到下限才接受写入。两者配合，才能在 Broker 故障时尽量不丢消息。</p>
-              <p>如果允许“非同步副本”被选为 Leader（unclean leader election），分区可以更快恢复可用，但可能丢失未同步的消息。大多数业务应关闭该选项，让分区在 ISR 不足时短暂不可用，而不是悄悄丢数据。</p>
+              <p>MongoDB 把一致性的一部分控制权交给了客户端。写关注（write concern）决定一次写入需要多少个节点确认才返回；读偏好（read preference）决定查询发给主节点、从节点还是最近节点。两者组合，可以在延迟与一致性之间做细粒度权衡。</p>
+              <p><code>w:1</code> 只等主节点确认，写入最快，但主节点故障时可能丢失尚未复制到从节点的数据；<code>w:majority</code> 等待多数节点确认，故障时更安全，但写入延迟更高。读偏好设为从节点可以分担读压力，却可能读到旧数据，适合对实时性要求不高的查询。</p>
             </div>
             <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 660 230" role="img" aria-label="Kafka 生产者 acks 与 ISR 副本确认">
-                <rect class="dg-node-blue" x="12" y="86" width="86" height="46" rx="6"/>
-                <text class="dg-xs" x="55" y="113" text-anchor="middle">生产者</text>
-                <line class="dg-line" x1="98" y1="104" x2="154" y2="104" marker-end="url(#arr)"/>
-                <text class="dg-tiny dg-t-blue" x="126" y="96" text-anchor="middle">acks</text>
-                <rect class="dg-node-green" x="156" y="76" width="120" height="64" rx="6"/>
-                <text class="dg-xs" x="216" y="100" text-anchor="middle">Leader</text>
-                <text class="dg-tiny" x="216" y="118" text-anchor="middle">P0 · 接收写入</text>
-                <line class="dg-line" x1="276" y1="94" x2="358" y2="48" marker-end="url(#arr)"/>
-                <line class="dg-line" x1="276" y1="113" x2="358" y2="113" marker-end="url(#arr)"/>
-                <line class="dg-line" x1="276" y1="122" x2="358" y2="178" marker-end="url(#arr)"/>
-                <rect class="dg-node" x="360" y="26" width="120" height="44" rx="5"/>
-                <text class="dg-xs" x="420" y="45" text-anchor="middle">ISR 副本 1</text>
-                <text class="dg-tiny" x="420" y="61" text-anchor="middle">已同步</text>
-                <rect class="dg-node-bad" x="360" y="92" width="120" height="42" rx="5" stroke-dasharray="4 3"/>
-                <text class="dg-tiny dg-t-bad" x="420" y="110" text-anchor="middle">落后副本</text>
-                <text class="dg-tiny dg-t-bad" x="420" y="125" text-anchor="middle">不在 ISR</text>
-                <rect class="dg-node" x="360" y="156" width="120" height="44" rx="5"/>
-                <text class="dg-xs" x="420" y="175" text-anchor="middle">ISR 副本 2</text>
-                <text class="dg-tiny" x="420" y="191" text-anchor="middle">已同步</text>
-                <path class="dg-line-ok dg-dash" d="M480 48 H528 V98 H558" marker-end="url(#arr-ok)"/>
-                <path class="dg-line-ok dg-dash" d="M480 178 H528 V118 H558" marker-end="url(#arr-ok)"/>
-                <rect class="dg-node-ok" x="560" y="80" width="88" height="56" rx="6"/>
-                <text class="dg-xs dg-t-ok" x="604" y="101" text-anchor="middle">acks=all</text>
-                <text class="dg-tiny" x="604" y="118" text-anchor="middle">ISR 确认</text>
-                <text class="dg-tiny dg-t-muted" x="330" y="218" text-anchor="middle">acks=all + min.insync.replicas 才可靠；落后副本不计入确认。</text>
+              <svg class="dg" viewBox="0 0 640 190" role="img" aria-label="MongoDB 写关注 w:1 与 w:majority 的确认路径">
+                <rect class="dg-node-blue" x="10" y="70" width="78" height="44" rx="6"/>
+                <text class="dg-xs" x="49" y="97" text-anchor="middle">客户端</text>
+                <line class="dg-line" x1="88" y1="84" x2="150" y2="84" marker-end="url(#arr)"/>
+                <rect class="dg-node-green" x="152" y="60" width="110" height="50" rx="6"/>
+                <text class="dg-xs" x="207" y="82" text-anchor="middle">主节点</text>
+                <text class="dg-tiny" x="207" y="99" text-anchor="middle">接收写入</text>
+                <line class="dg-line-ok" x1="152" y1="94" x2="92" y2="100" marker-end="url(#arr-ok)"/>
+                <text class="dg-tiny dg-t-ok" x="122" y="116" text-anchor="middle">w:1 立即确认</text>
+                <line class="dg-line" x1="262" y1="74" x2="330" y2="44" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="262" y1="96" x2="330" y2="126" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="332" y="20" width="100" height="40" rx="5"/>
+                <text class="dg-xs" x="382" y="45" text-anchor="middle">副本 1</text>
+                <rect class="dg-node" x="332" y="110" width="100" height="40" rx="5"/>
+                <text class="dg-xs" x="382" y="135" text-anchor="middle">副本 2</text>
+                <path class="dg-line-ok dg-dash" d="M432 40 H486 V82 H520" marker-end="url(#arr-ok)"/>
+                <path class="dg-line-ok dg-dash" d="M432 130 H486 V94 H520" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node-ok" x="522" y="62" width="108" height="52" rx="6"/>
+                <text class="dg-xs dg-t-ok" x="576" y="83" text-anchor="middle">w:majority</text>
+                <text class="dg-tiny" x="576" y="100" text-anchor="middle">多数确认后才返回</text>
+                <text class="dg-tiny dg-t-muted" x="320" y="178" text-anchor="middle">w:1 快但可能丢最后一段写；w:majority 更安全，但每次写入多等一次副本确认。</text>
               </svg>
-              <figcaption>图示：生产者等待 ISR 副本确认；落后太多的副本不算同步副本，不能用来满足 acks=all。</figcaption>
+              <figcaption>图示：写关注决定客户端何时收到确认；确认节点越多，故障时越安全，延迟也越高。</figcaption>
             </figure>
-            <div class="prose">
-              <p>消费者侧的高可用由消费组负责：分区在消费者之间分配，某个消费者退出会触发 rebalance。rebalance 期间消费会短暂停顿，因此要避免频繁扩缩容和长时间处理单条消息；必要时可以用静态成员或增量协作协议减少抖动。</p>
-            </div>
-            <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区：Leader 故障后由同步副本接替。可靠性取决于 acks 与 min.insync.replicas 的组合；允许非同步副本选主可以更快恢复，但可能丢消息。</p>
-          </section>
 
-          <section class="post-section product-section" aria-labelledby="mysql">
+            <div class="table-wrap">
+              <table class="cmp">
+                <caption>分片键的选择</caption>
+                <thead><tr><th scope="col">类型</th><th scope="col">优点</th><th scope="col">风险</th><th scope="col">适合</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">Hash 分片</th><td>分布均匀，写入分散</td><td>范围查询要扫多个分片</td><td>按用户 ID 随机读写</td></tr>
+                  <tr><th scope="row">Range 分片</th><td>范围查询高效</td><td>末尾分片容易成为热点</td><td>时间序列、按区间查询</td></tr>
+                  <tr><th scope="row">复合分片键</th><td>兼顾分布与查询</td><td>设计复杂，选定后难改</td><td>多租户、地域 + 用户</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="key-point"><strong>重点</strong>MongoDB 的一致性由客户端选择：w:1 快但可能丢数据，w:majority 更安全但更慢。分片键一旦选定不可修改，选键时要同时考虑分布均匀和查询模式。</p>
+                      <p class="story-bridge"><span>用户决定下单，</span>订单要写入关系型数据库。<a href="#mysql">看 MySQL 的主从与复制策略</a></p>
+          </section>
+<section class="post-section product-section" aria-labelledby="mysql">
             <h2 id="mysql" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-mysql"/></svg>MySQL：主从复制与一致性取舍</h2>
             <div class="prose">
               <p>主备、主从、互为主从解决读扩展和备份，真正的取舍在复制策略：等不等从库，等几个从库。</p>
@@ -954,9 +823,143 @@
               </table>
             </div>
             <p class="key-point key-point--violet"><strong>重点</strong>异步复制快，但主库故障时可能丢数据；全同步一致性强，但等待所有从库、延迟最高；半同步只等至少一个从库确认，是两者的折中。复制策略不等于自动故障转移。</p>
+                      <p class="story-bridge"><span>订单落库后，</span>系统还要通知库存、物流和积分。<a href="#kafka">看 Kafka 的分区副本</a></p>
           </section>
+<section class="post-section product-section" aria-labelledby="kafka">
+            <h2 id="kafka" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-kafka"/></svg>Kafka：分区副本撑起高可用</h2>
+            <div class="prose">
+              <p>消息先进入分区，分区有 Leader 和 Follower 副本；Leader 故障，Follower 被选举上位。高可用发生在“分区”这一级，而不是整台 Broker。</p>
+              <p>Kafka 的高可用单位是分区，而不是 Broker。每个分区有一个 Leader 和若干 Follower；生产者只写 Leader，Follower 持续拉取复制。Leader 故障后，集群从同步副本中选举新的 Leader，分区继续可写。</p>
+            </div>
+            
+            <div class="mq-pair">
+              <div class="mq-card">
+                <span class="mono">POINT-TO-POINT</span><h4>点对点</h4>
+                <p>生产者把消息发到队列，多个消费者监听，但一条消息只有一个消费者能消费。</p>
+                <figure class="mq-fig">
+                  <svg class="dg" viewBox="0 0 320 80" aria-hidden="true">
+                    <rect class="dg-node" x="6" y="28" width="58" height="24" rx="4"/>
+                    <text class="dg-tiny" x="35" y="43" text-anchor="middle">生产者</text>
+                    <line class="dg-line" x1="64" y1="40" x2="98" y2="40" marker-end="url(#arr)"/>
+                    <rect class="dg-node" x="100" y="18" width="90" height="44" rx="5"/>
+                    <rect class="dg-key" x="110" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="135" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="160" y="28" width="20" height="9" rx="2"/>
+                    <text class="dg-tiny dg-t-muted" x="145" y="54" text-anchor="middle">队列</text>
+                    <line class="dg-line dg-line-ok" x1="190" y1="30" x2="248" y2="20" marker-end="url(#arr-ok)"/>
+                    <path class="dg-line dg-dash" d="M190 50 H246" marker-end="url(#arr)"/>
+                    <path class="dg-x" d="M236 44l8 8M244 44l-8 8"/>
+                    <rect class="dg-node dg-node-ok" x="250" y="8" width="62" height="24" rx="4"/>
+                    <text class="dg-tiny" x="281" y="24" text-anchor="middle">消费者 1</text>
+                    <rect class="dg-node dg-node-ghost" x="250" y="48" width="62" height="24" rx="4"/>
+                    <text class="dg-tiny" x="281" y="64" text-anchor="middle">消费者 2</text>
+                  </svg>
+                </figure>
+              </div>
+              <div class="mq-card">
+                <span class="mono">PUB / SUB</span><h4>订阅</h4>
+                <p>生产者把消息发到主题，订阅了这个主题的消费者都能收到。</p>
+                <figure class="mq-fig">
+                  <svg class="dg" viewBox="0 0 320 80" aria-hidden="true">
+                    <rect class="dg-node" x="6" y="28" width="58" height="24" rx="4"/>
+                    <text class="dg-tiny" x="35" y="43" text-anchor="middle">生产者</text>
+                    <line class="dg-line" x1="64" y1="40" x2="98" y2="40" marker-end="url(#arr)"/>
+                    <rect class="dg-node" x="100" y="18" width="90" height="44" rx="5"/>
+                    <rect class="dg-key" x="110" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="135" y="28" width="20" height="9" rx="2"/><rect class="dg-key" x="160" y="28" width="20" height="9" rx="2"/>
+                    <text class="dg-tiny dg-t-muted" x="145" y="54" text-anchor="middle">主题</text>
+                    <line class="dg-line dg-line-ok" x1="190" y1="30" x2="248" y2="20" marker-end="url(#arr-ok)"/>
+                    <line class="dg-line dg-line-ok" x1="190" y1="50" x2="248" y2="60" marker-end="url(#arr-ok)"/>
+                    <rect class="dg-node dg-node-ok" x="250" y="8" width="62" height="24" rx="4"/>
+                    <text class="dg-tiny" x="281" y="24" text-anchor="middle">消费者 1</text>
+                    <rect class="dg-node dg-node-ok" x="250" y="48" width="62" height="24" rx="4"/>
+                    <text class="dg-tiny" x="281" y="64" text-anchor="middle">消费者 2</text>
+                  </svg>
+                </figure>
+              </div>
+            </div>
+            <div class="adv-row">
+              <span class="tag">高吞吐 · 低延迟</span><span class="tag">可用 · 可扩展</span><span class="tag">持久 · 可靠</span><span class="tag">容错</span><span class="tag">高并发</span>
+            </div>
+            <div class="kafka-arch">
+              <div class="kafka-producer"><svg class="spot-icon kafka-icon" aria-hidden="true"><use href="#i-user"/></svg><span class="mono">PRODUCER</span><strong>生产者</strong><small>写入 Leader</small></div>
+              <div class="kafka-parts">
+                <div class="kpart"><div class="kpart-head"><span class="mono">P0</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B1</span><span class="knode">B2</span></div><small>Leader → Follower 同步</small></div>
+                <div class="kpart"><div class="kpart-head"><span class="mono">P1</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B2</span><span class="knode">B3</span></div><small>副本保证分区可用</small></div>
+                <div class="kpart"><div class="kpart-head"><span class="mono">P2</span><span class="tag tag-good">Leader</span></div><div class="kpart-nodes"><span class="knode leader">B3</span><span class="knode">B1</span></div><small>Leader 故障则选举</small></div>
+              </div>
+              <div class="kafka-consumer"><svg class="spot-icon kafka-icon" aria-hidden="true"><use href="#i-mail"/></svg><span class="mono">CONSUMER</span><strong>消费者</strong><small>按分区消费</small></div>
+            </div>
+            <figure class="dg-wrap">
+              <svg class="dg" viewBox="0 0 380 132" role="img" aria-label="Kafka 分区 Leader 故障后，Follower 被选举为新 Leader">
+                <text class="dg-tiny dg-t-muted" x="8" y="16">故障前 · P0</text>
+                <rect class="dg-node dg-node-ok" x="34" y="24" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="78" y="40" text-anchor="middle">B1 · Leader</text>
+                <rect class="dg-node" x="146" y="24" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="190" y="40" text-anchor="middle">B2 · Follower</text>
+                <rect class="dg-node" x="258" y="24" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="302" y="40" text-anchor="middle">B3 · Follower</text>
+                <line class="dg-line dg-line-bad" x1="190" y1="52" x2="190" y2="74" marker-end="url(#arr-bad)"/>
+                <text class="dg-tiny dg-t-bad" x="196" y="68" text-anchor="start">Leader 故障 · 选举</text>
+                <text class="dg-tiny dg-t-muted" x="8" y="94">故障后 · P0</text>
+                <rect class="dg-node dg-node-bad" x="34" y="102" width="88" height="24" rx="4"/>
+                <text class="dg-tiny dg-t-bad" x="78" y="118" text-anchor="middle">B1 · 离线</text>
+                <rect class="dg-node dg-node-ok" x="146" y="102" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="190" y="118" text-anchor="middle">B2 · 新 Leader</text>
+                <rect class="dg-node" x="258" y="102" width="88" height="24" rx="4"/>
+                <text class="dg-tiny" x="302" y="118" text-anchor="middle">B3 · Follower</text>
+              </svg>
+            </figure>
+            <ul class="tight-list kafka-list">
+              <li>集群借助 ZooKeeper 存节点元数据，实现 Broker 高可用；新版 Kafka 也支持不依赖 ZooKeeper 的 KRaft 模式。</li>
+              <li>每个主题划分多个分区，消息按算法分配到不同分区；分区不可用会丢数据，所以用分区副本兜底。</li>
+              <li>生产者写 Leader 副本，Leader 同步给 Follower；Leader 故障，选举一个 Follower 升为 Leader。</li>
+            </ul>
 
-          <section class="post-section" aria-labelledby="selection">
+            <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区：Leader 故障后由同步副本接替，分区继续可写。Broker 数量并不等于副本数量，扩分区时还要考虑副本分布。</p>
+
+
+            <div class="section-sub section-sub-tight">
+              <h3>ISR 与 acks：可靠性由生产者与主题共同决定</h3>
+            </div>
+            <div class="prose">
+              <p>Kafka 把“追得上 Leader 的副本”称为 ISR（In-Sync Replicas）。生产者设置 <code>acks=all</code> 时，Leader 会等待 ISR 中的副本确认；主题设置 <code>min.insync.replicas</code> 时，只有 ISR 数量达到下限才接受写入。两者配合，才能在 Broker 故障时尽量不丢消息。</p>
+              <p>如果允许“非同步副本”被选为 Leader（unclean leader election），分区可以更快恢复可用，但可能丢失未同步的消息。大多数业务应关闭该选项，让分区在 ISR 不足时短暂不可用，而不是悄悄丢数据。</p>
+            </div>
+            <figure class="dg-wrap">
+              <svg class="dg" viewBox="0 0 660 230" role="img" aria-label="Kafka 生产者 acks 与 ISR 副本确认">
+                <rect class="dg-node-blue" x="12" y="86" width="86" height="46" rx="6"/>
+                <text class="dg-xs" x="55" y="113" text-anchor="middle">生产者</text>
+                <line class="dg-line" x1="98" y1="104" x2="154" y2="104" marker-end="url(#arr)"/>
+                <text class="dg-tiny dg-t-blue" x="126" y="96" text-anchor="middle">acks</text>
+                <rect class="dg-node-green" x="156" y="76" width="120" height="64" rx="6"/>
+                <text class="dg-xs" x="216" y="100" text-anchor="middle">Leader</text>
+                <text class="dg-tiny" x="216" y="118" text-anchor="middle">P0 · 接收写入</text>
+                <line class="dg-line" x1="276" y1="94" x2="358" y2="48" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="276" y1="113" x2="358" y2="113" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="276" y1="122" x2="358" y2="178" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="360" y="26" width="120" height="44" rx="5"/>
+                <text class="dg-xs" x="420" y="45" text-anchor="middle">ISR 副本 1</text>
+                <text class="dg-tiny" x="420" y="61" text-anchor="middle">已同步</text>
+                <rect class="dg-node-bad" x="360" y="92" width="120" height="42" rx="5" stroke-dasharray="4 3"/>
+                <text class="dg-tiny dg-t-bad" x="420" y="110" text-anchor="middle">落后副本</text>
+                <text class="dg-tiny dg-t-bad" x="420" y="125" text-anchor="middle">不在 ISR</text>
+                <rect class="dg-node" x="360" y="156" width="120" height="44" rx="5"/>
+                <text class="dg-xs" x="420" y="175" text-anchor="middle">ISR 副本 2</text>
+                <text class="dg-tiny" x="420" y="191" text-anchor="middle">已同步</text>
+                <path class="dg-line-ok dg-dash" d="M480 48 H528 V98 H558" marker-end="url(#arr-ok)"/>
+                <path class="dg-line-ok dg-dash" d="M480 178 H528 V118 H558" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node-ok" x="560" y="80" width="88" height="56" rx="6"/>
+                <text class="dg-xs dg-t-ok" x="604" y="101" text-anchor="middle">acks=all</text>
+                <text class="dg-tiny" x="604" y="118" text-anchor="middle">ISR 确认</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="218" text-anchor="middle">acks=all + min.insync.replicas 才可靠；落后副本不计入确认。</text>
+              </svg>
+              <figcaption>图示：生产者等待 ISR 副本确认；落后太多的副本不算同步副本，不能用来满足 acks=all。</figcaption>
+            </figure>
+            <div class="prose">
+              <p>消费者侧的高可用由消费组负责：分区在消费者之间分配，某个消费者退出会触发 rebalance。rebalance 期间消费会短暂停顿，因此要避免频繁扩缩容和长时间处理单条消息；必要时可以用静态成员或增量协作协议减少抖动。</p>
+            </div>
+            <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区：Leader 故障后由同步副本接替。可靠性取决于 acks 与 min.insync.replicas 的组合；允许非同步副本选主可以更快恢复，但可能丢消息。</p>
+                      <p class="story-bridge"><span>走完一笔订单，</span>再回看四种系统的选型。<a href="#selection">按数据模型选择高可用级别</a></p>
+          </section>
+<section class="post-section" aria-labelledby="selection">
             <h2 id="selection" data-toc>选型：先看数据模型，再看高可用</h2>
             <div class="prose">
               <p>四种系统的高可用机制不同，但选型不应从“哪个切换最快”开始。先看数据模型和访问模式：需要事务和复杂查询，选 MySQL；需要文档结构和灵活 schema，选 MongoDB；需要极低延迟的缓存，选 Redis；需要高吞吐消息和解耦，选 Kafka。高可用是在选定系统之后，按业务对 RPO / RTO 的要求配置的。</p>
@@ -986,10 +989,10 @@
         <p class="toc-label">本页目录</p>
                 <nav class="toc-nav" id="tocNav" aria-label="本页小节">
           <a class="toc-link toc-level-2" href="#common">共同框架：复制、检测、选举、重定向</a>
-          <a class="toc-link toc-level-2" href="#mongodb">MongoDB：副本集与分片</a>
           <a class="toc-link toc-level-2" href="#redis">Redis：内存存储、持久化与缓存失效</a>
-          <a class="toc-link toc-level-2" href="#kafka">Kafka：分区副本撑起高可用</a>
+          <a class="toc-link toc-level-2" href="#mongodb">MongoDB：副本集与分片</a>
           <a class="toc-link toc-level-2" href="#mysql">MySQL：主从复制与一致性取舍</a>
+          <a class="toc-link toc-level-2" href="#kafka">Kafka：分区副本撑起高可用</a>
           <a class="toc-link toc-level-2" href="#selection">选型：先看数据模型，再看高可用</a>
         </nav>
         <a class="toc-top" href="#top">回到顶部 <span aria-hidden="true">↑</span></a>
@@ -1012,6 +1015,6 @@
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-6" defer></script>
+  <script src="app.js?v=20261022-7" defer></script>
 </body>
 </html>
