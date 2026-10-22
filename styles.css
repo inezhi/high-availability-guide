@@ -6980,6 +6980,7 @@ svg use[href^="#i-"] {
 /* Chapter storyline and section bridges */
 .storyline {
   margin-top: 24px;
+  margin-bottom: 36px;
   padding: 0 0 2px;
   border-bottom: 1px solid var(--line);
 }
@@ -7075,6 +7076,7 @@ svg use[href^="#i-"] {
 
 @media (max-width: 640px) {
   .storyline {
+    margin-bottom: 28px;
     padding-top: 18px;
   }
 
