@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/index.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/index.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-15">
+  <link rel="stylesheet" href="styles.css?v=20261022-17">
 </head>
 <body class="home-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -97,50 +97,121 @@
     </symbol>
   </svg>
 
-  <aside class="rail" id="rail">
-    <a class="rail-brand" href="index.html" aria-label="返回首页">
-      <span class="brand-mark"><svg class="icon"><use href="#i-pulse"/></svg></span>
-      <span class="brand-text"><strong>高可用架构</strong><small>从指标到故障转移</small></span>
-    </a>
-    <p class="rail-label">章节目录</p>
-    <nav class="rail-nav" aria-label="全书章节">
-              <a href="availability.html" data-page="availability"><span class="nav-num">01</span><span>可用性</span></a>
-        <a href="redundancy.html" data-page="redundancy"><span class="nav-num">02</span><span>冗余</span></a>
-        <a href="load-balancing.html" data-page="loadbalancing"><span class="nav-num">03</span><span>负载均衡</span></a>
-        <a href="disaster-recovery.html" data-page="disaster"><span class="nav-num">04</span><span>容灾</span></a>
-        <a href="middleware.html" data-page="middleware"><span class="nav-num">05</span><span>中间件</span></a>
-        <a href="rate-limiting.html" data-page="ratelimit"><span class="nav-num">06</span><span>限流</span></a>
-        <a href="quiz.html" data-page="quiz"><span class="nav-num">07</span><span>自测</span></a>
-    </nav>
-    <div class="rail-foot">
-      <div class="rail-meter" aria-hidden="true"><span id="railProgress"></span></div>
-      <div class="rail-actions">
+  <header class="topbar" id="topbar">
+    <div class="topbar-inner">
+      <a class="topbar-brand" href="index.html" aria-label="返回首页">
+        <span class="brand-mark"><svg class="icon"><use href="#i-pulse"/></svg></span>
+        <span class="brand-text"><strong>系统设计手册</strong><small>从原则到落地</small></span>
+      </a>
+      <nav class="topnav" aria-label="系列导航">
+                <div class="topnav-item">
+          <button class="topnav-trigger is-active" type="button" aria-expanded="false">
+            高可用架构
+            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="topnav-dropdown">
+            <p class="topnav-menu-label">系统设计系列 · 01</p>
+<a class="topnav-link topnav-overview" href="index.html">总览</a>
+          <a class="topnav-link" href="availability.html"><span class="topnav-link-num">01</span>可用性</a>
+          <a class="topnav-link" href="redundancy.html"><span class="topnav-link-num">02</span>冗余</a>
+          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">03</span>负载均衡</a>
+          <a class="topnav-link" href="disaster-recovery.html"><span class="topnav-link-num">04</span>容灾</a>
+          <a class="topnav-link" href="middleware.html"><span class="topnav-link-num">05</span>中间件</a>
+          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">06</span>限流</a>
+          <a class="topnav-link" href="quiz.html"><span class="topnav-link-num">07</span>自测</a>
+          </div>
+        </div>
+        <div class="topnav-item">
+          <button class="topnav-trigger" type="button" aria-expanded="false">
+            高伸缩
+            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="topnav-dropdown">
+            <p class="topnav-menu-label">本手册相关章节</p>
+          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">01</span>负载均衡与水平扩展</a>
+          <a class="topnav-link" href="load-balancing.html#consistent-hash"><span class="topnav-link-num">02</span>一致性哈希</a>
+          <a class="topnav-link" href="middleware.html#mongodb"><span class="topnav-link-num">03</span>MongoDB 分片</a>
+          <a class="topnav-link" href="redundancy.html#active-active"><span class="topnav-link-num">04</span>单元化多活</a>
+          </div>
+        </div>
+        <div class="topnav-item">
+          <button class="topnav-trigger" type="button" aria-expanded="false">
+            高并发
+            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="topnav-dropdown">
+            <p class="topnav-menu-label">本手册相关章节</p>
+          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">01</span>限流与过载保护</a>
+          <a class="topnav-link" href="rate-limiting.html#layers"><span class="topnav-link-num">02</span>分层限流</a>
+          <a class="topnav-link" href="rate-limiting.html#algorithms"><span class="topnav-link-num">03</span>漏桶与令牌桶</a>
+          <a class="topnav-link" href="rate-limiting.html#distributed"><span class="topnav-link-num">04</span>分布式限流</a>
+          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">05</span>Kafka 分区副本</a>
+          </div>
+        </div>
+        <div class="topnav-item">
+          <button class="topnav-trigger" type="button" aria-expanded="false">
+            高性能
+            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="topnav-dropdown">
+            <p class="topnav-menu-label">本手册相关章节</p>
+          <a class="topnav-link" href="middleware.html#redis"><span class="topnav-link-num">01</span>缓存与持久化</a>
+          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">02</span>消息队列</a>
+          <a class="topnav-link" href="load-balancing.html#l4-l7"><span class="topnav-link-num">03</span>四层与七层</a>
+          <a class="topnav-link" href="middleware.html#mysql"><span class="topnav-link-num">04</span>数据库复制</a>
+          </div>
+        </div>
+      </nav>
+      <div class="topbar-actions">
         <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到浅色主题" title="切换主题">
           <svg class="icon icon-sun"><use href="#i-sun"/></svg>
           <svg class="icon icon-moon"><use href="#i-moon"/></svg>
         </button>
-        <a class="icon-btn" href="https://github.com/inezhi/high-availability-guide" target="_blank" rel="noreferrer" aria-label="GitHub 仓库" title="GitHub 仓库">
+        <a class="icon-btn topbar-github" href="https://github.com/inezhi/high-availability-guide" target="_blank" rel="noreferrer" aria-label="GitHub 仓库" title="GitHub 仓库">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33s1.7.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85V21c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg>
         </a>
+        <button class="icon-btn topbar-menu-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="mobileIndex" aria-label="打开导航">
+          <svg class="icon icon-menu"><use href="#i-menu"/></svg>
+          <svg class="icon icon-close"><use href="#i-close"/></svg>
+        </button>
       </div>
     </div>
-  </aside>
-
-  <header class="mobile-bar">
-    <a class="mobile-brand" href="index.html"><svg class="icon"><use href="#i-pulse"/></svg><span>高可用架构</span></a>
-    <button class="icon-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="mobileIndex" aria-label="打开目录">
-      <svg class="icon icon-menu"><use href="#i-menu"/></svg>
-      <svg class="icon icon-close"><use href="#i-close"/></svg>
-    </button>
   </header>
-  <nav class="mobile-index" id="mobileIndex" aria-label="移动端全书目录">
-        <a href="availability.html"><span>01</span>可用性</a>
-    <a href="redundancy.html"><span>02</span>冗余</a>
-    <a href="load-balancing.html"><span>03</span>负载均衡</a>
-    <a href="disaster-recovery.html"><span>04</span>容灾</a>
-    <a href="middleware.html"><span>05</span>中间件</a>
-    <a href="rate-limiting.html"><span>06</span>限流</a>
-    <a href="quiz.html"><span>07</span>自测</a>
+
+  <nav class="mobile-index topnav-mobile" id="mobileIndex" aria-label="移动端导航">
+        <details class="mobile-nav-group" open>
+      <summary><span>高可用架构</span><small>01</small></summary>
+      <a class="mobile-link mobile-overview" href="index.html">总览</a>
+        <a class="mobile-link" href="availability.html"><span>01</span>可用性</a>
+        <a class="mobile-link" href="redundancy.html"><span>02</span>冗余</a>
+        <a class="mobile-link" href="load-balancing.html"><span>03</span>负载均衡</a>
+        <a class="mobile-link" href="disaster-recovery.html"><span>04</span>容灾</a>
+        <a class="mobile-link" href="middleware.html"><span>05</span>中间件</a>
+        <a class="mobile-link" href="rate-limiting.html"><span>06</span>限流</a>
+        <a class="mobile-link" href="quiz.html"><span>07</span>自测</a>
+    </details>
+    <details class="mobile-nav-group">
+      <summary><span>高伸缩</span><small>相关章节</small></summary>
+      <a class="mobile-link" href="load-balancing.html">负载均衡与水平扩展</a>
+      <a class="mobile-link" href="load-balancing.html#consistent-hash">一致性哈希</a>
+      <a class="mobile-link" href="middleware.html#mongodb">MongoDB 分片</a>
+      <a class="mobile-link" href="redundancy.html#active-active">单元化多活</a>
+    </details>
+    <details class="mobile-nav-group">
+      <summary><span>高并发</span><small>相关章节</small></summary>
+      <a class="mobile-link" href="rate-limiting.html">限流与过载保护</a>
+      <a class="mobile-link" href="rate-limiting.html#layers">分层限流</a>
+      <a class="mobile-link" href="rate-limiting.html#algorithms">漏桶与令牌桶</a>
+      <a class="mobile-link" href="rate-limiting.html#distributed">分布式限流</a>
+      <a class="mobile-link" href="middleware.html#kafka">Kafka 分区副本</a>
+    </details>
+    <details class="mobile-nav-group">
+      <summary><span>高性能</span><small>相关章节</small></summary>
+      <a class="mobile-link" href="middleware.html#redis">缓存与持久化</a>
+      <a class="mobile-link" href="middleware.html#kafka">消息队列</a>
+      <a class="mobile-link" href="load-balancing.html#l4-l7">四层与七层</a>
+      <a class="mobile-link" href="middleware.html#mysql">数据库复制</a>
+    </details>
   </nav>
 
   <main id="main" class="home-main">
@@ -467,6 +538,6 @@
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-15" defer></script>
+  <script src="app.js?v=20261022-17" defer></script>
 </body>
 </html>

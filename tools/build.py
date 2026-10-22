@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
-VERSION = "20261022-15"
+VERSION = "20261022-17"
 YEAR = "2026"
 
 PAGES = [
@@ -168,29 +168,119 @@ def build_mobile_toc(body: str) -> str:
     )
 
 
-def build_nav(active: str | None) -> str:
-    rows = []
-    for page in PAGES[1:]:
-        current = page["nav"] == active
-        cls = " class=\"is-active\"" if current else ""
+def _current(page, active):
+    return page["nav"] == active
+
+
+def build_topbar(active: str | None) -> str:
+    chapters = PAGES[1:]
+    chapter_links = []
+    for page in chapters:
+        current = _current(page, active)
+        cls = " is-current" if current else ""
         aria = ' aria-current="page"' if current else ""
-        rows.append(
-            f'        <a href="{page["slug"]}" data-page="{page["nav"]}"{cls}{aria}>'
-            f'<span class="nav-num">{page["num"]}</span><span>{page["label"]}</span></a>'
+        chapter_links.append(
+            '          <a class="topnav-link%s" href="%s"%s>'
+            '<span class="topnav-link-num">%s</span>%s</a>'
+            % (cls, page["slug"], aria, page["num"], page["label"])
         )
-    return "\n".join(rows)
+
+    groups = [
+        (
+            "高可用架构",
+            "系统设计系列 · 01",
+            '<a class="topnav-link topnav-overview" href="index.html">总览</a>\n' + "\n".join(chapter_links),
+            True,
+        ),
+        (
+            "高伸缩",
+            "本手册相关章节",
+            """          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">01</span>负载均衡与水平扩展</a>
+          <a class="topnav-link" href="load-balancing.html#consistent-hash"><span class="topnav-link-num">02</span>一致性哈希</a>
+          <a class="topnav-link" href="middleware.html#mongodb"><span class="topnav-link-num">03</span>MongoDB 分片</a>
+          <a class="topnav-link" href="redundancy.html#active-active"><span class="topnav-link-num">04</span>单元化多活</a>""",
+            False,
+        ),
+        (
+            "高并发",
+            "本手册相关章节",
+            """          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">01</span>限流与过载保护</a>
+          <a class="topnav-link" href="rate-limiting.html#layers"><span class="topnav-link-num">02</span>分层限流</a>
+          <a class="topnav-link" href="rate-limiting.html#algorithms"><span class="topnav-link-num">03</span>漏桶与令牌桶</a>
+          <a class="topnav-link" href="rate-limiting.html#distributed"><span class="topnav-link-num">04</span>分布式限流</a>
+          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">05</span>Kafka 分区副本</a>""",
+            False,
+        ),
+        (
+            "高性能",
+            "本手册相关章节",
+            """          <a class="topnav-link" href="middleware.html#redis"><span class="topnav-link-num">01</span>缓存与持久化</a>
+          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">02</span>消息队列</a>
+          <a class="topnav-link" href="load-balancing.html#l4-l7"><span class="topnav-link-num">03</span>四层与七层</a>
+          <a class="topnav-link" href="middleware.html#mysql"><span class="topnav-link-num">04</span>数据库复制</a>""",
+            False,
+        ),
+    ]
+
+    items = []
+    for label, meta, links, is_active in groups:
+        trigger_cls = " is-active" if is_active else ""
+        items.append(
+            """        <div class="topnav-item">
+          <button class="topnav-trigger%s" type="button" aria-expanded="false">
+            %s
+            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="topnav-dropdown">
+            <p class="topnav-menu-label">%s</p>
+%s
+          </div>
+        </div>"""
+            % (trigger_cls, label, meta, links)
+        )
+    return "\n".join(items)
 
 
 def build_mobile_nav(active: str | None) -> str:
-    rows = []
-    for page in PAGES[1:]:
-        current = page["nav"] == active
-        cls = ' class="is-active"' if current else ""
+    chapters = PAGES[1:]
+    chapter_links = []
+    for page in chapters:
+        current = _current(page, active)
+        cls = " is-current" if current else ""
         aria = ' aria-current="page"' if current else ""
-        rows.append(
-            f'    <a href="{page["slug"]}"{cls}{aria}><span>{page["num"]}</span>{page["label"]}</a>'
+        chapter_links.append(
+            '        <a class="mobile-link%s" href="%s"%s><span>%s</span>%s</a>'
+            % (cls, page["slug"], aria, page["num"], page["label"])
         )
-    return "\n".join(rows)
+
+    ha_block = "\n".join(chapter_links)
+    return """    <details class="mobile-nav-group" open>
+      <summary><span>高可用架构</span><small>01</small></summary>
+      <a class="mobile-link mobile-overview" href="index.html">总览</a>
+%s
+    </details>
+    <details class="mobile-nav-group">
+      <summary><span>高伸缩</span><small>相关章节</small></summary>
+      <a class="mobile-link" href="load-balancing.html">负载均衡与水平扩展</a>
+      <a class="mobile-link" href="load-balancing.html#consistent-hash">一致性哈希</a>
+      <a class="mobile-link" href="middleware.html#mongodb">MongoDB 分片</a>
+      <a class="mobile-link" href="redundancy.html#active-active">单元化多活</a>
+    </details>
+    <details class="mobile-nav-group">
+      <summary><span>高并发</span><small>相关章节</small></summary>
+      <a class="mobile-link" href="rate-limiting.html">限流与过载保护</a>
+      <a class="mobile-link" href="rate-limiting.html#layers">分层限流</a>
+      <a class="mobile-link" href="rate-limiting.html#algorithms">漏桶与令牌桶</a>
+      <a class="mobile-link" href="rate-limiting.html#distributed">分布式限流</a>
+      <a class="mobile-link" href="middleware.html#kafka">Kafka 分区副本</a>
+    </details>
+    <details class="mobile-nav-group">
+      <summary><span>高性能</span><small>相关章节</small></summary>
+      <a class="mobile-link" href="middleware.html#redis">缓存与持久化</a>
+      <a class="mobile-link" href="middleware.html#kafka">消息队列</a>
+      <a class="mobile-link" href="load-balancing.html#l4-l7">四层与七层</a>
+      <a class="mobile-link" href="middleware.html#mysql">数据库复制</a>
+    </details>""" % ha_block
 
 
 def build_pager(active: str | None) -> str:
@@ -237,7 +327,7 @@ def main() -> None:
             "{{YEAR}}": YEAR,
             "{{BODY_CLASS}}": page["body_class"],
             "{{MAIN_CLASS}}": page["main_class"],
-            "{{NAV}}": build_nav(page["nav"]),
+            "{{TOPBAR}}": build_topbar(page["nav"]),
             "{{MOBILE_NAV}}": build_mobile_nav(page["nav"]),
             "{{SPRITE}}": sprite,
             "{{BODY}}": body,

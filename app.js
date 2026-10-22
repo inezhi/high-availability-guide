@@ -58,7 +58,7 @@
      Mobile index
      ------------------------------------------------------------------ */
 
-  const mobileBar = $(".mobile-bar");
+  const mobileBar = $(".topbar");
   const mobileIndex = $("#mobileIndex");
   const menuToggle = $("#menuToggle");
 
@@ -66,6 +66,7 @@
     if (!mobileBar || !mobileIndex || !menuToggle) return;
     mobileBar.classList.remove("is-open");
     mobileIndex.classList.remove("is-open");
+    document.body.classList.remove("menu-open");
     menuToggle.setAttribute("aria-expanded", "false");
   }
 
@@ -74,6 +75,7 @@
       const open = !mobileIndex.classList.contains("is-open");
       mobileBar.classList.toggle("is-open", open);
       mobileIndex.classList.toggle("is-open", open);
+      document.body.classList.toggle("menu-open", open);
       menuToggle.setAttribute("aria-expanded", String(open));
     });
 
@@ -89,6 +91,68 @@
       if (window.innerWidth > 1080) closeMobileIndex();
     });
   }
+
+  /* ------------------------------------------------------------------
+     Top navigation dropdowns
+     ------------------------------------------------------------------ */
+
+  const topnavItems = $$(".topnav-item");
+
+  function closeTopnav(except) {
+    topnavItems.forEach(function (item) {
+      if (item === except) return;
+      item.classList.remove("is-open");
+      const trigger = $(".topnav-trigger", item);
+      if (trigger) trigger.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  topnavItems.forEach(function (item) {
+    const trigger = $(".topnav-trigger", item);
+    if (!trigger) return;
+
+    trigger.addEventListener("click", function () {
+      const open = !item.classList.contains("is-open");
+      closeTopnav(item);
+      item.classList.toggle("is-open", open);
+      trigger.setAttribute("aria-expanded", String(open));
+    });
+
+    item.addEventListener("mouseenter", function () {
+      trigger.setAttribute("aria-expanded", "true");
+    });
+
+    item.addEventListener("mouseleave", function () {
+      if (!item.classList.contains("is-open") && !item.contains(document.activeElement)) {
+        trigger.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    item.addEventListener("focusin", function () {
+      trigger.setAttribute("aria-expanded", "true");
+    });
+
+    item.addEventListener("focusout", function (event) {
+      if (!item.contains(event.relatedTarget) && !item.classList.contains("is-open")) {
+        trigger.setAttribute("aria-expanded", "false");
+      }
+    });
+  });
+
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest(".topnav-item")) closeTopnav();
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      closeTopnav();
+      $$(".topnav-item.is-open").forEach(function (item) {
+        item.classList.remove("is-open");
+        const trigger = $(".topnav-trigger", item);
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
+      });
+    }
+  });
 
   /* ------------------------------------------------------------------
      Reading progress and section tracking
