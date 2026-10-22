@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/index.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/index.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-17">
+  <link rel="stylesheet" href="styles.css?v=20261022-18">
 </head>
 <body class="home-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -121,46 +121,6 @@
           <a class="topnav-link" href="quiz.html"><span class="topnav-link-num">07</span>自测</a>
           </div>
         </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高伸缩
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">01</span>负载均衡与水平扩展</a>
-          <a class="topnav-link" href="load-balancing.html#consistent-hash"><span class="topnav-link-num">02</span>一致性哈希</a>
-          <a class="topnav-link" href="middleware.html#mongodb"><span class="topnav-link-num">03</span>MongoDB 分片</a>
-          <a class="topnav-link" href="redundancy.html#active-active"><span class="topnav-link-num">04</span>单元化多活</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高并发
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">01</span>限流与过载保护</a>
-          <a class="topnav-link" href="rate-limiting.html#layers"><span class="topnav-link-num">02</span>分层限流</a>
-          <a class="topnav-link" href="rate-limiting.html#algorithms"><span class="topnav-link-num">03</span>漏桶与令牌桶</a>
-          <a class="topnav-link" href="rate-limiting.html#distributed"><span class="topnav-link-num">04</span>分布式限流</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">05</span>Kafka 分区副本</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高性能
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="middleware.html#redis"><span class="topnav-link-num">01</span>缓存与持久化</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">02</span>消息队列</a>
-          <a class="topnav-link" href="load-balancing.html#l4-l7"><span class="topnav-link-num">03</span>四层与七层</a>
-          <a class="topnav-link" href="middleware.html#mysql"><span class="topnav-link-num">04</span>数据库复制</a>
-          </div>
-        </div>
       </nav>
       <div class="topbar-actions">
         <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到浅色主题" title="切换主题">
@@ -180,7 +140,7 @@
 
   <nav class="mobile-index topnav-mobile" id="mobileIndex" aria-label="移动端导航">
         <details class="mobile-nav-group" open>
-      <summary><span>高可用架构</span><small>01</small></summary>
+      <summary><span>高可用架构</span><small>系统设计系列 · 01</small></summary>
       <a class="mobile-link mobile-overview" href="index.html">总览</a>
         <a class="mobile-link" href="availability.html"><span>01</span>可用性</a>
         <a class="mobile-link" href="redundancy.html"><span>02</span>冗余</a>
@@ -189,28 +149,6 @@
         <a class="mobile-link" href="middleware.html"><span>05</span>中间件</a>
         <a class="mobile-link" href="rate-limiting.html"><span>06</span>限流</a>
         <a class="mobile-link" href="quiz.html"><span>07</span>自测</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高伸缩</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="load-balancing.html">负载均衡与水平扩展</a>
-      <a class="mobile-link" href="load-balancing.html#consistent-hash">一致性哈希</a>
-      <a class="mobile-link" href="middleware.html#mongodb">MongoDB 分片</a>
-      <a class="mobile-link" href="redundancy.html#active-active">单元化多活</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高并发</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="rate-limiting.html">限流与过载保护</a>
-      <a class="mobile-link" href="rate-limiting.html#layers">分层限流</a>
-      <a class="mobile-link" href="rate-limiting.html#algorithms">漏桶与令牌桶</a>
-      <a class="mobile-link" href="rate-limiting.html#distributed">分布式限流</a>
-      <a class="mobile-link" href="middleware.html#kafka">Kafka 分区副本</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高性能</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="middleware.html#redis">缓存与持久化</a>
-      <a class="mobile-link" href="middleware.html#kafka">消息队列</a>
-      <a class="mobile-link" href="load-balancing.html#l4-l7">四层与七层</a>
-      <a class="mobile-link" href="middleware.html#mysql">数据库复制</a>
     </details>
   </nav>
 
@@ -222,8 +160,8 @@
           <span class="series-part">第 01 篇</span>
         </div>
         <h1>高可用架构</h1>
-        <p class="hero-lede">高可用不是一句口号，也不是多买几台机器。它是一连串具体的选择：预算怎么定，故障怎么切，流量怎么分，灾备怎么练。</p>
-        <p class="hero-sub">你可以把它当成一本小书，跟着六个真实场景，把高可用从“听过”走到“知道怎么做”。</p>
+        <p class="hero-lede">高可用最终要落到一连串具体选择：预算怎么定，故障怎么切，流量怎么分，灾备怎么练。</p>
+        <p class="hero-sub">我们可以把它当成一本小书，跟着六个真实场景，把高可用从“听过”走到“知道怎么做”。</p>
         <div class="hero-facts">
           <div class="hero-fact">
             <span class="fact-value">99.99%</span>
@@ -362,7 +300,7 @@
         <a class="chapter-card" href="disaster-recovery.html">
           <div class="chapter-card-top"><span class="chapter-card-num">04</span><span class="chapter-card-tag">机房</span></div>
           <h3>容灾架构</h3>
-          <p>暴雨切到备用中心，结果证书过期、服务起不来。容灾不是建好就行，它得真的能跑。</p>
+          <p>暴雨切到备用中心，结果证书过期、服务起不来。容灾建好之后，还得真的能跑起来。</p>
           <div class="chapter-card-art" aria-hidden="true">
             <svg viewBox="0 0 200 88">
               <circle cx="100" cy="42" r="34" fill="var(--d-blue)" opacity=".06"/>
@@ -434,7 +372,7 @@
       <div class="home-path-copy">
         <p class="chapter-kicker">阅读路径</p>
         <h2>先度量，再冗余，最后才是切换</h2>
-        <p>高可用不是“多买一台机器”。它是一条从目标到手段的链路：先确定业务能接受的停机时间，再决定冗余方式和切换机制，最后用演练验证假设。</p>
+        <p>高可用是一条从目标到手段的链路：先确定业务能接受的停机时间，再决定冗余方式和切换机制，最后用演练验证假设。</p>
         <p>如果顺序反过来，很容易出现“做了主备，却不知道能恢复多快”；或者“上了多活，却没人能说清数据冲突怎么处理”。这六章其实是一条事故响应链：算目标、备冗余、守入口、扩机房、落中间件、限流保命。</p>
       </div>
       <figure class="dg-wrap home-path-fig">
@@ -498,7 +436,7 @@
         <p class="chapter-kicker">关于这份指南</p>
         <h2>文档为骨，工程实践为肉</h2>
         <p>原始文档给出了概念骨架和关键结论：几个 9、主备与多活、负载均衡、两地三中心、中间件复制和限流。本指南保留了这些结论，并补充了公开资料中较为通用的工程细节——例如错误预算、fencing、ISR、GTID、滑动窗口和过载保护组合。</p>
-        <p>所有图示均为内联 SVG，交互由原生 JavaScript 实现，不依赖外部 CDN。你可以按章节顺序阅读，也可以直接跳到关心的主题；每章末尾都有要点和下一篇入口。</p>
+        <p>所有图示均为内联 SVG，交互由原生 JavaScript 实现，不依赖外部 CDN。我们可以按章节顺序阅读，也可以直接跳到关心的主题；每章末尾都有要点和下一篇入口。</p>
       </div>
       <aside class="home-about-side">
         <span class="mono">READING MODES</span>
@@ -538,6 +476,6 @@
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-17" defer></script>
+  <script src="app.js?v=20261022-18" defer></script>
 </body>
 </html>

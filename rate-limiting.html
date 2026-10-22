@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/rate-limiting.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/rate-limiting.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-17">
+  <link rel="stylesheet" href="styles.css?v=20261022-18">
 </head>
 <body class="article-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -121,46 +121,6 @@
           <a class="topnav-link" href="quiz.html"><span class="topnav-link-num">07</span>自测</a>
           </div>
         </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高伸缩
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">01</span>负载均衡与水平扩展</a>
-          <a class="topnav-link" href="load-balancing.html#consistent-hash"><span class="topnav-link-num">02</span>一致性哈希</a>
-          <a class="topnav-link" href="middleware.html#mongodb"><span class="topnav-link-num">03</span>MongoDB 分片</a>
-          <a class="topnav-link" href="redundancy.html#active-active"><span class="topnav-link-num">04</span>单元化多活</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高并发
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">01</span>限流与过载保护</a>
-          <a class="topnav-link" href="rate-limiting.html#layers"><span class="topnav-link-num">02</span>分层限流</a>
-          <a class="topnav-link" href="rate-limiting.html#algorithms"><span class="topnav-link-num">03</span>漏桶与令牌桶</a>
-          <a class="topnav-link" href="rate-limiting.html#distributed"><span class="topnav-link-num">04</span>分布式限流</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">05</span>Kafka 分区副本</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高性能
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="middleware.html#redis"><span class="topnav-link-num">01</span>缓存与持久化</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">02</span>消息队列</a>
-          <a class="topnav-link" href="load-balancing.html#l4-l7"><span class="topnav-link-num">03</span>四层与七层</a>
-          <a class="topnav-link" href="middleware.html#mysql"><span class="topnav-link-num">04</span>数据库复制</a>
-          </div>
-        </div>
       </nav>
       <div class="topbar-actions">
         <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到浅色主题" title="切换主题">
@@ -180,7 +140,7 @@
 
   <nav class="mobile-index topnav-mobile" id="mobileIndex" aria-label="移动端导航">
         <details class="mobile-nav-group" open>
-      <summary><span>高可用架构</span><small>01</small></summary>
+      <summary><span>高可用架构</span><small>系统设计系列 · 01</small></summary>
       <a class="mobile-link mobile-overview" href="index.html">总览</a>
         <a class="mobile-link" href="availability.html"><span>01</span>可用性</a>
         <a class="mobile-link" href="redundancy.html"><span>02</span>冗余</a>
@@ -189,28 +149,6 @@
         <a class="mobile-link" href="middleware.html"><span>05</span>中间件</a>
         <a class="mobile-link is-current" href="rate-limiting.html" aria-current="page"><span>06</span>限流</a>
         <a class="mobile-link" href="quiz.html"><span>07</span>自测</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高伸缩</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="load-balancing.html">负载均衡与水平扩展</a>
-      <a class="mobile-link" href="load-balancing.html#consistent-hash">一致性哈希</a>
-      <a class="mobile-link" href="middleware.html#mongodb">MongoDB 分片</a>
-      <a class="mobile-link" href="redundancy.html#active-active">单元化多活</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高并发</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="rate-limiting.html">限流与过载保护</a>
-      <a class="mobile-link" href="rate-limiting.html#layers">分层限流</a>
-      <a class="mobile-link" href="rate-limiting.html#algorithms">漏桶与令牌桶</a>
-      <a class="mobile-link" href="rate-limiting.html#distributed">分布式限流</a>
-      <a class="mobile-link" href="middleware.html#kafka">Kafka 分区副本</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高性能</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="middleware.html#redis">缓存与持久化</a>
-      <a class="mobile-link" href="middleware.html#kafka">消息队列</a>
-      <a class="mobile-link" href="load-balancing.html#l4-l7">四层与七层</a>
-      <a class="mobile-link" href="middleware.html#mysql">数据库复制</a>
     </details>
   </nav>
 
@@ -236,7 +174,7 @@
           </nav>
           <p class="chapter-kicker">第 06 章 · 保护</p>
           <h1>限流与过载保护：让系统在洪峰中活下来</h1>
-          <p class="post-lede">双 11 零点，流量在 30 秒内涨了八倍。系统没有把所有人拒之门外，而是按层丢掉了一部分请求。听起来残酷，但总比大家一起卡死好。</p>
+          <p class="post-lede">双 11 零点，流量在 30 秒内涨了八倍。系统按层丢掉了一部分请求，保住了大多数人的访问。听起来残酷，但总比大家一起卡死好。</p>
           <div class="post-meta">
             <span>阅读约 18 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -262,7 +200,7 @@
             <h2 id="why" data-toc>系统是怎么被压垮的</h2>
             <div class="prose">
               <p>先理解一个反直觉的事实：请求越多，吞吐不一定越高。</p>
-              <p>系统在低负载时，吞吐随请求量线性上升；接近容量上限后，排队开始变长，延迟上升；超过拐点后，线程、连接和内存被占满，重试又放大请求量，吞吐反而急剧下降。这就是过载崩溃：不是机器坏了，而是系统把全部资源花在了“处理已经无法完成的请求”上。</p>
+              <p>系统在低负载时，吞吐随请求量线性上升；接近容量上限后，排队开始变长，延迟上升；超过拐点后，线程、连接和内存被占满，重试又放大请求量，吞吐反而急剧下降。这就是过载崩溃：系统把全部资源花在了“处理已经无法完成的请求”上。</p>
               <p>根据 Little 定律，并发数等于到达率乘以平均延迟。延迟一旦因为排队而上升，同样的到达率会占用更多并发资源；资源耗尽后，新请求连排队的机会都没有。限流和过载保护的作用，是在拐点之前主动丢掉一部分请求，让系统留在高吞吐区间。</p>
             </div>
 
@@ -284,12 +222,12 @@
               <figcaption>图示：吞吐不会随负载无限上升；超过拐点后，排队和重试会让吞吐骤降，限流应发生在拐点之前。</figcaption>
             </figure>
             
-                                  <p class="key-point"><strong>重点</strong>系统不是被请求压死的，是被排队和重试拖死的。限流是为了保住大多数人。</p>
-<p class="story-bridge"><span>知道系统怎么被压垮</span>接下来决定在哪些层挡。<a href="#layers">看分层限流</a></p>
+                                  <p class="key-point"><strong>重点</strong>压垮系统的通常是排队和重试，请求量只是导火索。限流是为了保住大多数人。</p>
+<a class="story-bridge" href="#layers"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">知道系统怎么被压垮，接下来决定在哪些层挡。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="layers">
             <h2 id="layers" data-toc>限流要分几层</h2>
-            <div class="prose"><p>限流不是某个开关，是一层层卸力。</p></div>
+            <div class="prose"><p>限流是一层层卸力，需要从外到内布置。</p></div>
             <div class="prose">
               <p>限流要发生在客户端、负载设备、网关、应用系统等多个节点；算法核心是漏桶和令牌桶。最终目的只有一个：减轻后端服务与数据库的压力。</p>
               <p>倒金字塔的含义是：越靠近用户，越适合做粗粒度拦截；越靠近数据层，越要保护。客户端可以挡掉误触和重复点击，负载层可以按 IP 或连接数限速，网关可以按服务、接口、用户和租户限流，服务内部再用信号量或并发上限保护关键资源。</p>
@@ -310,7 +248,7 @@
         </div>
 
         
-                      <p class="story-bridge"><span>从最外层开始</span>客户端能先挡一部分。<a href="#client">看客户端手段</a></p>
+                      <a class="story-bridge" href="#client"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">从最外层开始，客户端能先挡一部分。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="client">
             <h2 id="client" data-toc>最便宜的限流，在客户端</h2>
@@ -364,7 +302,7 @@
               </svg>
             </figure>
             <h4>调用限制</h4>
-            <p>限制用户 1 秒内可发起的请求次数，超出时提示“您的操作过于频繁，请少安毋躁”。</p>
+            <p>限制用户 1 秒内可发起的请求次数，超出时提示“操作过于频繁，请稍后再试”。</p>
           </article>
           <article class="client-card">
             <figure class="client-fig">
@@ -389,7 +327,7 @@
 
         
                                   <p class="key-point"><strong>重点</strong>客户端限流便宜好用，但只能挡住一部分。别指望它解决全部问题。</p>
-<p class="story-bridge"><span>客户端挡不住的</span>得靠算法。<a href="#algorithms">比较四种算法</a></p>
+<a class="story-bridge" href="#algorithms"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">客户端挡不住的，得靠算法。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="algorithms">
             <h2 id="algorithms" data-toc>四种算法，四种脾气</h2>
@@ -481,11 +419,11 @@
             </div>
             <div class="prose">
               <p>固定窗口实现最简单，但在窗口切换的瞬间可能放过接近两倍的流量；滑动窗口把时间切成更细的格子，按最近一段时间的总量判断，边界更平滑。漏桶把请求排队，以固定速率放行，适合保护下游数据库；令牌桶按固定速率补充令牌，允许请求在桶容量范围内突发，适合有明显峰谷的互联网流量。</p>
-              <p>实际系统常把两者组合：入口用令牌桶吸收突发，下游用漏桶或并发上限保护数据库。算法只是工具，关键是限流阈值要来自容量评估和压测，而不是拍脑袋。</p>
+              <p>实际系统常把两者组合：入口用令牌桶吸收突发，下游用漏桶或并发上限保护数据库。算法只是工具，关键是限流阈值要来自容量评估和压测，避免凭感觉。</p>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>漏桶把突发磨平，令牌桶让突发先过。选哪个，看你的下游怕不怕尖峰。</p>
-<p class="story-bridge"><span>单机限流管不住总量</span>多台机器要共享配额。<a href="#distributed">看分布式限流</a></p>
+                                  <p class="key-point"><strong>重点</strong>漏桶把突发磨平，令牌桶让突发先过。选哪个，看下游怕不怕尖峰。</p>
+<a class="story-bridge" href="#distributed"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">单机限流管不住总量，多台机器要共享配额。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="distributed">
             <h2 id="distributed" data-toc>多台机器，怎么共用一个额度</h2>
@@ -533,7 +471,7 @@
             </div>
             
                                   <p class="key-point"><strong>重点</strong>单机限流管不住总量，多机就要共享配额。Redis 挂了是放行还是拒绝，得提前想好。</p>
-<p class="story-bridge"><span>配额定了</span>入口层负责执行。<a href="#ingress">看 Nginx 和网关</a></p>
+<a class="story-bridge" href="#ingress"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">配额定了，入口层负责执行。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="ingress">
             <h2 id="ingress" data-toc>入口层怎么执行限流</h2>
@@ -605,7 +543,7 @@ server {
         
 
                                   <p class="key-point"><strong>重点</strong>入口层解决的是“在门口挡多少”，更细的业务规则交给网关。</p>
-<p class="story-bridge"><span>限流之外</span>还得防止慢依赖把系统拖垮。<a href="#resilience">补上组合拳</a></p>
+<a class="story-bridge" href="#resilience"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">限流之外，还得防止慢依赖把系统拖垮。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="resilience">
             <h2 id="resilience" data-toc>限流之外，还得有几手准备</h2>
@@ -637,7 +575,7 @@ server {
               <article class="resilience-card">
                 <span class="mono">BACKPRESSURE</span>
                 <h3>背压</h3>
-                <p>队列满时向上游反馈，而不是无限堆积；有界队列比无界队列更安全。</p>
+                <p>队列满时向上游反馈，控制堆积；有界队列比无界队列更安全。</p>
               </article>
               <article class="resilience-card">
                 <span class="mono">DEGRADATION</span>
@@ -690,7 +628,7 @@ server {
             </div>
             
                                   <p class="key-point"><strong>重点</strong>限流只控制进入量，替代不了超时、熔断、舱壁和降级。</p>
-<p class="story-bridge"><span>收束</span>最后用一张清单收尾。<a href="#checklist">检查限流策略</a></p>
+<a class="story-bridge" href="#checklist"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">最后用一张清单收尾。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="checklist">
             <h2 id="checklist" data-toc>限流检查清单</h2>
@@ -758,6 +696,6 @@ server {
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-17" defer></script>
+  <script src="app.js?v=20261022-18" defer></script>
 </body>
 </html>

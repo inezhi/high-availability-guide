@@ -7,7 +7,7 @@
           </nav>
           <p class="chapter-kicker">第 04 章 · 机房</p>
           <h1>容灾：从同城热备到异地多活</h1>
-          <p class="post-lede">暴雨那天，同城机房断电。团队按预案切到备用中心，却发现证书过期、依赖缺失，连登录都跑不起来。备用中心不是建好就行，它得真的能跑。</p>
+          <p class="post-lede">暴雨那天，同城机房断电。团队按预案切到备用中心，却发现证书过期、依赖缺失，连登录都跑不起来。备用中心建好之后，还得真的能跑起来。</p>
           <div class="post-meta">
             <span>阅读约 17 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -18,8 +18,8 @@
         <nav class="storyline" aria-label="本章故事线">
           <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">别急着记结论，先跟着这条线走一遍</span></div>
           <ol>
-            <li><a href="#scope"><span class="storyline-index">01</span><span><strong>你要防多大的灾</strong><small>先定义故障域，再谈机房</small></span></a></li>
-            <li><a href="#dr-tiers"><span class="storyline-index">02</span><span><strong>双活不是唯一答案</strong><small>从备份到双活，四档怎么选</small></span></a></li>
+            <li><a href="#scope"><span class="storyline-index">01</span><span><strong>我们要防多大的灾</strong><small>先定义故障域，再谈机房</small></span></a></li>
+            <li><a href="#dr-tiers"><span class="storyline-index">02</span><span><strong>双活只是其中一种答案</strong><small>从备份到双活，四档怎么选</small></span></a></li>
             <li><a href="#two-three"><span class="storyline-index">03</span><span><strong>同城备一个，异地留一份</strong><small>两地三中心的日常</small></span></a></li>
             <li><a href="#multi-active"><span class="storyline-index">04</span><span><strong>让远方用户就近接入</strong><small>异地多活的代价</small></span></a></li>
             <li><a href="#switch"><span class="storyline-index">05</span><span><strong>真到那天，靠手册</strong><small>切换、验证、回切</small></span></a></li>
@@ -30,10 +30,10 @@
 
         <div class="post-body chapter-body" id="postBody">
           <section class="post-section" aria-labelledby="scope">
-            <h2 id="scope" data-toc>先想清楚：你要防多大的灾</h2>
+            <h2 id="scope" data-toc>先想清楚：我们要防多大的灾</h2>
             <div class="prose">
               <p>先问一个更基本的问题：这次暴雨，备用机房到底能防住哪一种故障？</p>
-              <p>做容灾设计，第一步不是选机房，而是定义要防什么：单机故障、机架掉电、机房断电、城市灾害，还是区域级网络中断？不同故障域对应不同的隔离距离和成本。防单机故障用多副本即可；防城市灾害必须把副本放到足够远的位置，而这又会带来复制延迟。</p>
+              <p>做容灾设计，第一步是定义要防什么：单机故障、机架掉电、机房断电、城市灾害，还是区域级网络中断？不同故障域对应不同的隔离距离和成本。防单机故障用多副本即可；防城市灾害必须把副本放到足够远的位置，而这又会带来复制延迟。</p>
               <p>第二步是定义恢复目标：RTO 决定“多久恢复”，RPO 决定“能丢多少数据”。目标不同，方案可能相差一个数量级。一个能接受小时级恢复、分钟级数据丢失的业务，用备份加冷备就够了；一个要求秒级恢复、零数据丢失的核心交易，才需要双活和多副本同步。</p>
             </div>
 
@@ -61,13 +61,13 @@
             </figure>
             
                                   <p class="key-point"><strong>重点</strong>先问要防多大的灾，再问买几个机房。</p>
-<p class="story-bridge"><span>先定义故障域</span>再决定用哪一档容灾。<a href="#dr-tiers">比较四个等级</a></p>
+<a class="story-bridge" href="#dr-tiers"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">先定义故障域，再决定用哪一档容灾。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="dr-tiers">
             <h2 id="dr-tiers" data-toc>从备份到双活，四档怎么选</h2>
-            <div class="prose"><p>容灾不是只有双活一种答案。</p></div>
+            <div class="prose"><p>容灾有多种答案，双活只是其中一种。</p></div>
             <div class="prose">
-              <p>“做了容灾”可以指很多种不同的东西。按恢复方式和成本，通常分为四档：备份与恢复、冷备、温备、双活或多活。它们不是互斥的，核心系统可能用双活，周边系统只用备份恢复。</p>
+              <p>“做了容灾”可以指很多种不同的东西。按恢复方式和成本，通常分为四档：备份与恢复、冷备、温备、双活或多活。这些档位可以组合使用：核心系统可能用双活，周边系统只用备份恢复。</p>
             </div>
             <div class="table-wrap">
               <table class="cmp">
@@ -82,11 +82,11 @@
               </table>
             </div>
             <div class="prose">
-              <p>等级越高，日常成本越高，但“RTO 更短”并不意味着“更可靠”。双活需要解决数据冲突、流量调度和容量冗余；温备如果长期不演练，切换时同样可能失败。选择时应把“恢复目标”和“验证能力”一起考虑，而不是只买更贵的设备。</p>
+              <p>等级越高，日常成本越高，但“RTO 更短”不能保证“更可靠”。双活需要解决数据冲突、流量调度和容量冗余；温备如果长期不演练，切换时同样可能失败。选择时应把“恢复目标”和“验证能力”一起考虑，设备只是其中一部分。</p>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>容灾不是越贵越好。核心业务双活，边缘业务备份，钱要花在刀刃上。</p>
-<p class="story-bridge"><span>对这家公司来说</span>两地三中心是当下最合适的折中。<a href="#two-three">看它怎么运行</a></p>
+                                  <p class="key-point"><strong>重点</strong>容灾的关键在匹配业务损失，贵不等于合适。核心业务双活，边缘业务备份，钱要花在刀刃上。</p>
+<a class="story-bridge" href="#two-three"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">对这家公司来说，两地三中心是当下最合适的折中。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="two-three">
             <h2 id="two-three" data-toc>两地三中心：同城备一个，异地留一份</h2>
@@ -130,7 +130,7 @@
         </div>
 
         <div class="prose">
-          <p>灾备切换并不只是修改一条 DNS 记录：数据库需要确认复制位点，备用中心需要具备完整的运行环境和最新配置，客户端与 DNS 缓存还要等待 TTL 过期。因此真实的灾备切换依赖详细的运行手册和定期演练，而不是临时操作。日常发布必须在两个中心都执行，正是为了避免“主中心能跑、备中心跑不起来”。</p>
+          <p>灾备切换远不止修改一条 DNS 记录：数据库需要确认复制位点，备用中心需要具备完整的运行环境和最新配置，客户端与 DNS 缓存还要等待 TTL 过期。因此真实的灾备切换依赖详细的运行手册和定期演练；临时操作风险很高。日常发布必须在两个中心都执行，正是为了避免“主中心能跑、备中心跑不起来”。</p>
           <p>跨地域复制通常依赖专线，带宽和延迟都会影响 RPO。灾备方案设计时，需要把数据同步方式、切换判定条件、回切流程和演练频率一起确定，否则备用中心只是名义上存在。</p>
         </div>
 
@@ -177,8 +177,8 @@
         </div>
 
         
-                                  <p class="key-point"><strong>重点</strong>两地三中心不是三个中心都干活，平时只有一个在服务。</p>
-<p class="story-bridge"><span>业务做到全国后</span>单活热备开始不够用了。<a href="#multi-active">走向异地多活</a></p>
+                                  <p class="key-point"><strong>重点</strong>两地三中心平时只有一个中心在服务，另外两个分别待命和备份。</p>
+<a class="story-bridge" href="#multi-active"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">业务做到全国后，单活热备开始不够用了。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="multi-active">
             <h2 id="multi-active" data-toc>异地多活：让多个中心同时服务</h2>
@@ -195,7 +195,7 @@
         </div>
 
         <div class="prose">
-          <p>异地多活的核心不是多建几个机房，而是把流量和数据按单元切开。每个单元只服务一部分用户，交易在单元内闭环，跨单元只做异步复制。这样既能就近接入降低延迟，也能在单个单元故障时把流量切到其他单元。代价是单元之间存在复制延迟，跨单元查询可能读到旧值。</p>
+          <p>异地多活的核心是把流量和数据按单元切开。每个单元只服务一部分用户，交易在单元内闭环，跨单元只做异步复制。这样既能就近接入降低延迟，也能在单个单元故障时把流量切到其他单元。代价是单元之间存在复制延迟，跨单元查询可能读到旧值。</p>
           <p>单元划分需要稳定的分片维度，例如用户 ID 或租户 ID；划分之后，用户归属、数据迁移和扩容都会成为长期约束。这也是异地多活“技术复杂、投入巨大”的主要原因。</p>
         </div>
 
@@ -297,7 +297,7 @@
         </div>
 
         <aside class="note note-warn">
-          <div class="note-head"><svg class="icon"><use href="#i-alert"/></svg>不是所有业务都适合异地多活</div>
+          <div class="note-head"><svg class="icon"><use href="#i-alert"/></svg>有些业务不适合异地多活</div>
           <p>账户余额、转账等对一致性与实时性要求极高的业务不适合异地多活；低频交易通常也无需采用该架构。登录频率高且是业务入口，适合多活；用户资料修改频率低，通常无需为此投入多活成本。异地双活是异地多活的特例：两个远距离城市同时提供服务。</p>
         </aside>
 
@@ -315,13 +315,13 @@
           </table>
         </div>
                                   <p class="key-point"><strong>重点</strong>异地多活能就近接入，但别指望跨地域强同步，延迟不答应。</p>
-<p class="story-bridge"><span>多活不是目的</span>故障时还得能切、能回切。<a href="#switch">把切换写成手册</a></p>
+<a class="story-bridge" href="#switch"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">多活的目的是让故障时仍能服务；切得过去，也要能回切。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="switch">
             <h2 id="switch" data-toc>真到切换那天，靠的是手册</h2>
-            <div class="prose"><p>真正的事故现场，切换不是一条命令，是一屋子人对着手册确认下一步。</p></div>
+            <div class="prose"><p>真正的事故现场，切换是一屋子人对着手册确认下一步。</p></div>
             <div class="prose">
-              <p>灾备切换不是“把 DNS 指过去”这么简单。它至少包括：确认灾难范围和影响、冻结写入或停止旧中心、确认数据复制位点、提升备用中心、验证核心链路、切换流量入口、观察错误率和延迟，最后才逐步放开全部流量。每一步都需要明确的负责人和中止条件。</p>
+              <p>灾备切换远不止“把 DNS 指过去”。它至少包括：确认灾难范围和影响、冻结写入或停止旧中心、确认数据复制位点、提升备用中心、验证核心链路、切换流量入口、观察错误率和延迟，最后才逐步放开全部流量。每一步都需要明确的负责人和中止条件。</p>
               <p>回切同样重要。灾难恢复后，旧中心的数据可能落后于新中心，直接切回会丢失这段时间的写入。正确做法是先把旧中心作为从库追平数据，再在低峰期做一次受控回切；回切前要确认新中心的增量已经同步，回切后要保留一段双写或只读校验窗口。</p>
             </div>
             <figure class="dg-wrap">
@@ -345,7 +345,7 @@
                 <text class="dg-xs" x="287" y="144" text-anchor="middle">切换窗口：每一步都可能失败，必须有回退路径</text>
                 <path class="dg-line-ok dg-dash" d="M590 160 H510" marker-end="url(#arr-ok)"/>
                 <text class="dg-tiny dg-t-ok" x="550" y="178" text-anchor="middle">数据追平后回切</text>
-                <text class="dg-tiny dg-t-muted" x="330" y="198" text-anchor="middle">回切不是反向执行切换：先让旧中心追平数据，再在低峰期受控切回。</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="198" text-anchor="middle">回切是一套独立流程：先让旧中心追平数据，再在低峰期受控切回。</text>
               </svg>
               <figcaption>图示：切换是一条包含确认、冻结、提升、验证、切流和观察的链路；回切需要单独的数据追平步骤。</figcaption>
             </figure>
@@ -354,8 +354,8 @@
               <p>组织层面要提前明确“谁有权宣布灾难”。如果没有授权，技术人员会在故障初期反复确认，错过最佳切换窗口；如果授权过于随意，又可能因为一次网络抖动误切，造成更大范围的中断。通常需要“技术负责人 + 业务负责人”共同确认，并把判定条件写进运行手册。</p>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>切换不是改 DNS，是一屋子人按手册确认每一步。回切更要先追数据。</p>
-<p class="story-bridge"><span>切得过去</span>还得保证数据在。<a href="#data">看复制链路</a></p>
+                                  <p class="key-point"><strong>重点</strong>切换是一屋子人按手册确认每一步，改 DNS 只是最后一步。回切更要先追数据。</p>
+<a class="story-bridge" href="#data"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">切得过去，还得保证数据在。先看复制链路。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="data">
             <h2 id="data" data-toc>数据复制：容灾的地基</h2>
@@ -377,14 +377,14 @@
               </table>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>RPO 不是配置出来的，是距离、链路和写入方式一起决定的。</p>
-<p class="story-bridge"><span>复制配好了</span>也不代表备用中心真能跑。<a href="#drill">用演练验证</a></p>
+                                  <p class="key-point"><strong>重点</strong>RPO 由距离、链路和写入方式共同决定。</p>
+<a class="story-bridge" href="#drill"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">复制配好了，也不代表备用中心真能跑。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="drill">
             <h2 id="drill" data-toc>备用中心必须真的能跑</h2>
             <div class="prose"><p>备用中心最像健身房年卡。</p></div>
             <div class="prose">
-              <p>容灾最常见的失败不是技术方案不对，而是备用中心长期不运行：配置漂移、证书过期、依赖缺失、容量不足、联系人变更。真正切换时，问题会集中爆发。解决方式只有一个：定期演练，并把演练发现的问题纳入日常发布流程。</p>
+              <p>容灾最常见的失败来自备用中心长期不运行：配置漂移、证书过期、依赖缺失、容量不足、联系人变更。真正切换时，问题会集中爆发。解决方式只有一个：定期演练，并把演练发现的问题纳入日常发布流程。</p>
               <p>演练可以从桌面推演开始，再做单组件切换，最后做全链路切换。每一次都要记录实际 RTO、数据丢失量、失败步骤和人工决策耗时。演练不一定非要停掉生产；可以通过流量镜像、灰度切换、只读验证等方式降低影响。</p>
             </div>
             <figure class="dg-wrap">
@@ -406,7 +406,7 @@
                 <text class="dg-tiny" x="552" y="101" text-anchor="middle">脚本 · 配置 · 监控</text>
                 <path class="dg-line-ok dg-dash" d="M552 114 V154 H82 V116" marker-end="url(#arr-ok)"/>
                 <text class="dg-tiny dg-t-ok" x="316" y="172" text-anchor="middle">下一轮演练：验证修复是否真的生效</text>
-                <text class="dg-tiny dg-t-muted" x="316" y="196" text-anchor="middle">演练不是一次性项目，而是持续改进的闭环；没有记录和修复，演练只会重复暴露同一个问题。</text>
+                <text class="dg-tiny dg-t-muted" x="316" y="196" text-anchor="middle">演练是持续改进的闭环；没有记录和修复，演练只会重复暴露同一个问题。</text>
               </svg>
               <figcaption>图示：容灾演练形成闭环：计划、执行、记录、修复，再进入下一轮验证。</figcaption>
             </figure>
@@ -420,7 +420,7 @@
             </div>
             
                       <p class="key-point"><strong>重点</strong>备用中心能不能用，不看架构图，看演练记录。</p>
-<p class="story-bridge"><span>收束</span>容灾的终点不是架构图，是演练记录。<a href="#summary">收个尾</a></p>
+<a class="story-bridge" href="#summary"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">容灾的终点落在演练记录上。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="summary">
             <h2 id="summary" data-toc>本章小结</h2>

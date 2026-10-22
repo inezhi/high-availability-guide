@@ -7048,30 +7048,40 @@ svg use[href^="#i-"] {
 }
 
 .story-bridge {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
   margin-top: 26px;
-  padding-left: 14px;
+  padding: 12px 0 12px 14px;
   border-left: 1px solid var(--line-strong);
-  font-size: 12px;
-  line-height: 1.8;
-  color: var(--muted);
-}
-
-.story-bridge span {
-  margin-right: 7px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-  color: var(--faint);
-}
-
-.story-bridge a {
-  margin-left: 4px;
-  color: var(--signal);
+  color: var(--ink-2);
   text-decoration: none;
+  font-size: 14px;
+  line-height: 1.8;
 }
 
-.story-bridge a:hover {
-  text-decoration: underline;
+.story-bridge-next {
+  flex: none;
+  color: var(--signal);
+  font-weight: 600;
+}
+
+.story-bridge-text {
+  flex: 1;
+}
+
+.story-bridge-arrow {
+  flex: none;
+  color: var(--signal);
+  transition: transform 0.16s;
+}
+
+.story-bridge:hover .story-bridge-text {
+  color: var(--ink);
+}
+
+.story-bridge:hover .story-bridge-arrow {
+  transform: translateX(3px);
 }
 
 @media (max-width: 640px) {
@@ -7180,9 +7190,10 @@ svg use[href^="#i-"] {
   box-shadow: 0 0 0 1px var(--line-strong);
 }
 
+.dg:focus,
 .dg:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--signal);
+  box-shadow: 0 0 0 1px var(--line-strong);
 }
 
 body.lightbox-open {

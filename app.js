@@ -1685,7 +1685,7 @@
       const good = Math.ceil(total * 0.75);
       const basic = Math.ceil(total * 0.5);
       if (quizState.score === total) {
-        verdict = "全对。你已经能把概念和取舍串起来了。";
+        verdict = "全对。我们已经能把概念和取舍串起来了。";
       } else if (quizState.score >= good) {
         verdict = "大部分都对了。回去看看错题对应的图，那里往往藏着关键。";
       } else if (quizState.score >= basic) {

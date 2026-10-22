@@ -97,7 +97,7 @@
 
         
                                   <p class="key-point"><strong>重点</strong>负载均衡干两件事：把请求分出去，把坏节点踢出去。它自己也会挂。</p>
-<p class="story-bridge"><span>入口有了</span>第一件事不是选算法，而是别把请求发给坏节点。<a href="#health">看健康检查</a></p>
+<a class="story-bridge" href="#health"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">入口有了，先确保请求只发给健康节点。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="health">
             <h2 id="health" data-toc>别把请求发给已经挂了的节点</h2>
@@ -176,11 +176,11 @@
               </table>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>健康检查不是看端口活没活，是看它还能不能接业务。</p>
-<p class="story-bridge"><span>知道谁健康之后</span>才轮到“在哪一层转发”。<a href="#l4-l7">比较四层和七层</a></p>
+                                  <p class="key-point"><strong>重点</strong>健康检查要看它还能不能接业务，端口活着只是最低条件。</p>
+<a class="story-bridge" href="#l4-l7"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">知道谁健康之后，再决定在哪一层转发。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="l4-l7">
-            <h2 id="l4-l7" data-toc>四层还是七层，先看你要什么</h2>
+            <h2 id="l4-l7" data-toc>四层还是七层，先看我们要什么</h2>
             <div class="prose"><p>确定了“谁健康”，团队开始决定在哪一层做转发。四层只看 IP 和端口，七层能读懂 HTTP；能力与开销的取舍，从这里开始。</p></div>
 <div class="two-col">
           <div class="mini-cmp">
@@ -246,8 +246,8 @@
               </table>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>四层快，七层聪明。先问你要什么，再问谁更强。</p>
-<p class="story-bridge"><span>层次定了</span>再决定把请求给谁。<a href="#algorithms">看调度算法</a></p>
+                                  <p class="key-point"><strong>重点</strong>四层快，七层聪明。先问我们要什么，再问谁更强。</p>
+<a class="story-bridge" href="#algorithms"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">层次定了，再决定把请求给谁。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="algorithms">
             <h2 id="algorithms" data-toc>把请求给谁：算法背后的假设</h2>
@@ -255,7 +255,7 @@
           <p class="chapter-kicker">负载策略</p>
           <h3>常见负载策略及其适用假设</h3>
         </div>
-            <div class="prose"><p>名字很多，其实都在回答一个问题：你觉得哪个节点现在最闲？</p></div>
+            <div class="prose"><p>名字很多，其实都在回答一个问题：我们认为哪个节点现在最闲？</p></div>
         <div class="strategy-grid">
           <div class="strategy">
             <h4>轮询</h4>
@@ -440,7 +440,7 @@
             </div>
             
                                   <p class="key-point"><strong>重点</strong>算法没有最好，只有适不适合。节点同不同构、服务有没有状态，先答这两个问题。</p>
-<p class="story-bridge"><span>别背策略</span>动手点几下更直观。<a href="#simulator">打开模拟器</a></p>
+<a class="story-bridge" href="#simulator"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">别背策略，动手点几下更直观。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="simulator">
             <h2 id="simulator" data-toc>动手试试，看流量怎么跑</h2>
@@ -517,14 +517,14 @@
 
         <div class="prose">
           <p>策略没有绝对优劣，取决于服务形态与节点差异。无状态且节点同构时，轮询或随机即可；节点能力不同时，用加权轮询或最少连接；需要会话保持时用 IP 哈希；流量有明显趋势时，可用趋势分析提前调度。任何策略都必须配合健康检查，否则只会把请求分给已经故障的节点。</p>
-          <p>会话保持还有一个副作用：节点扩缩容时哈希映射会变化，部分用户会被重新分配到其他节点，原有会话可能失效。因此现代系统更倾向于把会话状态外置到 Redis 等共享存储，而不是依赖 IP 哈希。</p>
+          <p>会话保持还有一个副作用：节点扩缩容时哈希映射会变化，部分用户会被重新分配到其他节点，原有会话可能失效。因此现代系统更倾向于把会话状态外置到 Redis 等共享存储，减少对 IP 哈希的依赖。</p>
         </div>
 
-                              <p class="story-bridge"><span>流量分得再漂亮</span>负载均衡器自己挂了也白搭。<a href="#self-ha">给入口做冗余</a></p>
+                              <a class="story-bridge" href="#self-ha"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">流量分得再漂亮，负载均衡器自己挂了也白搭。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="self-ha">
             <h2 id="self-ha" data-toc>负载均衡器自己也会挂</h2>
-            <div class="prose"><p>你给后端做了冗余，那负载均衡器自己呢？</p></div>
+            <div class="prose"><p>我们给后端做了冗余，那负载均衡器自己呢？</p></div>
 <div class="prose">
           <p>负载均衡器自身是流量入口，一旦不可用，后端再健康也无法访问。常见的做法是双机主备：两台 Nginx 通过 Keepalived 绑定同一个 VIP，由 VRRP 决定谁持有 VIP；主节点故障时，备节点在数秒内接管 VIP。需要注意，VIP 漂移只解决入口故障，不能提升单机 Nginx 的连接数上限，因此高并发场景还需要多级负载。</p>
           <p>多级负载把不同层次的设备串联起来：硬负载负责最外层的高吞吐，LVS/HAProxy 做四层转发，Nginx 做七层路由与应用层能力。每一层都可以用 Keepalived 做成主备，从而避免任何单台设备成为整条链路的单点。</p>
@@ -575,7 +575,7 @@
         
             
                                   <p class="key-point"><strong>重点</strong>后端做了冗余，入口没有，等于白做。</p>
-<p class="story-bridge"><span>机房入口稳了</span>用户却可能来自全国。<a href="#global">把入口扩展到全局</a></p>
+<a class="story-bridge" href="#global"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">机房入口稳了，用户却可能来自全国。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="global">
             <h2 id="global" data-toc>用户从全国来，入口怎么选</h2>
@@ -664,7 +664,7 @@
             </figure>
             
                                   <p class="key-point"><strong>重点</strong>DNS 轮询不会探活，坏 IP 照样返回。GSLB 好一些，但也得看 TTL 脸色。</p>
-<p class="story-bridge"><span>用户进了机房</span>又会遇到会话保持的问题。<a href="#consistent-hash">看一致性哈希</a></p>
+<a class="story-bridge" href="#consistent-hash"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">用户进了机房，又会遇到会话保持的问题。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="consistent-hash">
             <h2 id="consistent-hash" data-toc>会话保持：扩容时怎么少掉线</h2>
@@ -700,7 +700,7 @@
             </figure>
             
                                   <p class="key-point"><strong>重点</strong>会话保持最怕扩容。能外置就外置，别把用户绑死在某台机器上。</p>
-<p class="story-bridge"><span>收束</span>入口层的细节差不多了，用一张清单收尾。<a href="#checklist">检查一遍</a></p>
+<a class="story-bridge" href="#checklist"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">入口层的细节差不多了，用一张清单收尾。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="checklist">
             <h2 id="checklist" data-toc>入口层检查清单</h2>

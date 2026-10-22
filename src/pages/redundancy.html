@@ -35,7 +35,7 @@
             <div class="prose">
               <p>先回答第一个问题：备机到底算不算冗余？</p>
               <p>冗余可以发生在很多层次：进程、机器、机架、可用区、机房、地域。层次越高，隔离的故障越大，成本也越高。同一机架上的两台服务器可以防进程崩溃和单机硬件故障，却无法防机架掉电；同城两个机房可以防火灾，却无法防城市级灾害。</p>
-              <p>设计冗余时先画故障域：哪些组件会一起故障？共享电源、共享交换机、共享配置中心、共享发布流程，都会把“两个副本”变回“一个故障域”。冗余的数量不是关键，故障域是否真正隔离才是关键。</p>
+              <p>设计冗余时先画故障域：哪些组件会一起故障？共享电源、共享交换机、共享配置中心、共享发布流程，都会把“两个副本”变回“一个故障域”。冗余的数量只是表面，真正关键的是故障域是否隔离。</p>
             </div>
 
             <figure class="dg-wrap">
@@ -57,7 +57,7 @@
                 <rect class="dg-bar-green" x="464" y="92" width="150" height="7" rx="3.5"/>
                 <text class="dg-tiny" x="464" y="118">在线，数据实时同步</text>
                 <text class="dg-tiny dg-t-green" x="464" y="138">随时接管 · RTO 秒级</text>
-                <text class="dg-tiny dg-t-muted" x="330" y="188" text-anchor="middle">冷、温、热的区别不是“有没有机器”，而是备机准备到了哪一步：数据、环境、进程和流量入口。</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="188" text-anchor="middle">冷、温、热的区别在于备机准备到了哪一步：数据、环境、进程和流量入口。</text>
                 <text class="dg-tiny dg-t-muted" x="330" y="206" text-anchor="middle">N+1 / N+2 描述的是容量冗余；它与主备的“接管能力”是两件不同的事。</text>
               </svg>
               <figcaption>图示：备机就绪程度越高，RTO 越短，但日常成本也越高；选择取决于业务能接受多长的恢复时间。</figcaption>
@@ -65,7 +65,7 @@
 
             
                                   <p class="key-point"><strong>重点</strong>两台机器放在同一个机架，不叫冗余，叫一起坏。</p>
-<p class="story-bridge"><span>先问一句</span>备机准备到哪一步，才敢叫它“备机”？<a href="#active-passive">看主备怎么交接</a></p>
+<a class="story-bridge" href="#active-passive"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">备机准备到哪一步，才敢叫它“备机”？先看主备怎么交接。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="active-passive">
             <h2 id="active-passive" data-toc>主备：把写入权交给一个人</h2>
@@ -154,13 +154,13 @@
             </div>
 
             <div class="prose">
-              <p>从演练台可以看到，主备切换不是一次瞬时动作，而是“检测 → 判定 → 提升 → 切流”的连续过程。RTO 主要消耗在前两步：检测要等心跳超时，判定要避免网络抖动导致误切；真正提升备机和切换 VIP 反而很快。因此缩短 RTO 的关键，是设计可靠的故障检测与仲裁机制，而不是单纯提高机器性能。</p>
+              <p>从演练台可以看到，主备切换是一段连续过程：检测 → 判定 → 提升 → 切流。RTO 主要消耗在前两步：检测要等心跳超时，判定要避免网络抖动导致误切；真正提升备机和切换 VIP 反而很快。因此缩短 RTO 的关键，是设计可靠的故障检测与仲裁机制；机器性能只是其中一部分。</p>
               <p>RPO 则由复制方式决定。同步复制要求主库等待备库确认，故障时数据不丢，但写入延迟上升；异步复制先返回客户端，性能更好，故障瞬间可能丢失尚未复制的那一段写入。选择哪一种，取决于业务能否接受数据缺失。</p>
             </div>
 
             
-                                  <p class="key-point"><strong>重点</strong>主备的关键不是备机在不在，而是检测、判定、提升、切流能不能在几分钟内走完。</p>
-<p class="story-bridge"><span>第一次演练</span>就会暴露问题：切换不是一瞬间。<a href="#rto-rpo">算清 RTO 和 RPO</a></p>
+                                  <p class="key-point"><strong>重点</strong>主备的关键在于检测、判定、提升、切流能不能在几分钟内走完。</p>
+<a class="story-bridge" href="#rto-rpo"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">第一次演练就会暴露问题：切换需要时间。我们算清 RTO 和 RPO。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="rto-rpo">
             <h2 id="rto-rpo" data-toc>切换的代价：慢、丢数据、双主</h2>
@@ -248,14 +248,14 @@
             </div>
 
             
-                                  <p class="key-point"><strong>重点</strong>想又快又不丢数据，基本是做梦。RTO 和 RPO，你得先选一个能接受的。</p>
-<p class="story-bridge"><span>可有时候</span>问题不是慢，而是两个主同时写。<a href="#quorum">先解决“谁有资格写”</a></p>
+                                  <p class="key-point"><strong>重点</strong>想又快又不丢数据，基本是做梦。RTO 和 RPO，我们需要先选一个能接受的。</p>
+<a class="story-bridge" href="#quorum"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">慢还可以等，双主同时写会出数据事故。先解决“谁有资格写”。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="quorum">
             <h2 id="quorum" data-toc>网络断了，听谁的</h2>
-            <div class="prose"><p>网络一断，最危险的不是失联，而是两边都觉得自己才是主。</p></div>
+            <div class="prose"><p>网络一断，最危险的情况是两边都觉得自己才是主。</p></div>
             <div class="prose">
-              <p>故障检测只能说明“我联系不上对方”，不能证明“对方已经停止工作”。网络分区、GC 停顿、机器假死都会造成类似现象。如果备机仅凭“ping 不通”就提升自己，旧主可能仍在处理请求，于是出现双主。解决这个问题需要额外的仲裁机制，而不是更灵敏的心跳。</p>
+              <p>故障检测只能说明“我联系不上对方”，不能证明“对方已经停止工作”。网络分区、GC 停顿、机器假死都会造成类似现象。如果备机仅凭“ping 不通”就提升自己，旧主可能仍在处理请求，于是出现双主。解决这个问题需要额外的仲裁机制；更灵敏的心跳只能更快发现异常。</p>
               <p>常见机制有三类。第一是多数派仲裁：只有获得超过半数投票者的同意，才能成为主；少数派一侧即使还有机器，也不能提供服务。第二是租约：主节点持有带过期时间的租约，必须在到期前续约，过期后自动失去写资格。第三是 STONITH（Shoot The Other Node In The Head）：在提升新主前，先通过电源、网络或存储隔离把旧主强制关掉。</p>
             </div>
 
@@ -299,11 +299,11 @@
 
             <div class="prose">
               <p>还有一个容易被忽略的细节：客户端也要参与 fencing。旧主可能已经在本地完成写入，但它的写请求不应再被存储层接受。单调递增的 fencing token 可以让存储层拒绝旧主的请求：每次选主发放一个更大的 token，存储层只接受不小于已见最大值的写请求。</p>
-              <p>仲裁不是免费的：投票节点增加了部署复杂度，跨机房仲裁还会引入额外延迟；STONITH 则要求电源和网络可控。对于单机主备，至少应该使用 VIP 漂移加租约，避免“两台机器都认为自己持有 VIP”。</p>
+              <p>仲裁有成本：投票节点增加了部署复杂度，跨机房仲裁还会引入额外延迟；STONITH 则要求电源和网络可控。对于单机主备，至少应该使用 VIP 漂移加租约，避免“两台机器都认为自己持有 VIP”。</p>
             </div>
             
                                   <p class="key-point"><strong>重点</strong>能 ping 通，不代表对方停了。仲裁、租约、STONITH，都在回答一句话：现在谁有资格写。</p>
-<p class="story-bridge"><span>双主解决了</span>新的瓶颈又来了：一台机器写不动。<a href="#active-active">走向多活</a></p>
+<a class="story-bridge" href="#active-active"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">双主解决了，新的瓶颈又来了：一台机器写不动。我们走向多活。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="active-active">
             <div class="section-sub">
@@ -390,7 +390,7 @@
 
             <aside class="note note-info latency-note">
               <div class="note-head"><svg class="icon"><use href="#i-network"/></svg>跨地域强一致，基本不现实</div>
-              <p>Raft / Paxos 的多数派确认需要跨地域完成一次 RTT。北京到上海约 30ms，每次写入都需付出该延迟，吞吐会下降一个量级。因此工程上的“异地多活”，几乎都是<strong>单元化 + 异步复制</strong>，而不是“任意节点都能写任意数据”。</p>
+              <p>Raft / Paxos 的多数派确认需要跨地域完成一次 RTT。北京到上海约 30ms，每次写入都需付出该延迟，吞吐会下降一个量级。因此工程上的“异地多活”，几乎都是<strong>单元化 + 异步复制</strong>，把写入限制在单元内，避免任意节点写任意数据。</p>
               <figure class="dg-wrap dg-wrap-inline">
                 <svg class="dg" viewBox="0 0 520 96" role="img" aria-label="跨地域一次 RTT 约 30 毫秒，每次写入都要付出这个代价">
                   <rect class="dg-node" x="12" y="24" width="84" height="32" rx="6"/>
@@ -421,14 +421,14 @@
                 </tbody>
               </table>
             </div>
-                                  <p class="key-point"><strong>重点</strong>多活不是架构时髦，是单写入者真的扛不住了。工程上多数做法是单元化加异步复制。</p>
-<p class="story-bridge"><span>多活之后</span>冲突会变成日常。<a href="#conflict">看三种冲突解法</a></p>
+                                  <p class="key-point"><strong>重点</strong>多活往往是单写入者扛不住之后的选择。工程上多数做法是单元化加异步复制。</p>
+<a class="story-bridge" href="#conflict"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">多活之后，冲突会变成日常。先看三种冲突解法。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="conflict">
             <h2 id="conflict" data-toc>两个人同时改一条数据，听谁的</h2>
-            <div class="prose"><p>多活最麻烦的不是机器多，是两个人同时改同一条数据。</p></div>
+            <div class="prose"><p>多活最麻烦的地方在于两个人同时改同一条数据。</p></div>
             <div class="prose">
-              <p>一旦允许多个节点同时写同一条数据，冲突就不再是异常，而是常态。冲突解决不是“选一个看起来最新的值”这么简单，它决定了并发写入时哪一方会被保留、哪一方会被丢弃，以及业务能否接受这种丢弃。</p>
+              <p>一旦允许多个节点同时写同一条数据，冲突会变成常态。冲突解决远不止“选一个看起来最新的值”，它决定了并发写入时哪一方会被保留、哪一方会被丢弃，以及业务能否接受这种丢弃。</p>
             </div>
             <div class="table-wrap">
               <table class="cmp">
@@ -442,12 +442,12 @@
               </table>
             </div>
             <div class="prose">
-              <p>更常见的做法不是“解决冲突”，而是“避免冲突”：按用户 ID、租户 ID 或订单 ID 做单元化路由，让同一条数据始终由同一个单元写入；对无法切分的数据保留单写入点；对跨单元操作使用幂等键和补偿事务，而不是并发写同一条记录。</p>
+              <p>更常见的做法是“避免冲突”：按用户 ID、租户 ID 或订单 ID 做单元化路由，让同一条数据始终由同一个单元写入；对无法切分的数据保留单写入点；对跨单元操作使用幂等键和补偿事务，避免并发写同一条记录。</p>
               <p>无论采用哪种策略，都要回答三个问题：冲突发生的概率有多大？冲突时丢失一笔写，业务是否能接受？如果无法接受，是否应该改成串行写入？这三个问题比选择具体算法更重要。</p>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>冲突解决不是选个算法，是问业务：这一笔写丢了，你认不认。</p>
-<p class="story-bridge"><span>数据层的冲突有解了</span>故障转移还得客户端配合。<a href="#failover-patterns">把超时、重试和熔断接上</a></p>
+                                  <p class="key-point"><strong>重点</strong>冲突解决最终要问业务：这一笔写丢了，我们认不认。</p>
+<a class="story-bridge" href="#failover-patterns"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">数据层的冲突有解了，故障转移还得客户端配合。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="failover-patterns">
             <h2 id="failover-patterns" data-toc>切换时，客户端别添乱</h2>
@@ -458,7 +458,7 @@
             <div class="deep-grid">
               <article class="deep-card">
                 <h3>重试要有预算，不能无限放大</h3>
-                <p>故障时大量客户端同时重试，会把已经紧张的节点再次压垮，形成重试风暴。正确做法是：只重试幂等请求；使用指数退避加随机抖动；为每次请求设置重试预算；当错误率超过阈值时快速失败，而不是继续重试。</p>
+                <p>故障时大量客户端同时重试，会把已经紧张的节点再次压垮，形成重试风暴。正确做法是：只重试幂等请求；使用指数退避加随机抖动；为每次请求设置重试预算；当错误率超过阈值时快速失败，把重试留给真正值得的请求。</p>
                 <figure class="dg-wrap dg-wrap-inline">
                   <svg class="dg" viewBox="0 0 320 148" role="img" aria-label="没有重试预算时请求量被重试放大，有熔断时快速失败">
                     <text class="dg-tiny dg-t-muted" x="8" y="16">无熔断</text>
@@ -508,17 +508,17 @@
               </article>
             </div>
             <div class="prose">
-              <p>此外，客户端应缓存服务端地址并支持重新解析，避免 DNS 或 VIP 切换后仍连接旧地址；长连接需要设置合理的空闲超时；切换期间可以短暂返回降级结果，而不是让请求无限等待。故障转移的目标是“整体恢复”，不是“每个请求都成功”。</p>
+              <p>此外，客户端应缓存服务端地址并支持重新解析，避免 DNS 或 VIP 切换后仍连接旧地址；长连接需要设置合理的空闲超时；切换期间可以短暂返回降级结果，让请求尽快返回，避免无限等待。故障转移的目标是“整体恢复”，允许少数请求失败。</p>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>故障转移不是服务端一个人的事。客户端不配合，超时和重试会把小故障放大成雪崩。</p>
-<p class="story-bridge"><span>这些设计靠不靠谱</span>拉闸试一次最清楚。<a href="#chaos">用演练验证</a></p>
+                                  <p class="key-point"><strong>重点</strong>故障转移需要服务端和客户端一起配合。客户端不配合，超时和重试会把小故障放大成雪崩。</p>
+<a class="story-bridge" href="#chaos"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">这些设计靠不靠谱，拉闸试一次最清楚。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="chaos">
             <h2 id="chaos" data-toc>备机能不能用，拉闸试一次</h2>
-            <div class="prose"><p>备机能不能用，不是架构评审说了算。</p></div>
+            <div class="prose"><p>备机能不能用，要看演练结果。</p></div>
             <div class="prose">
-              <p>冗余最大的风险不是“没有备机”，而是“以为有备机”。备机可能没有追平数据、配置可能不一致、VIP 可能漂移失败、客户端可能不会重连。这些问题只有在真实切换时才会暴露，因此必须通过演练提前发现。</p>
+              <p>冗余最大的风险是“以为有备机”，实际却接不住。备机可能没有追平数据、配置可能不一致、VIP 可能漂移失败、客户端可能不会重连。这些问题只有在真实切换时才会暴露，因此必须通过演练提前发现。</p>
               <p>演练可以从桌面推演开始：把架构图、依赖关系、切换步骤和联系人摆在桌面上，逐项走一遍。之后再做受控实验：在低峰期、小流量范围内注入故障，观察系统是否按预期恢复。每次演练都要有明确假设、影响范围和中止条件。</p>
             </div>
             <div class="table-wrap">
@@ -536,7 +536,7 @@
             </div>
             
                       <p class="key-point"><strong>重点</strong>没演练过的备机，只能算心理安慰。</p>
-<p class="story-bridge"><span>收束</span>冗余这一章，到这里才算闭环。<a href="#summary">收个尾</a></p>
+<a class="story-bridge" href="#summary"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">冗余这一章，到这里才算闭环。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="summary">
             <h2 id="summary" data-toc>本章小结</h2>

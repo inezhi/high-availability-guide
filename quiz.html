@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/quiz.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/quiz.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-17">
+  <link rel="stylesheet" href="styles.css?v=20261022-18">
 </head>
 <body class="article-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -121,46 +121,6 @@
           <a class="topnav-link is-current" href="quiz.html" aria-current="page"><span class="topnav-link-num">07</span>自测</a>
           </div>
         </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高伸缩
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">01</span>负载均衡与水平扩展</a>
-          <a class="topnav-link" href="load-balancing.html#consistent-hash"><span class="topnav-link-num">02</span>一致性哈希</a>
-          <a class="topnav-link" href="middleware.html#mongodb"><span class="topnav-link-num">03</span>MongoDB 分片</a>
-          <a class="topnav-link" href="redundancy.html#active-active"><span class="topnav-link-num">04</span>单元化多活</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高并发
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">01</span>限流与过载保护</a>
-          <a class="topnav-link" href="rate-limiting.html#layers"><span class="topnav-link-num">02</span>分层限流</a>
-          <a class="topnav-link" href="rate-limiting.html#algorithms"><span class="topnav-link-num">03</span>漏桶与令牌桶</a>
-          <a class="topnav-link" href="rate-limiting.html#distributed"><span class="topnav-link-num">04</span>分布式限流</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">05</span>Kafka 分区副本</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高性能
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="middleware.html#redis"><span class="topnav-link-num">01</span>缓存与持久化</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">02</span>消息队列</a>
-          <a class="topnav-link" href="load-balancing.html#l4-l7"><span class="topnav-link-num">03</span>四层与七层</a>
-          <a class="topnav-link" href="middleware.html#mysql"><span class="topnav-link-num">04</span>数据库复制</a>
-          </div>
-        </div>
       </nav>
       <div class="topbar-actions">
         <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到浅色主题" title="切换主题">
@@ -180,7 +140,7 @@
 
   <nav class="mobile-index topnav-mobile" id="mobileIndex" aria-label="移动端导航">
         <details class="mobile-nav-group" open>
-      <summary><span>高可用架构</span><small>01</small></summary>
+      <summary><span>高可用架构</span><small>系统设计系列 · 01</small></summary>
       <a class="mobile-link mobile-overview" href="index.html">总览</a>
         <a class="mobile-link" href="availability.html"><span>01</span>可用性</a>
         <a class="mobile-link" href="redundancy.html"><span>02</span>冗余</a>
@@ -189,28 +149,6 @@
         <a class="mobile-link" href="middleware.html"><span>05</span>中间件</a>
         <a class="mobile-link" href="rate-limiting.html"><span>06</span>限流</a>
         <a class="mobile-link is-current" href="quiz.html" aria-current="page"><span>07</span>自测</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高伸缩</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="load-balancing.html">负载均衡与水平扩展</a>
-      <a class="mobile-link" href="load-balancing.html#consistent-hash">一致性哈希</a>
-      <a class="mobile-link" href="middleware.html#mongodb">MongoDB 分片</a>
-      <a class="mobile-link" href="redundancy.html#active-active">单元化多活</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高并发</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="rate-limiting.html">限流与过载保护</a>
-      <a class="mobile-link" href="rate-limiting.html#layers">分层限流</a>
-      <a class="mobile-link" href="rate-limiting.html#algorithms">漏桶与令牌桶</a>
-      <a class="mobile-link" href="rate-limiting.html#distributed">分布式限流</a>
-      <a class="mobile-link" href="middleware.html#kafka">Kafka 分区副本</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高性能</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="middleware.html#redis">缓存与持久化</a>
-      <a class="mobile-link" href="middleware.html#kafka">消息队列</a>
-      <a class="mobile-link" href="load-balancing.html#l4-l7">四层与七层</a>
-      <a class="mobile-link" href="middleware.html#mysql">数据库复制</a>
     </details>
   </nav>
 
@@ -231,7 +169,7 @@
           </nav>
           <p class="chapter-kicker">第 07 章 · 检验</p>
           <h1>知识自测：十二道题</h1>
-          <p class="post-lede">题目覆盖可用性指标、冗余、负载均衡、容灾、中间件和限流六个章节。答错不是问题，重要的是回到对应章节，把机制和取舍重新讲清楚。</p>
+          <p class="post-lede">题目覆盖可用性指标、冗余、负载均衡、容灾、中间件和限流六个章节。答错没关系，重要的是回到对应章节，把机制和取舍重新讲清楚。</p>
           <div class="post-meta">
             <span>约 8 分钟</span>
             <span class="meta-dot" aria-hidden="true"></span>
@@ -243,7 +181,7 @@
           <section class="post-section" aria-labelledby="before">
             <h2 id="before" data-toc>先别急着答题</h2>
             <div class="prose">
-              <p>这些题不考配置项和产品参数，而是考判断：为什么这样设计、代价是什么、什么时候会失效。遇到不确定的题，可以先回想章节里的图和取舍，而不是死记结论。</p>
+              <p>这些题重点考判断：为什么这样设计、代价是什么、什么时候会失效；配置项和产品参数只是背景。遇到不确定的题，可以先回想章节里的图和取舍，把结论放回场景里。</p>
             </div>
             <div class="recap-grid">
               <div class="recap-item"><span>01</span><p>先看故障域和写入者数量，再看具体组件。</p></div>
@@ -279,7 +217,7 @@
           <section class="post-section" aria-labelledby="after">
             <h2 id="after" data-toc>答完了，然后呢</h2>
             <div class="prose">
-              <p>如果错题集中在某几章，建议回到对应页面，重点看图和“重点”段落，而不是从头重读。图示往往把机制压缩成了一个动作序列：谁检测、谁判定、谁接管、客户端如何找到新入口。能复述这条序列，比记住产品名词更有用。</p>
+              <p>如果错题集中在某几章，建议回到对应页面，重点看图和“重点”段落，不必从头重读。图示往往把机制压缩成了一个动作序列：谁检测、谁判定、谁接管、客户端如何找到新入口。能复述这条序列，比记住产品名词更有用。</p>
               <p>如果几乎全对，可以尝试把六章串成一条完整链路：从一个用户请求出发，经过 DNS / GSLB、负载均衡、网关、应用、缓存、数据库和消息队列，逐一说明每个环节的故障域、冗余方式、切换机制和限流策略。能讲清楚这条链路，说明已经掌握了高可用的整体框架。</p>
             </div>
             <div class="chapter-links">
@@ -338,6 +276,6 @@
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-17" defer></script>
+  <script src="app.js?v=20261022-18" defer></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
-VERSION = "20261022-17"
+VERSION = "20261022-18"
 YEAR = "2026"
 
 PAGES = [
@@ -192,34 +192,6 @@ def build_topbar(active: str | None) -> str:
             '<a class="topnav-link topnav-overview" href="index.html">总览</a>\n' + "\n".join(chapter_links),
             True,
         ),
-        (
-            "高伸缩",
-            "本手册相关章节",
-            """          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">01</span>负载均衡与水平扩展</a>
-          <a class="topnav-link" href="load-balancing.html#consistent-hash"><span class="topnav-link-num">02</span>一致性哈希</a>
-          <a class="topnav-link" href="middleware.html#mongodb"><span class="topnav-link-num">03</span>MongoDB 分片</a>
-          <a class="topnav-link" href="redundancy.html#active-active"><span class="topnav-link-num">04</span>单元化多活</a>""",
-            False,
-        ),
-        (
-            "高并发",
-            "本手册相关章节",
-            """          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">01</span>限流与过载保护</a>
-          <a class="topnav-link" href="rate-limiting.html#layers"><span class="topnav-link-num">02</span>分层限流</a>
-          <a class="topnav-link" href="rate-limiting.html#algorithms"><span class="topnav-link-num">03</span>漏桶与令牌桶</a>
-          <a class="topnav-link" href="rate-limiting.html#distributed"><span class="topnav-link-num">04</span>分布式限流</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">05</span>Kafka 分区副本</a>""",
-            False,
-        ),
-        (
-            "高性能",
-            "本手册相关章节",
-            """          <a class="topnav-link" href="middleware.html#redis"><span class="topnav-link-num">01</span>缓存与持久化</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">02</span>消息队列</a>
-          <a class="topnav-link" href="load-balancing.html#l4-l7"><span class="topnav-link-num">03</span>四层与七层</a>
-          <a class="topnav-link" href="middleware.html#mysql"><span class="topnav-link-num">04</span>数据库复制</a>""",
-            False,
-        ),
     ]
 
     items = []
@@ -255,31 +227,9 @@ def build_mobile_nav(active: str | None) -> str:
 
     ha_block = "\n".join(chapter_links)
     return """    <details class="mobile-nav-group" open>
-      <summary><span>高可用架构</span><small>01</small></summary>
+      <summary><span>高可用架构</span><small>系统设计系列 · 01</small></summary>
       <a class="mobile-link mobile-overview" href="index.html">总览</a>
 %s
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高伸缩</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="load-balancing.html">负载均衡与水平扩展</a>
-      <a class="mobile-link" href="load-balancing.html#consistent-hash">一致性哈希</a>
-      <a class="mobile-link" href="middleware.html#mongodb">MongoDB 分片</a>
-      <a class="mobile-link" href="redundancy.html#active-active">单元化多活</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高并发</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="rate-limiting.html">限流与过载保护</a>
-      <a class="mobile-link" href="rate-limiting.html#layers">分层限流</a>
-      <a class="mobile-link" href="rate-limiting.html#algorithms">漏桶与令牌桶</a>
-      <a class="mobile-link" href="rate-limiting.html#distributed">分布式限流</a>
-      <a class="mobile-link" href="middleware.html#kafka">Kafka 分区副本</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高性能</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="middleware.html#redis">缓存与持久化</a>
-      <a class="mobile-link" href="middleware.html#kafka">消息队列</a>
-      <a class="mobile-link" href="load-balancing.html#l4-l7">四层与七层</a>
-      <a class="mobile-link" href="middleware.html#mysql">数据库复制</a>
     </details>""" % ha_block
 
 

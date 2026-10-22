@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/middleware.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/middleware.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-17">
+  <link rel="stylesheet" href="styles.css?v=20261022-18">
 </head>
 <body class="article-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -121,46 +121,6 @@
           <a class="topnav-link" href="quiz.html"><span class="topnav-link-num">07</span>自测</a>
           </div>
         </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高伸缩
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">01</span>负载均衡与水平扩展</a>
-          <a class="topnav-link" href="load-balancing.html#consistent-hash"><span class="topnav-link-num">02</span>一致性哈希</a>
-          <a class="topnav-link" href="middleware.html#mongodb"><span class="topnav-link-num">03</span>MongoDB 分片</a>
-          <a class="topnav-link" href="redundancy.html#active-active"><span class="topnav-link-num">04</span>单元化多活</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高并发
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">01</span>限流与过载保护</a>
-          <a class="topnav-link" href="rate-limiting.html#layers"><span class="topnav-link-num">02</span>分层限流</a>
-          <a class="topnav-link" href="rate-limiting.html#algorithms"><span class="topnav-link-num">03</span>漏桶与令牌桶</a>
-          <a class="topnav-link" href="rate-limiting.html#distributed"><span class="topnav-link-num">04</span>分布式限流</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">05</span>Kafka 分区副本</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高性能
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="middleware.html#redis"><span class="topnav-link-num">01</span>缓存与持久化</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">02</span>消息队列</a>
-          <a class="topnav-link" href="load-balancing.html#l4-l7"><span class="topnav-link-num">03</span>四层与七层</a>
-          <a class="topnav-link" href="middleware.html#mysql"><span class="topnav-link-num">04</span>数据库复制</a>
-          </div>
-        </div>
       </nav>
       <div class="topbar-actions">
         <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到浅色主题" title="切换主题">
@@ -180,7 +140,7 @@
 
   <nav class="mobile-index topnav-mobile" id="mobileIndex" aria-label="移动端导航">
         <details class="mobile-nav-group" open>
-      <summary><span>高可用架构</span><small>01</small></summary>
+      <summary><span>高可用架构</span><small>系统设计系列 · 01</small></summary>
       <a class="mobile-link mobile-overview" href="index.html">总览</a>
         <a class="mobile-link" href="availability.html"><span>01</span>可用性</a>
         <a class="mobile-link" href="redundancy.html"><span>02</span>冗余</a>
@@ -189,28 +149,6 @@
         <a class="mobile-link is-current" href="middleware.html" aria-current="page"><span>05</span>中间件</a>
         <a class="mobile-link" href="rate-limiting.html"><span>06</span>限流</a>
         <a class="mobile-link" href="quiz.html"><span>07</span>自测</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高伸缩</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="load-balancing.html">负载均衡与水平扩展</a>
-      <a class="mobile-link" href="load-balancing.html#consistent-hash">一致性哈希</a>
-      <a class="mobile-link" href="middleware.html#mongodb">MongoDB 分片</a>
-      <a class="mobile-link" href="redundancy.html#active-active">单元化多活</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高并发</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="rate-limiting.html">限流与过载保护</a>
-      <a class="mobile-link" href="rate-limiting.html#layers">分层限流</a>
-      <a class="mobile-link" href="rate-limiting.html#algorithms">漏桶与令牌桶</a>
-      <a class="mobile-link" href="rate-limiting.html#distributed">分布式限流</a>
-      <a class="mobile-link" href="middleware.html#kafka">Kafka 分区副本</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高性能</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="middleware.html#redis">缓存与持久化</a>
-      <a class="mobile-link" href="middleware.html#kafka">消息队列</a>
-      <a class="mobile-link" href="load-balancing.html#l4-l7">四层与七层</a>
-      <a class="mobile-link" href="middleware.html#mysql">数据库复制</a>
     </details>
   </nav>
 
@@ -303,7 +241,7 @@
             </div>
             
                                   <p class="key-point"><strong>重点</strong>看中间件高可用，先问四件事：复制什么、谁选主、客户端怎么找新主、会丢多少数据。</p>
-<p class="story-bridge"><span>先跟着用户</span>打开商品页，第一站是缓存。<a href="#redis">看 Redis</a></p>
+<a class="story-bridge" href="#redis"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">先跟着用户打开商品页，第一站是缓存。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section product-section" aria-labelledby="redis">
             <h2 id="redis" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-redis"/></svg>Redis：内存存储、持久化与缓存失效</h2>
@@ -552,7 +490,7 @@
             </div>
             
                                   <p class="key-point"><strong>重点</strong>Redis 快，但异步复制会丢最后一段；哨兵能切换，不等于零丢失。</p>
-<p class="story-bridge"><span>缓存没命中</span>请求落到商品库。<a href="#mongodb">看 MongoDB</a></p>
+<a class="story-bridge" href="#mongodb"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">缓存没命中，请求落到商品库。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section product-section" aria-labelledby="mongodb">
             <h2 id="mongodb" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-mongo"/></svg>MongoDB：副本集与分片</h2>
@@ -698,7 +636,7 @@
             
                                   <p class="key-point"><strong>重点</strong>MongoDB 的一致性有一部分是客户端选的：w:1 快，w:majority 稳。</p>
             <p class="key-point"><strong>重点</strong>分片键选错，后面天天救火。它选定后基本不能改。</p>
-<p class="story-bridge"><span>用户决定下单</span>订单要落库。<a href="#mysql">看 MySQL</a></p>
+<a class="story-bridge" href="#mysql"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">用户决定下单，订单要落库。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section product-section" aria-labelledby="mysql">
             <h2 id="mysql" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-mysql"/></svg>MySQL：主从复制与一致性取舍</h2>
@@ -902,14 +840,14 @@
             </div>
             
                                   <p class="key-point"><strong>重点</strong>MySQL 的复制策略就是一道选择题：快、稳、还是折中。复制策略也不等于自动故障转移。</p>
-<p class="story-bridge"><span>订单落库后</span>还得通知库存和物流。<a href="#kafka">看 Kafka</a></p>
+<a class="story-bridge" href="#kafka"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">订单落库后，还得通知库存和物流。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section product-section" aria-labelledby="kafka">
             <h2 id="kafka" data-toc><svg class="tech-logo tech-logo-lg tech-logo-inline" aria-hidden="true"><use href="#logo-kafka"/></svg>Kafka：分区副本撑起高可用</h2>
             <div class="prose"><p>订单落库不等于结束。库存、物流、积分都还在等消息。</p></div>
             <div class="prose">
-              <p>消息先进入分区，分区有 Leader 和 Follower 副本；Leader 故障，Follower 被选举上位。高可用发生在“分区”这一级，而不是整台 Broker。</p>
-              <p>Kafka 的高可用单位是分区，而不是 Broker。每个分区有一个 Leader 和若干 Follower；生产者只写 Leader，Follower 持续拉取复制。Leader 故障后，集群从同步副本中选举新的 Leader，分区继续可写。</p>
+              <p>消息先进入分区，分区有 Leader 和 Follower 副本；Leader 故障，Follower 被选举上位。高可用发生在“分区”这一级，整台 Broker 只是承载单位。</p>
+              <p>Kafka 的高可用单位是分区，Broker 只是承载分区的进程。每个分区有一个 Leader 和若干 Follower；生产者只写 Leader，Follower 持续拉取复制。Leader 故障后，集群从同步副本中选举新的 Leader，分区继续可写。</p>
             </div>
             
             <div class="mq-pair">
@@ -1001,7 +939,7 @@
             </div>
             <div class="prose">
               <p>Kafka 把“追得上 Leader 的副本”称为 ISR（In-Sync Replicas）。生产者设置 <code>acks=all</code> 时，Leader 会等待 ISR 中的副本确认；主题设置 <code>min.insync.replicas</code> 时，只有 ISR 数量达到下限才接受写入。两者配合，才能在 Broker 故障时尽量不丢消息。</p>
-              <p>如果允许“非同步副本”被选为 Leader（unclean leader election），分区可以更快恢复可用，但可能丢失未同步的消息。大多数业务应关闭该选项，让分区在 ISR 不足时短暂不可用，而不是悄悄丢数据。</p>
+              <p>如果允许“非同步副本”被选为 Leader（unclean leader election），分区可以更快恢复可用，但可能丢失未同步的消息。大多数业务应关闭该选项，让分区在 ISR 不足时短暂不可用，避免悄悄丢数据。</p>
             </div>
             <figure class="dg-wrap">
               <svg class="dg" viewBox="0 0 660 230" role="img" aria-label="Kafka 生产者 acks 与 ISR 副本确认">
@@ -1037,16 +975,16 @@
               <p>消费者侧的高可用由消费组负责：分区在消费者之间分配，某个消费者退出会触发 rebalance。rebalance 期间消费会短暂停顿，因此要避免频繁扩缩容和长时间处理单条消息；必要时可以用静态成员或增量协作协议减少抖动。</p>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区，不是 Broker。Leader 挂了，得看同步副本接不接得上。</p>
+                                  <p class="key-point"><strong>重点</strong>Kafka 的高可用单位是分区；Broker 只是承载分区的进程。Leader 挂了，得看同步副本接不接得上。</p>
             <p class="key-point"><strong>重点</strong>acks 和 ISR 才决定会不会丢消息；允许非同步副本选主，能用，但可能丢。</p>
-<p class="story-bridge"><span>一笔订单走完</span>再回看四种系统。<a href="#selection">回到选型</a></p>
+<a class="story-bridge" href="#selection"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">一笔订单走完，再回看四种系统。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="selection">
             <h2 id="selection" data-toc>走完一笔订单，再回看选型</h2>
             <div class="prose"><p>走完一笔订单再选型，会容易得多。</p></div>
             <div class="prose">
               <p>四种系统的高可用机制不同，但选型不应从“哪个切换最快”开始。先看数据模型和访问模式：需要事务和复杂查询，选 MySQL；需要文档结构和灵活 schema，选 MongoDB；需要极低延迟的缓存，选 Redis；需要高吞吐消息和解耦，选 Kafka。高可用是在选定系统之后，按业务对 RPO / RTO 的要求配置的。</p>
-              <p>同一个系统也可以有不同的高可用级别：Redis 主从、哨兵、集群对应不同规模；MySQL 主备、半同步、组复制对应不同一致性要求。不要为了“看起来高可用”而直接上最复杂的一套，复杂度本身就是故障来源。</p>
+              <p>同一个系统也可以有不同的高可用级别：Redis 主从、哨兵、集群对应不同规模；MySQL 主备、半同步、组复制对应不同一致性要求。先按业务需要选级别；复杂度本身就是故障来源，一上来就上最复杂的一套往往适得其反。</p>
             </div>
             <div class="table-wrap">
               <table class="cmp">
@@ -1113,6 +1051,6 @@
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-17" defer></script>
+  <script src="app.js?v=20261022-18" defer></script>
 </body>
 </html>

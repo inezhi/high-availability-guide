@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/availability.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/availability.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-17">
+  <link rel="stylesheet" href="styles.css?v=20261022-18">
 </head>
 <body class="article-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -121,46 +121,6 @@
           <a class="topnav-link" href="quiz.html"><span class="topnav-link-num">07</span>自测</a>
           </div>
         </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高伸缩
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="load-balancing.html"><span class="topnav-link-num">01</span>负载均衡与水平扩展</a>
-          <a class="topnav-link" href="load-balancing.html#consistent-hash"><span class="topnav-link-num">02</span>一致性哈希</a>
-          <a class="topnav-link" href="middleware.html#mongodb"><span class="topnav-link-num">03</span>MongoDB 分片</a>
-          <a class="topnav-link" href="redundancy.html#active-active"><span class="topnav-link-num">04</span>单元化多活</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高并发
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="rate-limiting.html"><span class="topnav-link-num">01</span>限流与过载保护</a>
-          <a class="topnav-link" href="rate-limiting.html#layers"><span class="topnav-link-num">02</span>分层限流</a>
-          <a class="topnav-link" href="rate-limiting.html#algorithms"><span class="topnav-link-num">03</span>漏桶与令牌桶</a>
-          <a class="topnav-link" href="rate-limiting.html#distributed"><span class="topnav-link-num">04</span>分布式限流</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">05</span>Kafka 分区副本</a>
-          </div>
-        </div>
-        <div class="topnav-item">
-          <button class="topnav-trigger" type="button" aria-expanded="false">
-            高性能
-            <svg class="icon topnav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="topnav-dropdown">
-            <p class="topnav-menu-label">本手册相关章节</p>
-          <a class="topnav-link" href="middleware.html#redis"><span class="topnav-link-num">01</span>缓存与持久化</a>
-          <a class="topnav-link" href="middleware.html#kafka"><span class="topnav-link-num">02</span>消息队列</a>
-          <a class="topnav-link" href="load-balancing.html#l4-l7"><span class="topnav-link-num">03</span>四层与七层</a>
-          <a class="topnav-link" href="middleware.html#mysql"><span class="topnav-link-num">04</span>数据库复制</a>
-          </div>
-        </div>
       </nav>
       <div class="topbar-actions">
         <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到浅色主题" title="切换主题">
@@ -180,7 +140,7 @@
 
   <nav class="mobile-index topnav-mobile" id="mobileIndex" aria-label="移动端导航">
         <details class="mobile-nav-group" open>
-      <summary><span>高可用架构</span><small>01</small></summary>
+      <summary><span>高可用架构</span><small>系统设计系列 · 01</small></summary>
       <a class="mobile-link mobile-overview" href="index.html">总览</a>
         <a class="mobile-link is-current" href="availability.html" aria-current="page"><span>01</span>可用性</a>
         <a class="mobile-link" href="redundancy.html"><span>02</span>冗余</a>
@@ -189,28 +149,6 @@
         <a class="mobile-link" href="middleware.html"><span>05</span>中间件</a>
         <a class="mobile-link" href="rate-limiting.html"><span>06</span>限流</a>
         <a class="mobile-link" href="quiz.html"><span>07</span>自测</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高伸缩</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="load-balancing.html">负载均衡与水平扩展</a>
-      <a class="mobile-link" href="load-balancing.html#consistent-hash">一致性哈希</a>
-      <a class="mobile-link" href="middleware.html#mongodb">MongoDB 分片</a>
-      <a class="mobile-link" href="redundancy.html#active-active">单元化多活</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高并发</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="rate-limiting.html">限流与过载保护</a>
-      <a class="mobile-link" href="rate-limiting.html#layers">分层限流</a>
-      <a class="mobile-link" href="rate-limiting.html#algorithms">漏桶与令牌桶</a>
-      <a class="mobile-link" href="rate-limiting.html#distributed">分布式限流</a>
-      <a class="mobile-link" href="middleware.html#kafka">Kafka 分区副本</a>
-    </details>
-    <details class="mobile-nav-group">
-      <summary><span>高性能</span><small>相关章节</small></summary>
-      <a class="mobile-link" href="middleware.html#redis">缓存与持久化</a>
-      <a class="mobile-link" href="middleware.html#kafka">消息队列</a>
-      <a class="mobile-link" href="load-balancing.html#l4-l7">四层与七层</a>
-      <a class="mobile-link" href="middleware.html#mysql">数据库复制</a>
     </details>
   </nav>
 
@@ -247,7 +185,7 @@
         <nav class="storyline" aria-label="本章故事线">
           <div class="storyline-head"><span class="storyline-label">本章故事线</span><span class="storyline-hint">别急着记结论，先跟着这条线走一遍</span></div>
           <ol>
-            <li><a href="#what"><span class="storyline-index">01</span><span><strong>先别谈架构</strong><small>用户什么时候觉得你挂了</small></span></a></li>
+            <li><a href="#what"><span class="storyline-index">01</span><span><strong>先别谈架构</strong><small>用户什么时候觉得服务挂了</small></span></a></li>
             <li><a href="#nines"><span class="storyline-index">02</span><span><strong>算一笔账</strong><small>52.6 分钟，一次故障就能花完</small></span></a></li>
             <li><a href="#chain"><span class="storyline-index">03</span><span><strong>看看谁在拖后腿</strong><small>每个环节都 99.99%，乘起来呢</small></span></a></li>
             <li><a href="#slo"><span class="storyline-index">04</span><span><strong>把目标写进发布</strong><small>不然它只是 PPT 上的一句话</small></span></a></li>
@@ -262,7 +200,7 @@
             <h2 id="what" data-toc>先搞清楚：什么叫“不可用”</h2>
             <div class="prose">
               <p>先回答一个基础问题：对用户来说，哪些时刻算“不可用”？</p>
-              <p>高可用（High Availability）指的是系统在一段时间内持续提供服务的能力。它衡量的不是“机器有没有坏”，而是“用户能不能完成想做的事”。一个页面能打开、但支付接口超时，对正在付款的用户来说，系统依然是不可用的。</p>
+              <p>高可用（High Availability）指的是系统在一段时间内持续提供服务的能力。它最终看的是用户能不能完成想做的事，机器有没有坏只是线索。一个页面能打开、但支付接口超时，对正在付款的用户来说，系统依然是不可用的。</p>
               <p>因此，可用性通常从用户旅程出发定义：登录、浏览、下单、支付这些关键路径的成功率与耗时，比某台服务器的 CPU 使用率更接近真实的可用性。基础设施指标用于定位原因，业务指标用于判断结果，两者不能互相替代。</p>
             </div>
             <div class="def-pair">
@@ -277,7 +215,7 @@
             </div>
             
                                   <p class="key-point"><strong>重点</strong>用户说不可用，才是真的不可用。先看他能不能完成想做的事，再去看哪台机器出了毛病。</p>
-<p class="story-bridge"><span>那接下来</span>“不可用”不能靠感觉，得有个刻度。<a href="#nines">把 99.99% 换算成 52.6 分钟</a></p>
+<a class="story-bridge" href="#nines"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">把 99.99% 换算成一年 52.6 分钟，看看这笔账有多大。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="nines">
             <h2 id="nines" data-toc>几个 9，究竟意味着什么</h2>
@@ -320,7 +258,7 @@
 
             <div class="prose prose-tight">
               <p><strong>如何读这张图：</strong>横条采用对数刻度，因为不同可用性水平之间的停机时间相差一个数量级。每增加一个 9，年度停机时间缩小为原来的十分之一，但达到下一级所需的工程投入通常远高于十倍：需要覆盖数据库、缓存、消息队列、网络和发布流程的整条链路。</p>
-              <p>几个 9 不是营销数字，而是运维能力的刻度。3 个 9 允许每月四十多分钟停机，人工处理一次故障还来得及；4 个 9 只剩每月四分多钟，必须依赖自动检测和自动切换；5 个 9 则要求几乎所有的日常变更都能在线完成，且故障切换不产生可感知的中断。</p>
+              <p>几个 9 是运维能力的刻度，也是一笔明确的停机预算。3 个 9 允许每月四十多分钟停机，人工处理一次故障还来得及；4 个 9 只剩每月四分多钟，必须依赖自动检测和自动切换；5 个 9 则要求几乎所有的日常变更都能在线完成，且故障切换不产生可感知的中断。</p>
             </div>
 
             <div class="table-wrap">
@@ -336,12 +274,12 @@
               </table>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>每多一个 9，停机时间少十倍，成本往往涨得更凶。目标不是越高越好，而是业务能承受多少损失。</p>
-<p class="story-bridge"><span>不过</span>单个环节达标，不代表整条链路达标。<a href="#chain">把每个环节乘一遍</a></p>
+                                  <p class="key-point"><strong>重点</strong>每多一个 9，停机时间少十倍，成本往往涨得更凶。目标高低取决于业务能承受多少损失。</p>
+<a class="story-bridge" href="#chain"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">把每个环节乘一遍，看看整条链路到底剩多少。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="chain">
             <h2 id="chain" data-toc>一条链路上，谁在拖后腿</h2>
-            <div class="prose"><p>你可能把每个环节都做到了 99.99%，可用户的一次请求要挨个敲门。</p></div>
+            <div class="prose"><p>我们可能把每个环节都做到了 99.99%，可用户的一次请求要挨个敲门。</p></div>
             <div class="prose">
               <p>一个请求往往依次经过客户端、负载均衡、网关、应用和数据库。串联环节的可用性近似为各环节可用性的乘积，环节越多，整体可用性越低。五个 99.9% 的环节串起来，整体只剩约 99.5%；如果其中一个是 99%，整条链路就会被拉到 98.5% 左右。</p>
               <p>因此提升整体可用性有两条路径：减少不必要的串行依赖，或为关键环节增加冗余与快速故障转移。前者常被忽略——一次请求里少两次同步调用，可能比给每台机器加备机更有效。</p>
@@ -410,8 +348,8 @@
             </figure>
 
             
-                                  <p class="key-point"><strong>重点</strong>可用性是乘出来的，不是挑最好的一环。并联能救命，但两台机器别共享同一个故障域。</p>
-<p class="story-bridge"><span>算完链路</span>目标就不能只挂在墙上了。<a href="#slo">写进 SLO 和错误预算</a></p>
+                                  <p class="key-point"><strong>重点</strong>可用性是乘出来的，最弱的一环决定整体。并联能救命，但两台机器别共享同一个故障域。</p>
+<a class="story-bridge" href="#slo"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">把链路目标写成 SLO 和错误预算，让它进入日常发布。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="slo">
             <h2 id="slo" data-toc>把目标写进日常：SLO 与错误预算</h2>
@@ -423,7 +361,7 @@
               <article class="slo-card">
                 <span class="mono">SLI</span>
                 <h3>指标</h3>
-                <p>你实际测量的东西。例如“登录请求在 500ms 内成功的比例”，而不是“服务器是否在线”。</p>
+                <p>我们实际测量的东西。例如“登录请求在 500ms 内成功的比例”；“服务器是否在线”只能作为线索。</p>
               </article>
               <article class="slo-card">
                 <span class="mono">SLO</span>
@@ -437,7 +375,7 @@
               </article>
             </div>
             <div class="prose">
-              <p>SLO 一旦确定，就可以换算出错误预算：目标允许的失败时间或失败请求数。例如 99.95% 的月度可用性，一个月只允许约 21.6 分钟不可用；99.99% 则只有 4.32 分钟。错误预算不是“可以随便用掉的额度”，而是发布、变更和故障排查的共同约束。</p>
+              <p>SLO 一旦确定，就可以换算出错误预算：目标允许的失败时间或失败请求数。例如 99.95% 的月度可用性，一个月只允许约 21.6 分钟不可用；99.99% 则只有 4.32 分钟。错误预算是一份发布、变更和故障排查的共同约束，不能当成随便花掉的额度。</p>
               <p>实际运行中常用“燃烧率”描述预算消耗速度：燃烧率为 1，表示按当前速度刚好在周期结束时用完预算；燃烧率为 14.4，表示一小时就会烧掉一个月的预算。多窗口告警（例如 1 小时 + 6 小时）可以同时兼顾突发故障和慢性劣化。</p>
             </div>
 
@@ -457,7 +395,7 @@
                 <text class="dg-tiny dg-t-muted" x="543" y="122" text-anchor="middle">冻结非必要变更</text>
                 <text class="dg-tiny dg-t-muted" x="52" y="196">周期开始</text>
                 <text class="dg-tiny dg-t-muted" x="616" y="196" text-anchor="end">周期结束</text>
-                <text class="dg-tiny dg-t-muted" x="320" y="214" text-anchor="middle">预算不是额度，而是变更节奏的约束。</text>
+                <text class="dg-tiny dg-t-muted" x="320" y="214" text-anchor="middle">预算约束的是变更节奏。</text>
               </svg>
               <figcaption>图示：错误预算随故障消耗；预算见底意味着应冻结非必要发布，优先恢复稳定性。</figcaption>
             </figure>
@@ -475,15 +413,15 @@
               </table>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>SLO 是给自己定的目标，SLA 是赔给客户的承诺。错误预算不是纵容故障，是告诉你什么时候该慢下来。</p>
-<p class="story-bridge"><span>目标定了</span>接着要回答：一次故障会花掉多少预算？<a href="#mttr">看 MTTR</a></p>
+                                  <p class="key-point"><strong>重点</strong>SLO 是给自己定的目标，SLA 是赔给客户的承诺。错误预算提醒我们什么时候该慢下来。</p>
+<a class="story-bridge" href="#mttr"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">目标定了，再看看一次故障会花掉多少预算。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="mttr">
             <h2 id="mttr" data-toc>坏了以后，多久能好</h2>
             <div class="prose"><p>很多团队盯着“别坏”，却忽略了“坏了多久能好”。</p></div>
             <div class="prose">
               <p>可用性还有另一种算法：<span class="formula">A = MTBF ÷ (MTBF + MTTR)</span>。MTBF 是平均无故障时间，MTTR 是平均恢复时间。两者共同决定可用性：故障间隔再长，如果每次恢复要几个小时，整体可用性也高不了。</p>
-              <p>这个公式解释了一个常见现象：成熟系统并不追求“永不出故障”，而是把故障当成常态，尽量缩短从故障发生到服务恢复的时间。自动检测、自动切换、预案和演练，都是在压缩 MTTR。</p>
+              <p>这个公式解释了一个常见现象：成熟系统把故障当成常态，尽量缩短从故障发生到服务恢复的时间。自动检测、自动切换、预案和演练，都是在压缩 MTTR。</p>
             </div>
 
             <figure class="dg-wrap">
@@ -516,11 +454,11 @@
             </div>
             
                                   <p class="key-point"><strong>重点</strong>坏了多久能好，和多久坏一次同样重要。多数团队先把 MTTR 压下来，比追求永不出故障更现实。</p>
-<p class="story-bridge"><span>想缩短 MTTR</span>先得知道故障什么时候发生、用户有没有感觉。<a href="#measure">去测</a></p>
+<a class="story-bridge" href="#measure"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">想缩短恢复时间，先得知道故障什么时候发生、用户有没有感觉。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="measure">
             <h2 id="measure" data-toc>别猜，去测</h2>
-            <div class="prose"><p>如果你不知道用户此刻能不能下单，可用性就只是个形容词。</p></div>
+            <div class="prose"><p>如果我们不知道用户此刻能不能下单，可用性就只是个形容词。</p></div>
             <div class="prose">
               <p>可用性必须可测量，否则无法判断改进是否有效。常见手段有三类：黑盒拨测从外部模拟用户请求，白盒指标从系统内部采集，真实用户监控（RUM）直接记录用户端的成功率和耗时。三者视角不同，应该配合使用。</p>
             </div>
@@ -542,19 +480,19 @@
               </article>
             </div>
             <div class="prose">
-              <p>测量时有两个常见陷阱。第一，只看平均值：平均延迟 100ms 可能掩盖 1% 用户等待 10 秒的事实，可用性指标应关注错误率和尾部延迟（p95、p99）。第二，只看基础设施：机器全部在线、但数据库连接池耗尽，用户仍然不可用。SLI 应尽量从业务请求出发，而不是从 CPU、内存出发。</p>
-              <p>告警也应围绕 SLO 设计，而不是围绕每一台机器。单机 CPU 高不一定影响用户；错误预算燃烧过快才值得叫醒人。这样能减少告警噪音，把注意力放在真正影响可用性的事件上。</p>
+              <p>测量时有两个常见陷阱。第一，只看平均值：平均延迟 100ms 可能掩盖 1% 用户等待 10 秒的事实，可用性指标应关注错误率和尾部延迟（p95、p99）。第二，只看基础设施：机器全部在线、但数据库连接池耗尽，用户仍然不可用。SLI 应尽量从业务请求出发，把 CPU、内存当作定位线索。</p>
+              <p>告警应围绕 SLO 设计，把机器指标当作定位线索。单机 CPU 高不一定影响用户；错误预算燃烧过快才值得叫醒人。这样能减少告警噪音，把注意力放在真正影响可用性的事件上。</p>
             </div>
             
-                                  <p class="key-point"><strong>重点</strong>平均值最会骗人。用户感受到的是错误率和尾延迟，不是机房里的 CPU。</p>
-<p class="story-bridge"><span>测出来的数字</span>最后要回到预算。<a href="#budget">决定什么时候踩刹车</a></p>
+                                  <p class="key-point"><strong>重点</strong>平均值最会骗人。用户感受到的是错误率和尾延迟；机房里的 CPU 只能帮我们定位。</p>
+<a class="story-bridge" href="#budget"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">把测量结果放回预算，决定什么时候该踩刹车。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="budget">
             <h2 id="budget" data-toc>停机预算该怎么花</h2>
-            <div class="prose"><p>预算不是财务表格，是团队什么时候该踩刹车的约定。</p></div>
+            <div class="prose"><p>预算是一份约定：团队什么时候该踩刹车。</p></div>
             <div class="prose">
               <p>把年度或月度允许停机时间视为预算，计划内发布、故障和演练都会消耗它。预算越紧，越需要自动化发布、灰度、回滚和故障演练；仅靠“机器不坏”无法达到高可用目标。</p>
-              <p>预算的使用应该有明确规则：发布、扩缩容、数据库变更等计划内操作提前预留额度；故障消耗不可预测，但可以通过燃烧率告警提前发现；演练本身也应计入预算，因为演练可能真的触发切换。预算耗尽后，团队应冻结非必要变更，优先修复稳定性问题，而不是继续加功能。</p>
+              <p>预算的使用应该有明确规则：发布、扩缩容、数据库变更等计划内操作提前预留额度；故障消耗不可预测，但可以通过燃烧率告警提前发现；演练本身也应计入预算，因为演练可能真的触发切换。预算耗尽后，团队应冻结非必要变更，优先修复稳定性问题，暂缓加功能。</p>
             </div>
             <div class="table-wrap">
               <table class="cmp">
@@ -570,14 +508,14 @@
               </table>
             </div>
             
-                      <p class="key-point"><strong>重点</strong>预算见底时，最该做的不是继续发版，而是停下来修稳定性。</p>
-<p class="story-bridge"><span>收束</span>把这几笔账放在一起，就是本章的结论。<a href="#summary">收个尾</a></p>
+                      <p class="key-point"><strong>重点</strong>预算见底时，最该做的是停下来修稳定性，暂缓发版。</p>
+<a class="story-bridge" href="#summary"><span class="story-bridge-next">下一节</span><span class="story-bridge-text">把这几笔账收在一起，本章就完整了。</span><span class="story-bridge-arrow" aria-hidden="true">→</span></a>
           </section>
 <section class="post-section" aria-labelledby="summary">
             <h2 id="summary" data-toc>本章小结</h2>
             <div class="recap-grid">
               <div class="recap-item"><span>01</span><p>用户感知的是整条链路。别只盯着一台机器，也别只盯 CPU。</p></div>
-              <div class="recap-item"><span>02</span><p>每多一个 9，代价都不是线性的。先算业务能承受多少损失。</p></div>
+              <div class="recap-item"><span>02</span><p>每多一个 9，代价会以更快的速度上升。先算业务能承受多少损失。</p></div>
               <div class="recap-item"><span>03</span><p>链路是乘出来的。并联能救急，但共享故障域的“两份”其实只有一份。</p></div>
               <div class="recap-item"><span>04</span><p>SLO 管目标，错误预算管节奏，MTTR 管善后。三个一起看，才算高可用。</p></div>
             </div>
@@ -636,6 +574,6 @@
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-17" defer></script>
+  <script src="app.js?v=20261022-18" defer></script>
 </body>
 </html>
