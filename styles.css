@@ -6740,7 +6740,7 @@ input[type="range"] {
   }
 
   .post-body .post-section > .dg-wrap > .dg {
-    min-width: 560px;
+    min-width: 620px;
   }
 
   .post-body .post-section > .table-wrap {
@@ -6828,4 +6828,17 @@ input[type="range"] {
   .post-body .resilience-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Slightly larger diagram labels for the narrower article column */
+.post-body .dg .dg-s {
+  font-size: 11.5px;
+}
+
+.post-body .dg .dg-xs {
+  font-size: 10.5px;
+}
+
+.post-body .dg .dg-tiny {
+  font-size: 9.5px;
 }

@@ -38,7 +38,7 @@
                 <line class="dg-line" x1="56" y1="182" x2="632" y2="182" marker-end="url(#arr)"/>
                 <line class="dg-line" x1="56" y1="182" x2="56" y2="28" marker-end="url(#arr)"/>
                 <text class="dg-xs dg-t-muted" x="344" y="208" text-anchor="middle">成本与复杂度 →</text>
-                <text class="dg-xs dg-t-muted" x="20" y="106" text-anchor="middle" transform="rotate(-90 20 106)">RTO → 越往上越长</text>
+                <text class="dg-xs dg-t-muted" x="46" y="106" text-anchor="middle" transform="rotate(-90 46 106)">RTO → 越往上越长</text>
                 <rect class="dg-node" x="86" y="132" width="118" height="50" rx="7"/>
                 <text class="dg-xs" x="145" y="153" text-anchor="middle">备份 / 恢复</text>
                 <text class="dg-tiny" x="145" y="170" text-anchor="middle">小时级 · 成本最低</text>
@@ -51,7 +51,6 @@
                 <rect class="dg-node-green" x="494" y="42" width="118" height="50" rx="7"/>
                 <text class="dg-xs" x="553" y="63" text-anchor="middle">双活 / 多活</text>
                 <text class="dg-tiny" x="553" y="80" text-anchor="middle">秒级 · 成本最高</text>
-                <path class="dg-line dg-dash" d="M145 132 C240 120 300 92 417 76 C470 68 520 54 553 42"/>
                 <text class="dg-tiny dg-t-muted" x="344" y="24" text-anchor="middle">RTO 越短，成本越高；不存在既便宜又能秒级恢复的通用方案。</text>
               </svg>
               <figcaption>图示：容灾等级越高，RTO 越短，成本和日常复杂度也越高；目标应由业务损失反推。</figcaption>
@@ -110,20 +109,24 @@
           <article class="fact-card">
             <h3>两地三中心的运行方式</h3>
             <figure class="dg-wrap dg-wrap-inline">
-              <svg class="dg" viewBox="0 0 300 122" role="img" aria-label="代码、DDL、配置等发布必须在两个数据中心都执行">
-                <rect class="dg-chip" x="8" y="10" width="56" height="20" rx="4"/><text class="dg-tiny" x="36" y="24" text-anchor="middle">代码发布</text>
-                <rect class="dg-chip" x="8" y="44" width="56" height="20" rx="4"/><text class="dg-tiny" x="36" y="58" text-anchor="middle">数据库 DDL</text>
-                <rect class="dg-chip" x="8" y="78" width="56" height="20" rx="4"/><text class="dg-tiny" x="36" y="92" text-anchor="middle">环境配置</text>
-                <path class="dg-line" d="M64 20 H92 V40" marker-end="url(#arr)"/>
-                <path class="dg-line" d="M64 54 H92 V40" marker-end="url(#arr)"/>
-                <path class="dg-line" d="M64 88 H92 V94" marker-end="url(#arr)"/>
-                <path class="dg-line" d="M92 40 H118" marker-end="url(#arr)"/>
-                <path class="dg-line" d="M92 94 H118" marker-end="url(#arr)"/>
-                <rect class="dg-node dg-node-ok" x="120" y="22" width="168" height="34" rx="5"/>
-                <text class="dg-xs" x="204" y="43" text-anchor="middle">DC 1 · 深圳</text>
-                <rect class="dg-node dg-node-ok" x="120" y="76" width="168" height="34" rx="5"/>
-                <text class="dg-xs" x="204" y="97" text-anchor="middle">DC 2 · 东莞</text>
-                <text class="dg-tiny dg-t-muted" x="204" y="16" text-anchor="middle">同一套发布，两边都执行</text>
+              <svg class="dg" viewBox="0 0 320 150" role="img" aria-label="代码、DDL、配置等发布必须在两个数据中心都执行">
+                <text class="dg-tiny dg-t-muted" x="226" y="14" text-anchor="middle">同一套发布，两边都执行</text>
+                <rect class="dg-chip" x="8" y="16" width="72" height="24" rx="4"/>
+                <text class="dg-tiny" x="44" y="32" text-anchor="middle">代码发布</text>
+                <rect class="dg-chip" x="8" y="58" width="72" height="24" rx="4"/>
+                <text class="dg-tiny" x="44" y="74" text-anchor="middle">数据库 DDL</text>
+                <rect class="dg-chip" x="8" y="100" width="72" height="24" rx="4"/>
+                <text class="dg-tiny" x="44" y="116" text-anchor="middle">环境配置</text>
+                <line class="dg-line" x1="80" y1="28" x2="100" y2="28"/>
+                <line class="dg-line" x1="80" y1="70" x2="100" y2="70"/>
+                <line class="dg-line" x1="80" y1="112" x2="100" y2="112"/>
+                <line class="dg-line" x1="100" y1="28" x2="100" y2="112"/>
+                <line class="dg-line" x1="100" y1="48" x2="142" y2="48" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="100" y1="102" x2="142" y2="102" marker-end="url(#arr)"/>
+                <rect class="dg-node dg-node-ok" x="144" y="28" width="164" height="40" rx="5"/>
+                <text class="dg-xs" x="226" y="53" text-anchor="middle">DC 1 · 深圳</text>
+                <rect class="dg-node dg-node-ok" x="144" y="82" width="164" height="40" rx="5"/>
+                <text class="dg-xs" x="226" y="107" text-anchor="middle">DC 2 · 东莞</text>
               </svg>
               <figcaption>图示：同一套代码、DDL 与配置必须同时发布到两个数据中心。</figcaption>
             </figure>

@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/rate-limiting.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/rate-limiting.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-4">
+  <link rel="stylesheet" href="styles.css?v=20261022-5">
 </head>
 <body class="article-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -191,19 +191,19 @@
             </div>
 
             <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 660 230" role="img" aria-label="系统吞吐随负载变化：线性上升、拐点、崩溃">
-                <line class="dg-line" x1="56" y1="188" x2="632" y2="188" marker-end="url(#arr)"/>
-                <line class="dg-line" x1="56" y1="188" x2="56" y2="26" marker-end="url(#arr)"/>
-                <text class="dg-xs dg-t-muted" x="344" y="216" text-anchor="middle">到达负载 →</text>
+              <svg class="dg" viewBox="0 0 660 220" role="img" aria-label="系统吞吐随负载变化：线性上升、拐点、崩溃">
+                <line class="dg-line" x1="56" y1="176" x2="632" y2="176" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="56" y1="176" x2="56" y2="26" marker-end="url(#arr)"/>
+                <text class="dg-xs dg-t-muted" x="620" y="204" text-anchor="end">到达负载 →</text>
                 <text class="dg-xs dg-t-muted" x="22" y="106" text-anchor="middle" transform="rotate(-90 22 106)">吞吐 →</text>
-                <path class="dg-line-blue" d="M56 176 L220 120 L330 84 L400 82 L462 100 L520 146 L570 178"/>
-                <line class="dg-line dg-dash" x1="400" y1="82" x2="400" y2="188"/>
-                <text class="dg-tiny dg-t-blue" x="220" y="112" text-anchor="middle">线性区</text>
-                <text class="dg-tiny dg-t-amber" x="365" y="72" text-anchor="middle">拐点</text>
-                <text class="dg-tiny dg-t-bad" x="520" y="136" text-anchor="middle">过载崩溃</text>
-                <rect class="dg-band dg-band-bad" x="400" y="40" width="220" height="148" rx="8"/>
-                <text class="dg-tiny dg-t-bad" x="510" y="58" text-anchor="middle">排队 · 重试 · 资源耗尽</text>
-                <text class="dg-tiny dg-t-muted" x="330" y="206" text-anchor="middle">限流的目标：在拐点前丢弃一部分请求，让系统留在高吞吐区间，而不是一起崩溃。</text>
+                <path class="dg-line-blue" d="M56 164 L220 108 L330 72 L400 70 L462 88 L520 134 L570 168"/>
+                <line class="dg-line dg-dash" x1="400" y1="70" x2="400" y2="176"/>
+                <text class="dg-tiny dg-t-blue" x="220" y="100" text-anchor="middle">线性区</text>
+                <text class="dg-tiny dg-t-amber" x="365" y="60" text-anchor="middle">拐点</text>
+                <text class="dg-tiny dg-t-bad" x="532" y="120" text-anchor="middle">过载崩溃</text>
+                <rect class="dg-band dg-band-bad" x="400" y="36" width="220" height="140" rx="8"/>
+                <text class="dg-tiny dg-t-bad" x="510" y="54" text-anchor="middle">排队 · 重试 · 资源耗尽</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="200" text-anchor="middle">限流应在拐点前丢弃一部分请求，让系统留在高吞吐区间。</text>
               </svg>
               <figcaption>图示：吞吐不会随负载无限上升；超过拐点后，排队和重试会让吞吐骤降，限流应发生在拐点之前。</figcaption>
             </figure>
@@ -334,10 +334,10 @@
               <rect x="60" y="218" width="20" height="18" rx="2"/><rect x="107" y="206" width="20" height="30" rx="2"/><rect x="154" y="188" width="20" height="48" rx="2"/><rect x="201" y="172" width="20" height="64" rx="2"/><rect x="248" y="164" width="20" height="72" rx="2"/><rect x="295" y="176" width="20" height="60" rx="2"/><rect x="342" y="196" width="20" height="40" rx="2"/><rect x="389" y="208" width="20" height="28" rx="2"/><rect x="436" y="216" width="20" height="20" rx="2"/><rect x="483" y="220" width="20" height="16" rx="2"/><rect x="530" y="224" width="20" height="12" rx="2"/><rect x="577" y="226" width="20" height="10" rx="2"/>
             </g>
             <path class="dg-line-cyan" d="M30 230 H120 L150 182 H300 L350 230 H640" fill="none" stroke-width="2.5"/>
-            <text class="dg-tiny dg-t-cyan" x="225" y="174" text-anchor="middle">突发先通过</text>
-            <text class="dg-tiny dg-t-cyan" x="520" y="222" text-anchor="middle">回到固定速率</text>
-            <line class="dg-line dg-dash" x1="130" y1="22" x2="130" y2="236"/>
-            <text class="dg-tiny dg-t-muted" x="136" y="20" text-anchor="start">突发开始</text>
+                        <text class="dg-tiny dg-t-cyan" x="520" y="210" text-anchor="middle">回到固定速率</text>
+            <line class="dg-line dg-dash" x1="130" y1="34" x2="130" y2="110"/>
+            <line class="dg-line dg-dash" x1="130" y1="164" x2="130" y2="236"/>
+            <text class="dg-tiny dg-t-muted" x="136" y="44" text-anchor="start">突发开始</text>
             <text class="dg-tiny dg-t-muted" x="330" y="250" text-anchor="middle">琥珀：输入请求 · 蓝：漏桶输出 · 青：令牌桶输出</text>
           </svg>
           <figcaption>图示：同一串突发流量，漏桶按固定速率放行；令牌桶先用积累的令牌吸收突发。</figcaption>
@@ -422,12 +422,11 @@
                 <line class="dg-line" x1="134" y1="52" x2="252" y2="76" marker-end="url(#arr)"/>
                 <line class="dg-line" x1="134" y1="136" x2="252" y2="112" marker-end="url(#arr)"/>
                 <text class="dg-tiny dg-t-blue" x="192" y="56" text-anchor="middle">批量预取</text>
-                <rect class="dg-node-violet" x="254" y="48" width="174" height="92" rx="8"/>
+                <rect class="dg-node-violet" x="254" y="44" width="174" height="102" rx="8"/>
                 <g style="color:var(--d-violet)"><use href="#i-db" x="268" y="60" width="18" height="18"/></g>
                 <text class="dg-xs" x="294" y="74" text-anchor="start">Redis · 全局配额</text>
-                <text class="dg-tiny" x="268" y="98">Lua 原子扣减</text>
-                <text class="dg-tiny" x="268" y="116">令牌桶 / 滑动窗口</text>
-                <text class="dg-tiny" x="268" y="132">多实例共享</text>
+                <text class="dg-tiny" x="268" y="100">Lua 原子扣减</text>
+                <text class="dg-tiny" x="268" y="124">令牌桶 / 滑动窗口</text>
                 <line class="dg-line-ok" x1="428" y1="94" x2="500" y2="94" marker-end="url(#arr-ok)"/>
                 <rect class="dg-node-green" x="502" y="68" width="142" height="52" rx="6"/>
                 <text class="dg-xs" x="573" y="90" text-anchor="middle">后端服务</text>
@@ -466,10 +465,10 @@
                 <path class="dg-gate" d="M100 20 L158 20 L140 44 L118 44 Z"/>
                 <path class="dg-gate" d="M100 80 L158 80 L140 56 L118 56 Z"/>
                 <text class="dg-tiny dg-t-ok" x="129" y="98" text-anchor="middle">限速阀</text>
-                <circle class="dg-dot dg-dot-bad" cx="108" cy="10" r="3"/>
-                <circle class="dg-dot dg-dot-bad" cx="152" cy="10" r="3"/>
-                <path class="dg-line dg-line-bad" d="M104 16l-6-8M156 16l6-8"/>
-                <text class="dg-tiny dg-t-bad" x="129" y="8" text-anchor="middle">burst / 拒绝</text>
+                <circle class="dg-dot dg-dot-bad" cx="98" cy="12" r="3"/>
+                <circle class="dg-dot dg-dot-bad" cx="160" cy="12" r="3"/>
+                <path class="dg-line dg-line-bad" d="M94 18l-6-8M164 18l6-8"/>
+                <text class="dg-tiny dg-t-bad" x="129" y="15" text-anchor="middle">burst / 拒绝</text>
                 <line class="dg-line-ok" x1="140" y1="50" x2="238" y2="50" marker-end="url(#arr-ok)"/>
                 <text class="dg-tiny dg-t-muted" x="190" y="42" text-anchor="middle">rate=10r/s</text>
                 <rect class="dg-node dg-node-ok" x="240" y="36" width="72" height="28" rx="5"/>
@@ -655,6 +654,6 @@ server {
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-4" defer></script>
+  <script src="app.js?v=20261022-5" defer></script>
 </body>
 </html>

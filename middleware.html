@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://inezhi.github.io/high-availability-guide/middleware.html">
   <link rel="canonical" href="https://inezhi.github.io/high-availability-guide/middleware.html">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308121b'/%3E%3Cpath d='M5 17h5l2.5-7 4 12 3-9 1.8 4H27' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261022-4">
+  <link rel="stylesheet" href="styles.css?v=20261022-5">
 </head>
 <body class="article-page">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -191,7 +191,7 @@
               <svg class="dg" viewBox="0 0 660 220" role="img" aria-label="中间件高可用的通用结构：客户端、主节点、副本与仲裁">
                 <rect class="dg-node-blue" x="18" y="80" width="94" height="52" rx="7"/>
                 <g style="color:var(--d-blue)"><use href="#i-user" x="30" y="91" width="18" height="18"/></g>
-                <text class="dg-xs" x="54" y="124" text-anchor="middle">客户端</text>
+                <text class="dg-xs" x="54" y="126" text-anchor="middle">客户端</text>
                 <line class="dg-line-blue" x1="112" y1="96" x2="180" y2="70" marker-end="url(#arr)"/>
                 <text class="dg-tiny dg-t-blue" x="146" y="76" text-anchor="middle">读写</text>
                 <rect class="dg-node-green" x="182" y="36" width="142" height="64" rx="8"/>
@@ -209,9 +209,7 @@
                 <rect class="dg-node-violet" x="560" y="52" width="82" height="52" rx="6"/>
                 <text class="dg-xs" x="601" y="74" text-anchor="middle">仲裁 / 投票</text>
                 <text class="dg-tiny" x="601" y="90" text-anchor="middle">决定谁是主</text>
-                <path class="dg-line-bad dg-dash" d="M253 100 V150 H483 V138" marker-end="url(#arr-bad)"/>
-                <text class="dg-tiny dg-t-bad" x="368" y="168" text-anchor="middle">主节点故障：检测 → 选举 → 副本提升 → 客户端重定向</text>
-                <text class="dg-tiny dg-t-muted" x="330" y="198" text-anchor="middle">复制单位、选举方式、确认策略不同，但骨架一致：一份写入日志，多个副本，一个主。</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="196" text-anchor="middle">主节点故障后，集群通过检测、选举、副本提升和客户端重定向恢复服务。</text>
               </svg>
               <figcaption>图示：中间件高可用的通用骨架；不同产品只是在复制单位、选举机制和确认策略上做不同取舍。</figcaption>
             </figure>
@@ -720,30 +718,32 @@
               <p>如果允许“非同步副本”被选为 Leader（unclean leader election），分区可以更快恢复可用，但可能丢失未同步的消息。大多数业务应关闭该选项，让分区在 ISR 不足时短暂不可用，而不是悄悄丢数据。</p>
             </div>
             <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 660 206" role="img" aria-label="Kafka 生产者 acks 与 ISR 副本确认">
-                <rect class="dg-node-blue" x="12" y="66" width="86" height="46" rx="6"/>
-                <text class="dg-xs" x="55" y="93" text-anchor="middle">生产者</text>
-                <line class="dg-line" x1="98" y1="82" x2="154" y2="82" marker-end="url(#arr)"/>
-                <text class="dg-tiny dg-t-blue" x="126" y="74" text-anchor="middle">acks</text>
-                <rect class="dg-node-green" x="156" y="58" width="120" height="50" rx="6"/>
-                <text class="dg-xs" x="216" y="80" text-anchor="middle">Leader</text>
-                <text class="dg-tiny" x="216" y="97" text-anchor="middle">P0 · 接收写入</text>
-                <line class="dg-line" x1="276" y1="72" x2="354" y2="38" marker-end="url(#arr)"/>
-                <line class="dg-line" x1="276" y1="94" x2="354" y2="128" marker-end="url(#arr)"/>
-                <rect class="dg-node" x="356" y="16" width="120" height="44" rx="5"/>
-                <text class="dg-xs" x="416" y="36" text-anchor="middle">ISR 副本 1</text>
-                <text class="dg-tiny" x="416" y="51" text-anchor="middle">已同步</text>
-                <rect class="dg-node" x="356" y="116" width="120" height="44" rx="5"/>
-                <text class="dg-xs" x="416" y="136" text-anchor="middle">ISR 副本 2</text>
-                <text class="dg-tiny" x="416" y="151" text-anchor="middle">已同步</text>
-                <rect class="dg-node-bad" x="356" y="66" width="120" height="34" rx="5"/>
-                <text class="dg-tiny dg-t-bad" x="416" y="87" text-anchor="middle">落后副本 · 不在 ISR</text>
-                <path class="dg-line-ok dg-dash" d="M476 38 H530 V78 H560" marker-end="url(#arr-ok)"/>
-                <path class="dg-line-ok dg-dash" d="M476 138 H530 V94 H560" marker-end="url(#arr-ok)"/>
-                <rect class="dg-node-ok" x="562" y="62" width="84" height="48" rx="6"/>
-                <text class="dg-xs dg-t-ok" x="604" y="82" text-anchor="middle">acks=all</text>
-                <text class="dg-tiny" x="604" y="98" text-anchor="middle">ISR 确认</text>
-                <text class="dg-tiny dg-t-muted" x="330" y="186" text-anchor="middle">acks=all + min.insync.replicas 才可靠；落后副本不计入确认，避免“假同步”。</text>
+              <svg class="dg" viewBox="0 0 660 230" role="img" aria-label="Kafka 生产者 acks 与 ISR 副本确认">
+                <rect class="dg-node-blue" x="12" y="86" width="86" height="46" rx="6"/>
+                <text class="dg-xs" x="55" y="113" text-anchor="middle">生产者</text>
+                <line class="dg-line" x1="98" y1="104" x2="154" y2="104" marker-end="url(#arr)"/>
+                <text class="dg-tiny dg-t-blue" x="126" y="96" text-anchor="middle">acks</text>
+                <rect class="dg-node-green" x="156" y="76" width="120" height="64" rx="6"/>
+                <text class="dg-xs" x="216" y="100" text-anchor="middle">Leader</text>
+                <text class="dg-tiny" x="216" y="118" text-anchor="middle">P0 · 接收写入</text>
+                <line class="dg-line" x1="276" y1="94" x2="358" y2="48" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="276" y1="113" x2="358" y2="113" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="276" y1="122" x2="358" y2="178" marker-end="url(#arr)"/>
+                <rect class="dg-node" x="360" y="26" width="120" height="44" rx="5"/>
+                <text class="dg-xs" x="420" y="45" text-anchor="middle">ISR 副本 1</text>
+                <text class="dg-tiny" x="420" y="61" text-anchor="middle">已同步</text>
+                <rect class="dg-node-bad" x="360" y="92" width="120" height="42" rx="5" stroke-dasharray="4 3"/>
+                <text class="dg-tiny dg-t-bad" x="420" y="110" text-anchor="middle">落后副本</text>
+                <text class="dg-tiny dg-t-bad" x="420" y="125" text-anchor="middle">不在 ISR</text>
+                <rect class="dg-node" x="360" y="156" width="120" height="44" rx="5"/>
+                <text class="dg-xs" x="420" y="175" text-anchor="middle">ISR 副本 2</text>
+                <text class="dg-tiny" x="420" y="191" text-anchor="middle">已同步</text>
+                <path class="dg-line-ok dg-dash" d="M480 48 H528 V98 H558" marker-end="url(#arr-ok)"/>
+                <path class="dg-line-ok dg-dash" d="M480 178 H528 V118 H558" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node-ok" x="560" y="80" width="88" height="56" rx="6"/>
+                <text class="dg-xs dg-t-ok" x="604" y="101" text-anchor="middle">acks=all</text>
+                <text class="dg-tiny" x="604" y="118" text-anchor="middle">ISR 确认</text>
+                <text class="dg-tiny dg-t-muted" x="330" y="218" text-anchor="middle">acks=all + min.insync.replicas 才可靠；落后副本不计入确认。</text>
               </svg>
               <figcaption>图示：生产者等待 ISR 副本确认；落后太多的副本不算同步副本，不能用来满足 acks=all。</figcaption>
             </figure>
@@ -1011,6 +1011,6 @@
 
   <button class="to-top" id="toTop" type="button" aria-label="回到顶部"><svg class="icon"><use href="#i-up"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20261022-4" defer></script>
+  <script src="app.js?v=20261022-5" defer></script>
 </body>
 </html>

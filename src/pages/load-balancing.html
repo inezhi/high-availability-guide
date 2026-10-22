@@ -400,7 +400,7 @@
             <h4>权重轮询</h4>
             <figure class="strat-fig" aria-hidden="true">
               <svg class="dg" viewBox="0 0 160 54">
-                <rect class="dg-bar-ok" x="12" y="10" width="38" height="7" rx="3"/><text class="dg-tiny" x="31" y="7" text-anchor="middle">3</text>
+                <rect class="dg-bar-ok" x="12" y="10" width="38" height="7" rx="3"/><text class="dg-tiny" x="31" y="11" text-anchor="middle">3</text>
                 <rect class="dg-bar-ok" x="61" y="16" width="26" height="7" rx="3"/><text class="dg-tiny" x="74" y="13" text-anchor="middle">2</text>
                 <rect class="dg-bar-ok" x="110" y="22" width="14" height="7" rx="3"/><text class="dg-tiny" x="117" y="19" text-anchor="middle">1</text>
                 <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
@@ -506,7 +506,7 @@
               <svg class="dg" viewBox="0 0 160 54">
                 <polyline class="dg-line dg-line-ok" points="10,24 38,20 66,22 94,14 122,10 148,6"/>
                 <path class="dg-line dg-dash" d="M148 6 Q150 20 132 31" marker-end="url(#arr)"/>
-                <text class="dg-tiny dg-t-muted" x="60" y="8" text-anchor="middle">按趋势提前调度</text>
+                <text class="dg-tiny dg-t-muted" x="60" y="12" text-anchor="middle">按趋势提前调度</text>
                 <rect class="dg-node" x="12" y="34" width="38" height="15" rx="3"/>
                 <rect class="dg-node" x="61" y="34" width="38" height="15" rx="3"/>
                 <rect class="dg-node dg-node-ok" x="110" y="34" width="38" height="15" rx="3"/>
@@ -590,15 +590,15 @@
               <text class="dg-tiny dg-t-muted" x="206" y="20" text-anchor="middle">①</text>
               <text class="dg-tiny dg-t-muted" x="204" y="72" text-anchor="middle">②</text>
               <text class="dg-tiny dg-t-bad" x="204" y="132" text-anchor="middle">③</text>
-              <rect class="dg-node dg-node-ok" x="228" y="8" width="82" height="28" rx="5"/>
-              <circle class="dg-dot dg-dot-ok" cx="242" cy="22" r="3"/>
-              <text class="dg-xs" x="282" y="26" text-anchor="middle">IP 1 · 健康</text>
-              <rect class="dg-node" x="228" y="68" width="82" height="28" rx="5"/>
-              <circle class="dg-dot dg-dot-ok" cx="242" cy="82" r="3"/>
-              <text class="dg-xs" x="282" y="86" text-anchor="middle">IP 2 · 健康</text>
-              <rect class="dg-node dg-node-bad" x="228" y="128" width="82" height="28" rx="5"/>
-              <circle class="dg-dot dg-dot-bad" cx="242" cy="142" r="3"/>
-              <text class="dg-xs dg-t-bad" x="282" y="146" text-anchor="middle">IP 3 · 已宕机</text>
+              <rect class="dg-node dg-node-ok" x="222" y="8" width="94" height="28" rx="5"/>
+              <circle class="dg-dot dg-dot-ok" cx="236" cy="22" r="3"/>
+              <text class="dg-xs" x="269" y="26" text-anchor="middle">IP 1 · 健康</text>
+              <rect class="dg-node" x="222" y="68" width="94" height="28" rx="5"/>
+              <circle class="dg-dot dg-dot-ok" cx="236" cy="82" r="3"/>
+              <text class="dg-xs" x="269" y="86" text-anchor="middle">IP 2 · 健康</text>
+              <rect class="dg-node dg-node-bad" x="222" y="128" width="94" height="28" rx="5"/>
+              <circle class="dg-dot dg-dot-bad" cx="236" cy="142" r="3"/>
+              <text class="dg-xs dg-t-bad" x="269" y="146" text-anchor="middle">IP 3 · 已宕机</text>
               <path class="dg-x" d="M256 170l14 14M270 170l-14 14"/>
               <text class="dg-xs dg-t-bad" x="160" y="194" text-anchor="middle">DNS 没有健康探测，坏 IP 不会自动摘除</text>
             </svg>
@@ -614,32 +614,35 @@
             </div>
 
             <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 660 210" role="img" aria-label="GSLB 根据地理位置和健康状态把用户解析到不同机房">
-                <circle cx="90" cy="104" r="38" fill="var(--d-blue)" opacity=".06"/>
-                <circle cx="90" cy="104" r="38" fill="none" stroke="var(--d-blue)" stroke-width="1"/>
-                <ellipse cx="90" cy="104" rx="14" ry="38" fill="none" stroke="var(--d-blue)" stroke-width=".8" opacity=".5"/>
-                <path d="M52 104h76M58 86h64M58 122h64" stroke="var(--d-blue)" stroke-width=".8" opacity=".5"/>
-                <circle class="dg-dot dg-dot-ok" cx="66" cy="82" r="4"/>
-                <circle class="dg-dot dg-dot-ok" cx="114" cy="120" r="4"/>
-                <text class="dg-tiny dg-t-muted" x="90" y="158" text-anchor="middle">不同地区的用户</text>
-                <path class="dg-line-blue" d="M122 88 L236 62" marker-end="url(#arr)"/>
-                <path class="dg-line-blue" d="M124 110 L236 126" marker-end="url(#arr)"/>
-                <rect class="dg-node-violet" x="238" y="52" width="160" height="84" rx="9"/>
-                <g style="color:var(--d-violet)"><use href="#i-globe" x="252" y="64" width="18" height="18"/></g>
-                <text class="dg-xs" x="278" y="78" text-anchor="start">GSLB / GeoDNS</text>
-                <text class="dg-tiny" x="252" y="100">按地域、运营商、健康状态</text>
-                <text class="dg-tiny" x="252" y="116">返回不同入口地址</text>
-                <path class="dg-line-ok" d="M398 80 L486 54" marker-end="url(#arr-ok)"/>
-                <path class="dg-line-ok" d="M398 110 L486 138" marker-end="url(#arr-ok)"/>
-                <rect class="dg-node-green" x="488" y="28" width="150" height="52" rx="7"/>
-                <text class="dg-xs" x="563" y="50" text-anchor="middle">北京入口 · 健康</text>
-                <text class="dg-tiny" x="563" y="66" text-anchor="middle">就近接入</text>
-                <rect class="dg-node-green" x="488" y="124" width="150" height="52" rx="7"/>
-                <text class="dg-xs" x="563" y="146" text-anchor="middle">上海入口 · 健康</text>
-                <text class="dg-tiny" x="563" y="162" text-anchor="middle">故障时自动移除</text>
-                <rect class="dg-node-bad" x="488" y="76" width="150" height="34" rx="6"/>
-                <text class="dg-tiny dg-t-bad" x="563" y="97" text-anchor="middle">广州入口 · 已摘除</text>
-                <text class="dg-tiny dg-t-muted" x="330" y="194" text-anchor="middle">GSLB 把健康检查和就近接入放到解析层；DNS 缓存 TTL 决定切换的额外延迟。</text>
+              <svg class="dg" viewBox="0 0 660 250" role="img" aria-label="GSLB 根据地理位置和健康状态把用户解析到不同机房">
+                <circle cx="88" cy="104" r="38" fill="var(--d-blue)" opacity=".06"/>
+                <circle cx="88" cy="104" r="38" fill="none" stroke="var(--d-blue)" stroke-width="1"/>
+                <ellipse cx="88" cy="104" rx="14" ry="38" fill="none" stroke="var(--d-blue)" stroke-width=".8" opacity=".5"/>
+                <path d="M50 104h76M56 86h64M56 122h64" stroke="var(--d-blue)" stroke-width=".8" opacity=".5"/>
+                <circle class="dg-dot dg-dot-ok" cx="64" cy="82" r="4"/>
+                <circle class="dg-dot dg-dot-ok" cx="112" cy="120" r="4"/>
+                <text class="dg-tiny dg-t-muted" x="88" y="158" text-anchor="middle">不同地区的用户</text>
+                <path class="dg-line-blue" d="M124 92 L236 78" marker-end="url(#arr)"/>
+                <path class="dg-line-blue" d="M124 116 L236 128" marker-end="url(#arr)"/>
+                <rect class="dg-node-violet" x="240" y="58" width="160" height="92" rx="9"/>
+                <g style="color:var(--d-violet)"><use href="#i-globe" x="254" y="70" width="18" height="18"/></g>
+                <text class="dg-xs" x="280" y="84" text-anchor="start">GSLB / GeoDNS</text>
+                <text class="dg-tiny" x="254" y="108">按地域、运营商、健康状态</text>
+                <text class="dg-tiny" x="254" y="126">返回不同入口地址</text>
+                <path class="dg-line-ok" d="M400 84 L484 52" marker-end="url(#arr-ok)"/>
+                <path class="dg-line-ok" d="M400 124 L484 134" marker-end="url(#arr-ok)"/>
+                <rect class="dg-node-green" x="486" y="24" width="150" height="52" rx="7"/>
+                <text class="dg-xs" x="561" y="45" text-anchor="middle">北京入口 · 健康</text>
+                <text class="dg-tiny" x="561" y="62" text-anchor="middle">就近接入</text>
+                <rect class="dg-node-green" x="486" y="108" width="150" height="52" rx="7"/>
+                <text class="dg-xs" x="561" y="129" text-anchor="middle">上海入口 · 健康</text>
+                <text class="dg-tiny" x="561" y="146" text-anchor="middle">故障时自动移除</text>
+                <rect class="dg-node-bad" x="486" y="184" width="150" height="42" rx="7" stroke-dasharray="4 3"/>
+                <text class="dg-xs dg-t-bad" x="561" y="202" text-anchor="middle">广州入口 · 已摘除</text>
+                <text class="dg-tiny dg-t-bad" x="561" y="218" text-anchor="middle">不再返回解析结果</text>
+                <path class="dg-line-bad dg-dash" d="M320 150 V205 H484" marker-end="url(#arr-bad)"/>
+                <path class="dg-x" d="M394 198l14 14M408 198l-14 14"/>
+                <text class="dg-tiny dg-t-muted" x="330" y="242" text-anchor="middle">GSLB 把健康检查和就近接入放到解析层；DNS 缓存 TTL 决定切换的额外延迟。</text>
               </svg>
               <figcaption>图示：GSLB 根据用户位置和机房健康状态返回不同入口；坏机房不会继续被解析。</figcaption>
             </figure>
@@ -653,31 +656,27 @@
               <p>一致性哈希并不能消除热点：如果 key 分布不均，某个节点仍可能承担过多请求。工程上通常引入虚拟节点，让每个物理节点在环上出现多次，使分布更均匀。即使如此，热点 key 仍需要单独处理，例如本地缓存、key 拆分或请求合并。</p>
             </div>
             <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 620 230" role="img" aria-label="一致性哈希环：节点增减只影响相邻区间">
+              <svg class="dg" viewBox="0 0 620 240" role="img" aria-label="一致性哈希环：节点增减只影响相邻区间">
                 <circle cx="200" cy="112" r="82" fill="none" stroke="var(--line-strong)" stroke-width="1.4"/>
                 <circle class="dg-dot dg-dot-blue" cx="200" cy="30" r="7"/>
                 <text class="dg-xs dg-t-blue" x="200" y="16" text-anchor="middle">节点 A</text>
                 <circle class="dg-dot dg-dot-amber" cx="270" cy="160" r="7"/>
-                <text class="dg-xs dg-t-amber" x="288" y="178" text-anchor="middle">节点 B</text>
+                <text class="dg-xs dg-t-amber" x="292" y="178" text-anchor="start">节点 B</text>
                 <circle class="dg-dot dg-dot-violet" cx="130" cy="160" r="7"/>
-                <text class="dg-xs dg-t-violet" x="104" y="182" text-anchor="middle">节点 C</text>
-                <path class="dg-line-blue" d="M200 37 A75 75 0 0 1 264 153" />
-                <path class="dg-line-amber" d="M263 164 A75 75 0 0 1 137 164" />
-                <path class="dg-line-violet" d="M130 153 A75 75 0 0 1 200 37" />
+                <text class="dg-xs dg-t-violet" x="108" y="180" text-anchor="end">节点 C</text>
                 <circle class="dg-dot dg-dot-ok" cx="236" cy="46" r="3.5"/>
-                <text class="dg-tiny dg-t-muted" x="248" y="42">key 1</text>
+                <text class="dg-tiny dg-t-muted" x="250" y="42" text-anchor="start">key 1</text>
                 <circle class="dg-dot dg-dot-ok" cx="248" cy="124" r="3.5"/>
-                <text class="dg-tiny dg-t-muted" x="260" y="128">key 2</text>
+                <text class="dg-tiny dg-t-muted" x="262" y="128" text-anchor="start">key 2</text>
                 <circle class="dg-dot dg-dot-ok" cx="164" cy="176" r="3.5"/>
-                <text class="dg-tiny dg-t-muted" x="172" y="194">key 3</text>
+                <text class="dg-tiny dg-t-muted" x="176" y="212" text-anchor="start">key 3</text>
                 <text class="dg-tiny dg-t-ok" x="200" y="112" text-anchor="middle">顺时针找节点</text>
-                <rect class="dg-node" x="386" y="44" width="212" height="52" rx="7"/>
-                <text class="dg-xs" x="400" y="66" text-anchor="start">增加节点 D</text>
-                <text class="dg-tiny" x="400" y="84" text-anchor="start">只接管相邻区间，其余 key 不动</text>
-                <rect class="dg-node-bad" x="386" y="112" width="212" height="52" rx="7"/>
-                <text class="dg-xs dg-t-bad" x="400" y="134" text-anchor="start">取模哈希</text>
-                <text class="dg-tiny" x="400" y="152" text-anchor="start">节点数变化 → 几乎全部重映射</text>
-                <text class="dg-tiny dg-t-muted" x="492" y="196" text-anchor="middle">虚拟节点让分布更均匀，但热点 key 仍需单独治理。</text>
+                <rect class="dg-node" x="386" y="36" width="212" height="52" rx="7"/>
+                <text class="dg-xs" x="400" y="58" text-anchor="start">增加节点 D</text>
+                <text class="dg-tiny" x="400" y="76" text-anchor="start">只接管相邻区间，其余 key 不动</text>
+                <rect class="dg-node-bad" x="386" y="116" width="212" height="52" rx="7"/>
+                <text class="dg-xs dg-t-bad" x="400" y="138" text-anchor="start">取模哈希</text>
+                <text class="dg-tiny" x="400" y="156" text-anchor="start">节点数变化 → 几乎全部重映射</text>
               </svg>
               <figcaption>图示：一致性哈希把节点和 key 放在同一个环上，扩缩容只影响相邻区间，减少缓存和会话迁移。</figcaption>
             </figure>

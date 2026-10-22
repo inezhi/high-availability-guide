@@ -148,26 +148,26 @@
             </div>
 
             <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 640 190" role="img" aria-label="并联冗余的可用性计算与共因故障">
-                <rect class="dg-node-blue" x="10" y="72" width="88" height="44" rx="6"/>
-                <text class="dg-xs" x="54" y="99" text-anchor="middle">请求入口</text>
-                <line class="dg-line" x1="98" y1="82" x2="150" y2="52" marker-end="url(#arr)"/>
-                <line class="dg-line" x1="98" y1="106" x2="150" y2="136" marker-end="url(#arr)"/>
+              <svg class="dg" viewBox="0 0 640 220" role="img" aria-label="并联冗余的可用性计算与共因故障">
+                <rect class="dg-node-blue" x="12" y="74" width="88" height="44" rx="6"/>
+                <text class="dg-xs" x="56" y="101" text-anchor="middle">请求入口</text>
+                <line class="dg-line" x1="100" y1="86" x2="150" y2="54" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="100" y1="106" x2="150" y2="138" marker-end="url(#arr)"/>
                 <rect class="dg-node" x="152" y="30" width="120" height="44" rx="6"/>
                 <text class="dg-xs" x="212" y="57" text-anchor="middle">节点 A · 99%</text>
-                <rect class="dg-node" x="152" y="114" width="120" height="44" rx="6"/>
-                <text class="dg-xs" x="212" y="141" text-anchor="middle">节点 B · 99%</text>
-                <line class="dg-line" x1="272" y1="52" x2="326" y2="82" marker-end="url(#arr)"/>
-                <line class="dg-line" x1="272" y1="136" x2="326" y2="106" marker-end="url(#arr)"/>
-                <rect class="dg-node-green" x="328" y="72" width="112" height="44" rx="6"/>
-                <text class="dg-xs" x="384" y="99" text-anchor="middle">整体可用性</text>
-                <text class="dg-tiny" x="384" y="132" text-anchor="middle">1 − (1 − 99%)² = 99.99%</text>
-                <rect class="dg-node-bad" x="470" y="30" width="152" height="44" rx="6"/>
-                <text class="dg-xs dg-t-bad" x="546" y="49" text-anchor="middle">共因故障</text>
-                <text class="dg-tiny" x="546" y="65" text-anchor="middle">同机房 / 同电源 / 同配置</text>
-                <path class="dg-line-bad dg-dash" d="M494 78 V100 H436" marker-end="url(#arr-bad)"/>
-                <text class="dg-tiny dg-t-bad" x="470" y="114" text-anchor="middle">独立性被打破</text>
-                <text class="dg-tiny dg-t-muted" x="320" y="176" text-anchor="middle">并联公式成立的前提，是故障彼此独立；共享故障域会把两个 9 打回原形。</text>
+                <rect class="dg-node" x="152" y="118" width="120" height="44" rx="6"/>
+                <text class="dg-xs" x="212" y="145" text-anchor="middle">节点 B · 99%</text>
+                <line class="dg-line" x1="272" y1="52" x2="326" y2="86" marker-end="url(#arr)"/>
+                <line class="dg-line" x1="272" y1="140" x2="326" y2="106" marker-end="url(#arr)"/>
+                <rect class="dg-node-green" x="328" y="74" width="130" height="44" rx="6"/>
+                <text class="dg-xs" x="393" y="101" text-anchor="middle">整体可用性</text>
+                <text class="dg-tiny" x="393" y="158" text-anchor="middle">1 − (1 − 99%)² = 99.99%</text>
+                <rect class="dg-node-bad" x="486" y="64" width="142" height="72" rx="6"/>
+                <text class="dg-xs dg-t-bad" x="557" y="86" text-anchor="middle">共因故障</text>
+                <text class="dg-tiny" x="557" y="104" text-anchor="middle">同机房 / 同电源 / 同配置</text>
+                <text class="dg-tiny dg-t-bad" x="557" y="122" text-anchor="middle">独立性被打破</text>
+                <line class="dg-line-bad dg-dash" x1="458" y1="96" x2="484" y2="96" marker-end="url(#arr-bad)"/>
+                <text class="dg-tiny dg-t-muted" x="320" y="202" text-anchor="middle">并联公式成立的前提，是故障彼此独立。</text>
               </svg>
               <figcaption>图示：并联冗余用“同时故障”的概率换可用性；共享机房、电源或配置会引入共因故障。</figcaption>
             </figure>
@@ -203,23 +203,22 @@
             </div>
 
             <figure class="dg-wrap">
-              <svg class="dg" viewBox="0 0 640 224" role="img" aria-label="错误预算随时间和故障燃烧的示意">
+              <svg class="dg" viewBox="0 0 640 220" role="img" aria-label="错误预算随时间和故障燃烧的示意">
                 <text class="dg-s" x="24" y="24">错误预算余额</text>
                 <text class="dg-tiny dg-t-muted" x="616" y="24" text-anchor="end">一个 SLO 周期</text>
-                <line class="dg-line" x1="50" y1="42" x2="50" y2="180"/>
-                <line class="dg-line" x1="50" y1="180" x2="616" y2="180" marker-end="url(#arr)"/>
-                <line class="dg-line dg-dash" x1="50" y1="62" x2="616" y2="62"/>
-                <text class="dg-tiny dg-t-muted" x="58" y="56">100% 预算</text>
-                <path class="dg-line-blue" d="M50 62 H250 L300 96 H430 L470 132 H616"/>
-                <circle class="dg-dot dg-dot-bad" cx="300" cy="96" r="4"/>
-                <text class="dg-tiny dg-t-bad" x="308" y="90" text-anchor="start">一次故障 · 燃烧率升高</text>
-                <path class="dg-line-bad dg-dash" d="M470 132 L616 180"/>
-                <text class="dg-tiny dg-t-bad" x="548" y="150" text-anchor="middle">预算耗尽</text>
-                <text class="dg-tiny dg-t-muted" x="52" y="198">周期开始</text>
-                <text class="dg-tiny dg-t-muted" x="616" y="198" text-anchor="end">周期结束</text>
-                <rect class="dg-band" x="470" y="190" width="146" height="22" rx="5"/>
-                <text class="dg-tiny dg-t-ok" x="543" y="205" text-anchor="middle">冻结非必要变更</text>
-                <text class="dg-tiny dg-t-muted" x="300" y="218" text-anchor="middle">预算不是额度，而是变更节奏的约束：余额充足时可以快，余额见底时必须稳。</text>
+                <line class="dg-line" x1="52" y1="46" x2="52" y2="176"/>
+                <line class="dg-line" x1="52" y1="176" x2="616" y2="176" marker-end="url(#arr)"/>
+                <line class="dg-line dg-dash" x1="52" y1="62" x2="616" y2="62"/>
+                <text class="dg-tiny dg-t-muted" x="60" y="56">100% 预算</text>
+                <path class="dg-line-blue" d="M52 62 H238 L286 92 H420 L470 130 H616"/>
+                <circle class="dg-dot dg-dot-bad" cx="286" cy="92" r="4"/>
+                <text class="dg-tiny dg-t-bad" x="298" y="84" text-anchor="start">一次故障 · 燃烧率升高</text>
+                <path class="dg-line-bad dg-dash" d="M470 130 L616 176"/>
+                <text class="dg-tiny dg-t-bad" x="543" y="106" text-anchor="middle">预算耗尽</text>
+                <text class="dg-tiny dg-t-muted" x="543" y="122" text-anchor="middle">冻结非必要变更</text>
+                <text class="dg-tiny dg-t-muted" x="52" y="196">周期开始</text>
+                <text class="dg-tiny dg-t-muted" x="616" y="196" text-anchor="end">周期结束</text>
+                <text class="dg-tiny dg-t-muted" x="320" y="214" text-anchor="middle">预算不是额度，而是变更节奏的约束。</text>
               </svg>
               <figcaption>图示：错误预算随故障消耗；预算见底意味着应冻结非必要发布，优先恢复稳定性。</figcaption>
             </figure>

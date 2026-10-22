@@ -40,21 +40,18 @@
                 <rect class="dg-node" x="30" y="56" width="180" height="104" rx="8"/>
                 <text class="dg-xs" x="44" y="78" text-anchor="start">冷备 · cold</text>
                 <rect class="dg-bar-blue" x="44" y="92" width="34" height="7" rx="3.5"/>
-                <text class="dg-tiny" x="44" y="118">机器可能未运行，应用未部署</text>
-                <text class="dg-tiny" x="44" y="134">数据靠定期备份恢复</text>
-                <text class="dg-tiny dg-t-bad" x="44" y="152">RTO：小时级</text>
+                <text class="dg-tiny" x="44" y="118">未运行，应用未部署</text>
+                <text class="dg-tiny dg-t-bad" x="44" y="138">靠备份恢复 · RTO 小时级</text>
                 <rect class="dg-node-amber" x="240" y="56" width="180" height="104" rx="8"/>
                 <text class="dg-xs" x="254" y="78" text-anchor="start">温备 · warm</text>
                 <rect class="dg-bar-amber" x="254" y="92" width="90" height="7" rx="3.5"/>
-                <text class="dg-tiny" x="254" y="118">机器运行，数据持续复制</text>
-                <text class="dg-tiny" x="254" y="134">服务未接流量，配置已就绪</text>
-                <text class="dg-tiny dg-t-amber" x="254" y="152">RTO：分钟级</text>
+                <text class="dg-tiny" x="254" y="118">运行中，数据持续复制</text>
+                <text class="dg-tiny dg-t-amber" x="254" y="138">未接流量 · RTO 分钟级</text>
                 <rect class="dg-node-green" x="450" y="56" width="180" height="104" rx="8"/>
                 <text class="dg-xs" x="464" y="78" text-anchor="start">热备 · hot</text>
                 <rect class="dg-bar-green" x="464" y="92" width="150" height="7" rx="3.5"/>
-                <text class="dg-tiny" x="464" y="118">服务在线，数据实时同步</text>
-                <text class="dg-tiny" x="464" y="134">随时可接管，只差流量切换</text>
-                <text class="dg-tiny dg-t-green" x="464" y="152">RTO：秒级</text>
+                <text class="dg-tiny" x="464" y="118">在线，数据实时同步</text>
+                <text class="dg-tiny dg-t-green" x="464" y="138">随时接管 · RTO 秒级</text>
                 <text class="dg-tiny dg-t-muted" x="330" y="188" text-anchor="middle">冷、温、热的区别不是“有没有机器”，而是备机准备到了哪一步：数据、环境、进程和流量入口。</text>
                 <text class="dg-tiny dg-t-muted" x="330" y="206" text-anchor="middle">N+1 / N+2 描述的是容量冗余；它与主备的“接管能力”是两件不同的事。</text>
               </svg>
@@ -269,13 +266,11 @@
                 <text class="dg-tiny dg-t-muted" x="356" y="126" text-anchor="middle">网络中断</text>
 
                 <rect class="dg-frame dg-frame-bad" x="386" y="18" width="256" height="150" rx="10"/>
-                <text class="dg-s" x="402" y="42">分区 B · 2 个投票节点</text>
+                <text class="dg-s" x="402" y="42">分区 B · 2 / 5 个投票节点</text>
                 <rect class="dg-node" x="408" y="60" width="70" height="42" rx="6"/>
                 <text class="dg-xs" x="443" y="86" text-anchor="middle">节点 4</text>
                 <rect class="dg-node" x="498" y="60" width="70" height="42" rx="6"/>
                 <text class="dg-xs" x="533" y="86" text-anchor="middle">节点 5</text>
-                <rect class="dg-node-bad" x="588" y="60" width="42" height="42" rx="6"/>
-                <text class="dg-xs dg-t-bad" x="609" y="86" text-anchor="middle">2/5</text>
                 <rect class="dg-band dg-band-bad" x="408" y="118" width="222" height="26" rx="6"/>
                 <text class="dg-xs dg-t-bad" x="519" y="135" text-anchor="middle">不足多数 · 拒绝写入</text>
 
@@ -308,7 +303,7 @@
               <article class="tier">
                 <div class="tier-head"><span class="tier-index">01</span><h4>只读多活</h4><span class="tag">简单</span></div>
                 <figure class="tier-fig">
-                  <svg class="dg" viewBox="0 0 300 100" role="img" aria-label="只读多活示意：写请求进入主库，读副本分散在多地">
+                  <svg class="dg" viewBox="0 0 300 108" role="img" aria-label="只读多活示意：写请求进入主库，读副本分散在多地">
                     <rect class="dg-node" x="118" y="6" width="64" height="22" rx="5"/>
                     <text class="dg-xs" x="150" y="21" text-anchor="middle">主库 · 写单点</text>
                     <line class="dg-line" x1="150" y1="28" x2="75" y2="64" marker-end="url(#arr)"/>
@@ -318,7 +313,7 @@
                     <text class="dg-xs" x="75" y="82" text-anchor="middle">读副本 · 北京</text>
                     <rect class="dg-node" x="170" y="66" width="110" height="24" rx="5"/>
                     <text class="dg-xs" x="225" y="82" text-anchor="middle">读副本 · 上海</text>
-                    <text class="dg-xs dg-t-muted" x="150" y="97" text-anchor="middle">写仍然回主库</text>
+                    <text class="dg-xs dg-t-muted" x="150" y="104" text-anchor="middle">写仍然回主库</text>
                   </svg>
                   <figcaption>图示：写请求进入主库，读请求分散到各地副本。</figcaption>
                 </figure>
@@ -328,7 +323,7 @@
               <article class="tier">
                 <div class="tier-head"><span class="tier-index">02</span><h4>分区多活 · 单元化</h4><span class="tag tag-info">工程主流</span></div>
                 <figure class="tier-fig">
-                  <svg class="dg" viewBox="0 0 300 100" role="img" aria-label="单元化多活示意：用户按单元切片，各自有独立数据库">
+                  <svg class="dg" viewBox="0 0 300 108" role="img" aria-label="单元化多活示意：用户按单元切片，各自有独立数据库">
                     <text class="dg-m" x="34" y="12">USERS A</text>
                     <text class="dg-m" x="222" y="12">USERS B</text>
                     <rect class="dg-node" x="10" y="18" width="96" height="22" rx="5"/>
@@ -343,7 +338,7 @@
                     <text class="dg-xs" x="242" y="74" text-anchor="middle">DB B</text>
                     <line class="dg-line dg-dash" x1="106" y1="70" x2="194" y2="70" marker-end="url(#arr)"/>
                     <text class="dg-xs dg-t-muted" x="150" y="64" text-anchor="middle">异步复制</text>
-                    <text class="dg-xs dg-t-muted" x="150" y="92" text-anchor="middle">每单元只服务自己那片</text>
+                    <text class="dg-xs dg-t-muted" x="150" y="100" text-anchor="middle">每单元只服务自己那片</text>
                   </svg>
                   <figcaption>图示：用户按单元切片，单元内闭环，单元间异步复制。</figcaption>
                 </figure>
@@ -353,7 +348,7 @@
               <article class="tier">
                 <div class="tier-head"><span class="tier-index">03</span><h4>任意多写 + 冲突解决</h4><span class="tag tag-warn">一致性降级</span></div>
                 <figure class="tier-fig">
-                  <svg class="dg" viewBox="0 0 300 100" role="img" aria-label="任意多写示意：三个节点同时可写，同一记录产生冲突">
+                  <svg class="dg" viewBox="0 0 300 108" role="img" aria-label="任意多写示意：三个节点同时可写，同一记录产生冲突">
                     <rect class="dg-node" x="16" y="14" width="58" height="22" rx="5"/>
                     <text class="dg-xs" x="45" y="29" text-anchor="middle">节点 A</text>
                     <rect class="dg-node" x="226" y="14" width="58" height="22" rx="5"/>
@@ -365,7 +360,7 @@
                     <line class="dg-line" x1="240" y1="36" x2="168" y2="64" marker-start="url(#arr)" marker-end="url(#arr)"/>
                     <rect class="dg-node dg-node-bad" x="96" y="28" width="66" height="20" rx="4"/>
                     <text class="dg-xs dg-t-bad" x="129" y="42" text-anchor="middle">key:42 冲突</text>
-                    <text class="dg-xs dg-t-muted" x="150" y="97" text-anchor="middle">LWW / CRDT / 业务合并</text>
+                    <text class="dg-xs dg-t-muted" x="150" y="104" text-anchor="middle">LWW / CRDT / 业务合并</text>
                   </svg>
                   <figcaption>图示：多个节点同时可写，同一 key 的并发写会产生冲突。</figcaption>
                 </figure>
